@@ -8,6 +8,8 @@ public class GeneExpressionDataSourceFactory {
         switch (geneExpressionType) {
            case DeSeq:
                return new DeSeqGeneExpressionDatasource();
+            case Simulated:
+                return new SimulatedGeneExpressionDatasource();
             default:
                 throw  new IllegalArgumentException("Invalid gene expression type");
         }

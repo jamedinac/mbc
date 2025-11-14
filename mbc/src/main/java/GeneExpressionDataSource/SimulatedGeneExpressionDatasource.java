@@ -1,9 +1,11 @@
 package GeneExpressionDataSource;
 
+import Common.GeneExpressionData;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
 
 public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSource {
+
     private final IDataGenerator dataGenerator;
     private final int numberOfGenes;
     private final int numberOfSamples;
@@ -16,7 +18,7 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
         this.numberOfTimeSeries = numberOfTimeSeries;
     }
 
-    public int [][] getGeneExpressionFormattedData () {
+    public GeneExpressionData getGeneExpressionFormattedData () {
         int[][] geneExpressionData = new int[numberOfGenes][numberOfSamples * numberOfTimeSeries];
 
         for (int i = 0; i < numberOfGenes; i++) {
@@ -25,6 +27,6 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
             }
         }
 
-        return geneExpressionData;
+        return new GeneExpressionData(numberOfGenes, numberOfSamples, numberOfTimeSeries, geneExpressionData);
     }
 }

@@ -10,7 +10,7 @@ public class Main {
         int uniformDataGeneratorLimit = 100;
         IDataGenerator uniformDataGenerator = new UniformDataGenerator(uniformDataGeneratorLimit);
 
-        int numberOfGenes = 100;
+        int numberOfGenes = 10;
         int numberOfSamples = 3;
         int numberOfTimSeries = 5;
 

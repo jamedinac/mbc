@@ -1,8 +1,32 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import DataGenerators.UniformDataGenerator;
+import GeneExpressionDataSource.SimulatedGeneExpressionDatasource;
+import Interfaces.IDataGenerator;
+import Interfaces.IGeneExpressionDataSource;
+
 public class Main {
     static void main() {
+        int uniformDataGeneratorLimit = 100;
+        IDataGenerator uniformDataGenerator = new UniformDataGenerator(uniformDataGeneratorLimit);
+
+        int numberOfGenes = 100;
+        int numberOfSamples = 3;
+        int numberOfTimSeries = 5;
+
+        IGeneExpressionDataSource simulatedGeneExpressionDatasource = new SimulatedGeneExpressionDatasource(
+                uniformDataGenerator,
+                numberOfGenes,
+                numberOfSamples,
+                numberOfTimSeries);
+
+        int[][] geneExpressionData = simulatedGeneExpressionDatasource.getGeneExpressionFormattedData();
+
+        for (int i = 0; i < geneExpressionData.length; i++) {
+            for (int j = 0; j < geneExpressionData[i].length; j++) {
+                System.out.print(geneExpressionData[i][j] + " ");
+            }
+            System.out.println();
+        }
     }
 }

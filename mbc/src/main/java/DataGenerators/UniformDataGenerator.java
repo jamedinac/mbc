@@ -4,6 +4,7 @@ import Interfaces.IDataGenerator;
 import java.util.Random;
 
 public class UniformDataGenerator implements IDataGenerator {
+
     private final Random random;
     private final int limit;
 
@@ -11,6 +12,7 @@ public class UniformDataGenerator implements IDataGenerator {
         this.random = new Random();
         this.limit = limit;
     }
+
     public int generateRandomNumber() {
         return random.nextInt(limit);
     }

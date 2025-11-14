@@ -6,7 +6,18 @@ import Interfaces.IClusteringAlgorithm;
 
 public class DummyAlgorithm implements IClusteringAlgorithm {
 
-    GeneClusteringData processGene(GeneExpressionData geneExpresionData) {
+    public GeneClusteringData clusterGenes(GeneExpressionData geneExpresionData) {
+        int numberOfGenes = geneExpresionData.getNumberOfGenes();
+        int numberOfClusters = geneExpresionData.getNumberOfGenes();
 
+        int[][] geneClusteringData = new int[numberOfGenes][numberOfClusters];
+
+        for (int i = 0; i < numberOfGenes; i++) {
+            for (int j = 0; j < numberOfClusters; j++) {
+                geneClusteringData[i][j] = i == j ? 1 : 0;
+            }
+        }
+
+        return new GeneClusteringData(numberOfGenes, numberOfClusters, geneClusteringData);
     }
 }

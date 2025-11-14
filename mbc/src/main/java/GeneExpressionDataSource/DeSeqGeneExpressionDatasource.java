@@ -8,7 +8,7 @@ public class DeSeqGeneExpressionDatasource implements IGeneExpressionDataSource 
 
     }
 
-    int [][] getTimeSeriesGeneExpression () {
-        return new int[][];
+    public int [][] getGeneExpressionFormattedData () {
+        return new int [1][1];
     }
 }

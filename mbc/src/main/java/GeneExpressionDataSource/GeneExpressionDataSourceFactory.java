@@ -7,7 +7,7 @@ public class GeneExpressionDataSourceFactory {
     public static IGeneExpressionDataSource createDataSource(GeneExpressionType geneExpressionType) {
         switch (geneExpressionType) {
            case DeSeq:
-               return new DeSeqGeneExpressionDatasource();
+               return new DeSeqGeneExpressionDatasource("", "");
             case Simulated:
                 return new SimulatedGeneExpressionDatasource();
             default:

@@ -1,10 +1,13 @@
 package org.example;
 
+import ClusterEvaluators.JackardEvaluation;
 import ClusteringAlgorithms.DummyAlgorithm;
+import Common.ClusterResult;
 import Common.GeneClusteringData;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
 import GeneExpressionDataSource.SimulatedGeneExpressionDatasource;
+import Interfaces.IClusterEvaluation;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
@@ -26,21 +29,10 @@ public class Main {
 
         GeneExpressionData geneExpressionData = simulatedGeneExpressionDatasource.getGeneExpressionFormattedData();
 
-        for (int i = 0; i < geneExpressionData.getNumberOfGenes(); i++) {
-            for (int j = 0; j < geneExpressionData.getNumberOfSamples() * geneExpressionData.getNumberOfTimeSeries(); j++) {
-                System.out.print(geneExpressionData.getExpressionData()[i][j] + " ");
-            }
-            System.out.println();
-        }
-
         IClusteringAlgorithm dummyAlgorithm = new DummyAlgorithm();
         GeneClusteringData geneClusteringData = dummyAlgorithm.clusterGenes(geneExpressionData);
 
-        for (int i = 0; i < geneClusteringData.getNumberOfGenes(); i++) {
-            for (int j = 0; j < geneClusteringData.getNumberOfClusters(); j++) {
-                System.out.print(geneClusteringData.getGeneClusteringData()[i][j] + " ");
-            }
-            System.out.println();
-        }
+        IClusterEvaluation jackardEvaluation = new JackardEvaluation();
+        ClusterResult clusterResult = jackardEvaluation.evaluate(geneClusteringData, geneExpressionData);
     }
 }

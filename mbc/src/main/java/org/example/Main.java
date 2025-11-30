@@ -1,13 +1,13 @@
 package org.example;
 
-import ClusterEvaluators.JackardEvaluation;
+import ClusterBenchmark.JackardBenchmark;
 import ClusteringAlgorithms.DummyAlgorithm;
 import Common.ClusterResult;
-import Common.GeneClusteringData;
+import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
 import GeneExpressionDataSource.SimulatedGeneExpressionDatasource;
-import Interfaces.IClusterEvaluation;
+import Interfaces.IClusterBenchmark;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
@@ -18,21 +18,24 @@ public class Main {
         IDataGenerator uniformDataGenerator = new UniformDataGenerator(uniformDataGeneratorLimit);
 
         int numberOfGenes = 10;
-        int numberOfSamples = 3;
+        int numberOfReplicates = 3; //TODO: replicates
         int numberOfTimSeries = 5;
 
         IGeneExpressionDataSource simulatedGeneExpressionDatasource = new SimulatedGeneExpressionDatasource(
                 uniformDataGenerator,
                 numberOfGenes,
-                numberOfSamples,
+                numberOfReplicates,
                 numberOfTimSeries);
 
         GeneExpressionData geneExpressionData = simulatedGeneExpressionDatasource.getGeneExpressionFormattedData();
 
         IClusteringAlgorithm dummyAlgorithm = new DummyAlgorithm();
-        GeneClusteringData geneClusteringData = dummyAlgorithm.clusterGenes(geneExpressionData);
+        GeneClusteringResult geneClusteringData = dummyAlgorithm.clusterGenes(geneExpressionData);
 
-        IClusterEvaluation jackardEvaluation = new JackardEvaluation();
+        /*
+         * TODO separar benchmarking del algoritmo
+         */
+        IClusterBenchmark jackardEvaluation = new JackardBenchmark();
         ClusterResult clusterResult = jackardEvaluation.evaluate(geneClusteringData, geneExpressionData);
     }
 }

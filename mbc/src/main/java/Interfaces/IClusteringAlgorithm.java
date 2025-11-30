@@ -1,6 +1,6 @@
 package Interfaces;
 
-import Common.GeneClusteringData;
+import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 
 public interface IClusteringAlgorithm {
@@ -10,5 +10,5 @@ public interface IClusteringAlgorithm {
      * @param geneExpresionData
      * @return
      */
-    GeneClusteringData clusterGenes(GeneExpressionData geneExpresionData);
+    GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData);
 }

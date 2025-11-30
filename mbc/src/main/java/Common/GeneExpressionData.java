@@ -3,13 +3,17 @@ package Common;
 public class GeneExpressionData {
 
     private final int numberOfGenes;
-    private final int numberOfSamples;
+    private final int numberOfReplicates;
     private final int numberOfTimeSeries;
     private final int[][] expressionData;
+    /*
+     * TODO:
+     *   private final int metadata []: identifica las replicas por tiempo
+     */
 
-    public GeneExpressionData(int numberOfGenes, int numberOfSamples, int numberOfTimeSeries, int[][] expressionData) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, int[][] expressionData) {
         this.numberOfGenes = numberOfGenes;
-        this.numberOfSamples = numberOfSamples;
+        this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
         this.expressionData = expressionData;
     }
@@ -22,8 +26,8 @@ public class GeneExpressionData {
         return numberOfGenes;
     }
 
-    public int getNumberOfSamples() {
-        return numberOfSamples;
+    public int getNumberOfReplicates() {
+        return numberOfReplicates;
     }
 
     public int getNumberOfTimeSeries() {

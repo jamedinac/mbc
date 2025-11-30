@@ -1,14 +1,17 @@
 package Common;
 
-import java.io.Serializable;
-
-public class GeneClusteringData {
+public class GeneClusteringResult {
 
     private final int numberOfGenes;
     private final int numberOfClusters;
-    private final int[][] geneClusteringData;
+    private final double[][] geneClusteringData;
 
-    public GeneClusteringData(int numberOfGenes, int numberOfClusters, int[][] geneClusteringData) {
+    /*
+     *  TODO:
+     *   add reference to the source data
+     */
+
+    public GeneClusteringResult(int numberOfGenes, int numberOfClusters, double[][] geneClusteringData) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
@@ -22,7 +25,7 @@ public class GeneClusteringData {
         return numberOfClusters;
     }
 
-    public int[][] getGeneClusteringData() {
+    public double[][] getGeneClusteringData() {
         return geneClusteringData;
     }
 }

@@ -1,15 +1,15 @@
 package Interfaces;
 
 import Common.ClusterResult;
-import Common.GeneClusteringData;
+import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 
-public interface IClusterEvaluation {
+public interface IClusterBenchmark {
 
     /**
      * Evaluates the clustering results
      * @param geneClusteringData
      * @return Cluster result
      */
-    ClusterResult evaluate(GeneClusteringData geneClusteringData,  GeneExpressionData geneExpressionData);
+    ClusterResult evaluate(GeneClusteringResult geneClusteringData, GeneExpressionData geneExpressionData);
 }

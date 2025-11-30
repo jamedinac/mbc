@@ -1,16 +1,16 @@
 package ClusteringAlgorithms;
 
-import Common.GeneClusteringData;
+import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import Interfaces.IClusteringAlgorithm;
 
 public class DummyAlgorithm implements IClusteringAlgorithm {
 
-    public GeneClusteringData clusterGenes(GeneExpressionData geneExpresionData) {
+    public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
         int numberOfGenes = geneExpresionData.getNumberOfGenes();
         int numberOfClusters = geneExpresionData.getNumberOfGenes();
 
-        int[][] geneClusteringData = new int[numberOfGenes][numberOfClusters];
+        double[][] geneClusteringData = new double[numberOfGenes][numberOfClusters];
 
         for (int i = 0; i < numberOfGenes; i++) {
             for (int j = 0; j < numberOfClusters; j++) {
@@ -18,6 +18,6 @@ public class DummyAlgorithm implements IClusteringAlgorithm {
             }
         }
 
-        return new GeneClusteringData(numberOfGenes, numberOfClusters, geneClusteringData);
+        return new GeneClusteringResult(numberOfGenes, numberOfClusters, geneClusteringData);
     }
 }

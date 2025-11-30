@@ -1,12 +1,12 @@
 package ClusteringAlgorithms;
 
-import Common.GeneClusteringData;
+import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import Interfaces.IClusteringAlgorithm;
 
 public class ClustAlgorithm implements IClusteringAlgorithm {
 
-    public GeneClusteringData clusterGenes(GeneExpressionData geneExpresionData) {
+    public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
         throw  new UnsupportedOperationException("Not supported yet.");
     }
 }

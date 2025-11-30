@@ -2,12 +2,11 @@ package ClusterBenchmark;
 
 import Common.BenchmarkType;
 import Common.GeneClusteringResult;
-import Common.GeneExpressionData;
 import Interfaces.IClusterBenchmark;
 
 public class ClusterBenchmarkFactory {
 
-    public static IClusterBenchmark create (BenchmarkType benchmarkType, GeneClusteringResult geneClusteringResult, GeneExpressionData geneExpressionData, GeneClusteringResult goldStandard) {
+    public static IClusterBenchmark create (BenchmarkType benchmarkType, GeneClusteringResult geneClusteringResult, GeneClusteringResult goldStandard) {
         IClusterBenchmark clusterBenchmark = null;
 
         switch (benchmarkType) {

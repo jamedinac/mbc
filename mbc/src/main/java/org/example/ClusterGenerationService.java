@@ -9,7 +9,7 @@ import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
 
-public class ClusterGeneration {
+public class ClusterGenerationService {
     static void main() {
         int uniformDataGeneratorLimit = 100;
         IDataGenerator uniformDataGenerator = new UniformDataGenerator(uniformDataGeneratorLimit);

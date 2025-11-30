@@ -2,23 +2,18 @@ package Common;
 
 public class GeneClusteringResult {
 
-    private final int numberOfGenes;
     private final int numberOfClusters;
     private final double[][] geneClusteringData;
+    private final GeneExpressionData geneExpressionData;
 
-    /*
-     *  TODO:
-     *   add reference to the source data
-     */
-
-    public GeneClusteringResult(int numberOfGenes, int numberOfClusters, double[][] geneClusteringData) {
-        this.numberOfGenes = numberOfGenes;
+    public GeneClusteringResult(int numberOfClusters, double[][] geneClusteringData, GeneExpressionData geneExpressionData) {
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
+        this.geneExpressionData = geneExpressionData;
     }
 
     public int getNumberOfGenes() {
-        return numberOfGenes;
+        return geneExpressionData.getNumberOfGenes();
     }
 
     public int getNumberOfClusters() {
@@ -27,5 +22,9 @@ public class GeneClusteringResult {
 
     public double[][] getGeneClusteringData() {
         return geneClusteringData;
+    }
+
+    public GeneExpressionData getGeneExpressionData() {
+        return geneExpressionData;
     }
 }

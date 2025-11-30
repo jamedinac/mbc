@@ -11,6 +11,7 @@ public class DeSeqGeneExpressionDatasource implements IGeneExpressionDataSource 
 
     public GeneExpressionData getGeneExpressionFormattedData () {
         int[][] geneExpressionData = new int[1][1];
-        return new GeneExpressionData(1, 1, 1, geneExpressionData);
+        int[] metadata = new int[1];
+        return new GeneExpressionData(1, 1, 1, geneExpressionData, metadata);
     }
 }

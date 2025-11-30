@@ -2,7 +2,7 @@ package org.example;
 
 import ClusterBenchmark.JackardBenchmark;
 import ClusteringAlgorithms.DummyAlgorithm;
-import Common.ClusterResult;
+import Common.ClusterBenchmark;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
@@ -35,7 +35,7 @@ public class Main {
         /*
          * TODO separar benchmarking del algoritmo
          */
-        IClusterBenchmark jackardEvaluation = new JackardBenchmark();
-        ClusterResult clusterResult = jackardEvaluation.evaluate(geneClusteringData, geneExpressionData);
+        IClusterBenchmark jackardEvaluation = new JackardBenchmark(geneClusteringData, geneClusteringData);
+        ClusterBenchmark clusterResult = jackardEvaluation.evaluate();
     }
 }

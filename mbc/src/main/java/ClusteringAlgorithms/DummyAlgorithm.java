@@ -18,6 +18,6 @@ public class DummyAlgorithm implements IClusteringAlgorithm {
             }
         }
 
-        return new GeneClusteringResult(numberOfGenes, numberOfClusters, geneClusteringData);
+        return new GeneClusteringResult(numberOfClusters, geneClusteringData, geneExpresionData);
     }
 }

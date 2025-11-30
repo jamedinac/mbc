@@ -6,16 +6,14 @@ public class GeneExpressionData {
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
     private final int[][] expressionData;
-    /*
-     * TODO:
-     *   private final int metadata []: identifica las replicas por tiempo
-     */
+    private final int[] metadata;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, int[][] expressionData) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, int[][] expressionData, int[] metadata) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
         this.expressionData = expressionData;
+        this.metadata = metadata;
     }
 
     public int[][] getExpressionData() {
@@ -32,5 +30,9 @@ public class GeneExpressionData {
 
     public int getNumberOfTimeSeries() {
         return numberOfTimeSeries;
+    }
+
+    public int[] getMetadata() {
+        return metadata;
     }
 }

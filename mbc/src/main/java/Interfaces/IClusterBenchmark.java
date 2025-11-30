@@ -1,11 +1,12 @@
 package Interfaces;
 
-import Common.ClusterBenchmark;
+import org.example.ClusterBenchmark;
 
 public interface IClusterBenchmark {
 
     /**
      * Evaluates the clustering results
+     *
      * @return Cluster result
      */
     ClusterBenchmark evaluate();

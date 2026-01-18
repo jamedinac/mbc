@@ -1,6 +1,6 @@
 package Interfaces;
 
-import org.example.ClusterBenchmarkService;
+import Common.ClusterBenchmarkResult;
 
 public interface IClusterBenchmark {
 
@@ -9,5 +9,5 @@ public interface IClusterBenchmark {
      *
      * @return Cluster result
      */
-    ClusterBenchmarkService evaluate();
+    ClusterBenchmarkResult evaluate();
 }

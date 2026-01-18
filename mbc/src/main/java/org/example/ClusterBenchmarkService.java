@@ -2,6 +2,7 @@ package org.example;
 
 import ClusterBenchmark.ClusterBenchmarkFactory;
 import Common.BenchmarkType;
+import Common.ClusterBenchmarkResult;
 import Common.GeneClusteringResult;
 import Interfaces.IClusterBenchmark;
 
@@ -13,7 +14,7 @@ public class ClusterBenchmarkService {
         GeneClusteringResult goldStandard = null;
 
         IClusterBenchmark clusterBenchmark = null;
-        ArrayList<ClusterBenchmarkService> clusterBenchmarkResults = new ArrayList<>();
+        ArrayList<ClusterBenchmarkResult> clusterBenchmarkResults = new ArrayList<>();
 
         for (BenchmarkType benchmarkType : BenchmarkType.values()) {
             clusterBenchmark = ClusterBenchmarkFactory.create(benchmarkType, geneClusteringResult, goldStandard);

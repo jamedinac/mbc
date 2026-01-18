@@ -2,5 +2,6 @@ package Common;
 
 public enum BenchmarkType {
     Jaccard,
-    MeanSquaredError
+    MeanSquaredError,
+    Silhouette,
 }

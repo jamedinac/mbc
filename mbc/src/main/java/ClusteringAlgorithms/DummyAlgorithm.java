@@ -6,6 +6,7 @@ import Interfaces.IClusteringAlgorithm;
 
 public class DummyAlgorithm implements IClusteringAlgorithm {
 
+    @Override
     public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
         int numberOfGenes = geneExpresionData.getNumberOfGenes();
         int numberOfClusters = geneExpresionData.getNumberOfGenes();

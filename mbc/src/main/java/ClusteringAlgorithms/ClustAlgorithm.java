@@ -4,9 +4,47 @@ import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import Interfaces.IClusteringAlgorithm;
 
+import java.util.ArrayList;
+
 public class ClustAlgorithm implements IClusteringAlgorithm {
 
+    static class ClustParameters {
+        ArrayList<IClusteringAlgorithm> clusteringAlgorithms;
+        ArrayList<Integer> kValues;
+        ArrayList<Double> deltaValues;
+        Double tightness;
+        Integer smallestCluster;
+        Double thirdQuartiles;
+    };
+
+    static class MNScatterPlotParameters {
+        GeneClusteringResult geneClusteringElite;
+        ArrayList<Double> mnDistances;
+    }
+
+    private final ClustParameters parameters;
+
+    public ClustAlgorithm(ClustParameters parameters) {
+        this.parameters = parameters;
+    }
+
+    @Override
     public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
-        throw  new UnsupportedOperationException("Not supported yet.");
+        GeneClusteringResult seed = bicopam(geneExpresionData);
+        MNScatterPlotParameters mnScatterPlotParameters = mnScatterPlot(geneExpresionData, seed);
+        GeneClusteringResult finalClusters = optimise(geneExpresionData, mnScatterPlotParameters);
+        return finalClusters;
+    }
+
+    private GeneClusteringResult bicopam(GeneExpressionData geneExpressionData) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private MNScatterPlotParameters mnScatterPlot (GeneExpressionData geneExpressionData, GeneClusteringResult seed) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private GeneClusteringResult optimise(GeneExpressionData geneExpressionData, MNScatterPlotParameters mnScatterPlotParameters) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

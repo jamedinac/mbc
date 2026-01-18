@@ -1,10 +1,9 @@
 package ClusterBenchmark;
 
 import Common.BenchmarkType;
-import Common.ClusterBenchmark;
+import Common.ClusterBenchmarkResult;
 import Common.GeneClusteringResult;
 import Interfaces.IClusterBenchmark;
-import org.example.ClusterBenchmarkService;
 
 public class Jaccard implements IClusterBenchmark {
 
@@ -15,7 +14,7 @@ public class Jaccard implements IClusterBenchmark {
         this.geneClustering = geneClustering;
         this.goldStandard = goldStandard;
     }
-    public ClusterBenchmarkService evaluate() {
-        return new ClusterBenchmark(BenchmarkType.Jaccard, 1);
+    public ClusterBenchmarkResult evaluate() {
+        return new ClusterBenchmarkResult(BenchmarkType.Jaccard, 1);
     }
 }

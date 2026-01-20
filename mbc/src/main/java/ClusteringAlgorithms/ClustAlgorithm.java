@@ -6,6 +6,10 @@ import Interfaces.IClusteringAlgorithm;
 
 import java.util.ArrayList;
 
+/**
+ * Abu-Jamous and Kelly Genome Biology
+ * https://doi.org/10.1186/s13059-018-1536-8
+ */
 public class ClustAlgorithm implements IClusteringAlgorithm {
 
     static class ClustParameters {

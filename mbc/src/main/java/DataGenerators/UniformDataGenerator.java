@@ -13,7 +13,9 @@ public class UniformDataGenerator implements IDataGenerator {
         this.limit = limit;
     }
 
-    public int generateRandomNumber() {
+    public int generateRandomInteger() {
         return random.nextInt(limit);
     }
+
+    public double generateRandomDouble() {return random.nextDouble(limit);}
 }

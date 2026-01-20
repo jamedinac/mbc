@@ -5,10 +5,10 @@ public class GeneExpressionData {
     private final int numberOfGenes;
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
-    private final int[][] expressionData;
+    private final double[][] expressionData;
     private final int[] metadata;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, int[][] expressionData, int[] metadata) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, double[][] expressionData, int[] metadata) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
@@ -16,7 +16,7 @@ public class GeneExpressionData {
         this.metadata = metadata;
     }
 
-    public int[][] getExpressionData() {
+    public double[][] getExpressionData() {
         return expressionData;
     }
 

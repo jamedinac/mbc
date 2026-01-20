@@ -24,7 +24,7 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
 
         for (int i = 0; i < numberOfGenes; i++) {
             for (int j = 0; j < numberOfReplicates * numberOfTimeSeries; j++) {
-                geneExpressionData[i][j] = dataGenerator.generateRandomNumber();
+                geneExpressionData[i][j] = dataGenerator.generateRandomInteger();
                 metadata[j] = j / numberOfTimeSeries;
             }
         }

@@ -5,6 +5,9 @@ import Common.GeneExpressionData;
 import Common.GeneProfile;
 import DataGenerators.UniformDataGenerator;
 import Interfaces.IClusteringAlgorithm;
+import Utilities.Utilities;
+
+import java.util.ArrayList;
 
 public class KMeansAlgorithm implements IClusteringAlgorithm {
 
@@ -21,12 +24,12 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         int numberOfRows = geneExpresionData.getNumberOfGenes();
         int numberOfColumns = geneExpresionData.getNumberOfTimeSeries() * geneExpresionData.getNumberOfReplicates();
 
-        double[][] centroids = generateCentroids(
+        ArrayList<GeneProfile<Double>> centroids = generateCentroids(
                 getMaxExpressionValue(geneExpresionData.getExpressionData()),
                 numberOfRows,
                 numberOfColumns);
 
-        double[][] clusteringResult = new double[numberOfRows][numberOfColumns];
+        ArrayList<GeneProfile<Double>> clusteringResult = new ArrayList<>();
 
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
             clusteringResult = getClusterAssignation(geneExpresionData, centroids);
@@ -36,66 +39,81 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         return new GeneClusteringResult(k, clusteringResult, geneExpresionData);
     }
 
-    double[][] generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
-        double[][] centroids = new double[numberOfRows][numberOfColumns];
+    ArrayList<GeneProfile<Double>> generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
+        ArrayList<GeneProfile<Double>> centroids = new ArrayList<>();
         UniformDataGenerator dataGenerator = new UniformDataGenerator((int)maxExpressionValue);
 
         for (int i=0; i<numberOfRows; i++) {
+            ArrayList<Double> centroid = new ArrayList<>(numberOfColumns);
+
             for (int j=0; j<numberOfColumns; j++) {
-                centroids[i][j] = dataGenerator.generateRandomDouble();
+                centroid.set(j, dataGenerator.generateRandomDouble());
             }
+
+            centroids.add(new GeneProfile<>(centroid));
         }
 
         return centroids;
     }
     
-    double getMaxExpressionValue(double[][] expressionData) {
+    double getMaxExpressionValue(ArrayList<GeneProfile<Double>> expressionData) {
         double maxExpression = 0.0;
 
-        for (int i=0; i<expressionData.length; i++) {
-            for (int j=0; j<expressionData[i].length; j++) {
-                maxExpression = Math.max(maxExpression, expressionData[i][j]);
-            }
+        for (GeneProfile<Double> geneProfile : expressionData) {
+            maxExpression = Utilities.getMaxValue(geneProfile);
         }
 
         return maxExpression;
     }
 
-    double[][] getClusterAssignation(GeneExpressionData geneExpressionData, double[][] centroids) {
-        int numberOfGenes = geneExpressionData.getExpressionData().length;
-        int numberOfClusters = centroids.length;
+    ArrayList<GeneProfile<Double>> getClusterAssignation(GeneExpressionData geneExpressionData, ArrayList<GeneProfile<Double>> centroids) {
+        int numberOfGenes = geneExpressionData.getExpressionData().size();
+        int numberOfClusters = centroids.size();
 
-        double[][] clusterResult = new double[numberOfGenes][numberOfClusters];
+        ArrayList<GeneProfile<Double>> clusterResult = new ArrayList<>(numberOfGenes);
 
         for (int gene = 0; gene < numberOfGenes; gene++) {
             int bestCentroid = 0;
-            GeneProfile geneProfile = new GeneProfile(geneExpressionData.getNumberOfReplicates(), geneExpressionData.getNumberOfTimeSeries());
-            double distanceToBestCentorid = geneProfile.computeEuclideanDistance(geneExpressionData.getExpressionData()[gene], centroids[0]);
+            double distanceToBestCentorid = Utilities.computeEuclideanDistance(geneExpressionData.getGeneProfile(gene), centroids.getFirst());
             
             for (int centroid = 1; centroid<numberOfClusters; centroid++) {
-                double distanceToCurrentCentroid = geneProfile.computeEuclideanDistance(geneExpressionData.getExpressionData()[gene], centroids[centroid]);
+                double distanceToCurrentCentroid = Utilities.computeEuclideanDistance(geneExpressionData.getGeneProfile(gene), centroids.getFirst());
+
                 if (distanceToCurrentCentroid < distanceToBestCentorid) {
                     bestCentroid = centroid;
                     distanceToBestCentorid = distanceToCurrentCentroid;
                 }
             }
 
+            ArrayList<Double> clusterAssignments = new ArrayList<>(numberOfClusters);
+
             for (int centroid = 0; centroid<numberOfClusters; centroid++) {
-                clusterResult[gene][centroid] = centroid == bestCentroid ? 1.0 : 0.0;
+                clusterAssignments.set(centroid, centroid == bestCentroid ? 1.0 : 0.0);
             }
+
+            clusterResult.add(new GeneProfile<>(clusterAssignments));
         }
 
         return clusterResult;
     }
 
-    double[][] calculateCentroids(double[][] clusteringResult, GeneExpressionData geneExpressionData) {
-        double[][] centroids =  new double[this.k][geneExpressionData.getExpressionData()[0].length];
+    ArrayList<GeneProfile<Double>> calculateCentroids(ArrayList<GeneProfile<Double>> clusteringResult, GeneExpressionData geneExpressionData) {
+        ArrayList<GeneProfile<Double>> centroids = new ArrayList<>();
 
         for (int centroid = 0; centroid < this.k; centroid++) {
+            int numberOfElements = 0;
+            GeneProfile<Double> centroidProfile = new GeneProfile<>(this.k, 0.0);
 
+            for (GeneProfile<Double> geneProfile : clusteringResult) {
+                if (geneProfile.get(centroid) != 0.0) {
+                    centroidProfile = Utilities.add(centroidProfile, geneProfile);
+                    numberOfElements++;
+                }
+            }
+
+            centroids.add(Utilities.divide(centroidProfile, (double) numberOfElements));
         }
 
-        //TODO: Finish calculating new centroids methods
-        return null;
+        return centroids;
     }
 }

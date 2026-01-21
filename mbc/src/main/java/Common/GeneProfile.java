@@ -1,24 +1,31 @@
 package Common;
 
-public class GeneProfile{
+import java.util.ArrayList;
 
-    private final int numberOfReplicates;
-    private final int numberOfTimeSeries;
+public class GeneProfile<T>{
 
-    public GeneProfile(int numberOfReplicates, int numberOfTimeSeries) {
-        this.numberOfReplicates = numberOfReplicates;
-        this.numberOfTimeSeries = numberOfTimeSeries;
+    private final ArrayList<T> profileData;
+
+    public GeneProfile(ArrayList<T> profileData){
+        this.profileData = profileData;
     }
 
-    public double computeEuclideanDistance(double[] geneProfileA, double[] geneProfileB) {
-        double distance = 0.0;
-        int numberOfComponents = this.numberOfTimeSeries *this.numberOfReplicates;
-
-        for (int componentIndex = 0; componentIndex < numberOfComponents; componentIndex++) {
-            double difference = geneProfileA[componentIndex] - geneProfileB[componentIndex];
-            distance += difference * difference;
+    public GeneProfile(int size, T value) {
+        this.profileData = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            profileData.set(i, value);
         }
+    }
 
-        return Math.sqrt(distance);
+    public ArrayList<T> getProfileData(){
+        return profileData;
+    }
+
+    public int getSize(){
+        return profileData.size();
+    }
+
+    public T get(int index){
+        return profileData.get(index);
     }
 }

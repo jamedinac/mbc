@@ -1,12 +1,14 @@
 package Common;
 
+import java.util.ArrayList;
+
 public class GeneClusteringResult {
 
     private final int numberOfClusters;
-    private final double[][] geneClusteringData;
+    private final ArrayList<GeneProfile<Double>> geneClusteringData;
     private final GeneExpressionData geneExpressionData;
 
-    public GeneClusteringResult(int numberOfClusters, double[][] geneClusteringData, GeneExpressionData geneExpressionData) {
+    public GeneClusteringResult(int numberOfClusters, ArrayList<GeneProfile<Double>> geneClusteringData, GeneExpressionData geneExpressionData) {
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
         this.geneExpressionData = geneExpressionData;
@@ -20,7 +22,7 @@ public class GeneClusteringResult {
         return numberOfClusters;
     }
 
-    public double[][] getGeneClusteringData() {
+    public ArrayList<GeneProfile<Double>> getGeneClusteringData() {
         return geneClusteringData;
     }
 

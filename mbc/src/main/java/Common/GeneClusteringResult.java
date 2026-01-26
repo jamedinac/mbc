@@ -5,10 +5,10 @@ import java.util.ArrayList;
 public class GeneClusteringResult {
 
     private final int numberOfClusters;
-    private final ArrayList<GeneProfile<Double>> geneClusteringData;
+    private final ArrayList<GeneProfile> geneClusteringData;
     private final GeneExpressionData geneExpressionData;
 
-    public GeneClusteringResult(int numberOfClusters, ArrayList<GeneProfile<Double>> geneClusteringData, GeneExpressionData geneExpressionData) {
+    public GeneClusteringResult(int numberOfClusters, ArrayList<GeneProfile> geneClusteringData, GeneExpressionData geneExpressionData) {
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
         this.geneExpressionData = geneExpressionData;
@@ -22,7 +22,7 @@ public class GeneClusteringResult {
         return numberOfClusters;
     }
 
-    public ArrayList<GeneProfile<Double>> getGeneClusteringData() {
+    public ArrayList<GeneProfile> getGeneClusteringData() {
         return geneClusteringData;
     }
 

@@ -7,10 +7,10 @@ public class GeneExpressionData {
     private final int numberOfGenes;
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
-    private final ArrayList<GeneProfile<Double>> expressionData;
+    private final ArrayList<GeneProfile> expressionData;
     private final ArrayList<Integer> metadata;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, ArrayList<GeneProfile<Double>> expressionData, ArrayList<Integer> metadata) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, ArrayList<GeneProfile> expressionData, ArrayList<Integer> metadata) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
@@ -18,7 +18,7 @@ public class GeneExpressionData {
         this.metadata = metadata;
     }
 
-    public ArrayList<GeneProfile<Double>> getExpressionData() {
+    public ArrayList<GeneProfile> getExpressionData() {
         return expressionData;
     }
 
@@ -38,7 +38,7 @@ public class GeneExpressionData {
         return metadata;
     }
 
-    public GeneProfile<Double> getGeneProfile(int geneIndex){
+    public GeneProfile getGeneProfile(int geneIndex){
         return expressionData.get(geneIndex);
     }
 }

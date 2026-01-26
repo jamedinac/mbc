@@ -5,9 +5,9 @@ import Common.GeneExpressionData;
 import Common.GeneProfile;
 import DataGenerators.UniformDataGenerator;
 import Interfaces.IClusteringAlgorithm;
-import Utilities.Utilities;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class KMeansAlgorithm implements IClusteringAlgorithm {
 
@@ -20,27 +20,36 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
     }
 
     @Override
-    public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
-        int numberOfRows = geneExpresionData.getNumberOfGenes();
-        int numberOfColumns = geneExpresionData.getNumberOfTimeSeries() * geneExpresionData.getNumberOfReplicates();
+    public GeneClusteringResult clusterGenes(GeneExpressionData geneExpressionData) {
+        int numberOfGenes = geneExpressionData.getNumberOfGenes();
+        int numberOfComponents = geneExpressionData.getNumberOfTimeSeries() * geneExpressionData.getNumberOfReplicates();
 
-        ArrayList<GeneProfile<Double>> centroids = generateCentroids(
-                getMaxExpressionValue(geneExpresionData.getExpressionData()),
-                numberOfRows,
-                numberOfColumns);
+        ArrayList<GeneProfile> centroids = generateCentroids(
+                getMaxExpressionValue(geneExpressionData.getExpressionData()),
+                this.k,
+                numberOfComponents);
 
-        ArrayList<GeneProfile<Double>> clusteringResult = new ArrayList<>();
+        ArrayList<Integer> clusterAssignation = new ArrayList<>(numberOfGenes);
 
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
-            clusteringResult = getClusterAssignation(geneExpresionData, centroids);
-            centroids = calculateCentroids(clusteringResult, geneExpresionData);
+            clusterAssignation = getClusterAssignation(geneExpressionData, centroids);
+            centroids = calculateCentroids(clusterAssignation, geneExpressionData);
+
+            // In case of empty assignation, restart the process
+            if (centroids.isEmpty()) {
+                centroids = generateCentroids(
+                        getMaxExpressionValue(geneExpressionData.getExpressionData()),
+                        this.k,
+                        numberOfComponents);
+                iteration = 0;
+            }
         }
 
-        return new GeneClusteringResult(k, clusteringResult, geneExpresionData);
+        return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData);
     }
 
-    ArrayList<GeneProfile<Double>> generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
-        ArrayList<GeneProfile<Double>> centroids = new ArrayList<>();
+    ArrayList<GeneProfile> generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
+        ArrayList<GeneProfile> centroids = new ArrayList<>();
         UniformDataGenerator dataGenerator = new UniformDataGenerator((int)maxExpressionValue);
 
         for (int i=0; i<numberOfRows; i++) {
@@ -50,70 +59,88 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
                 centroid.set(j, dataGenerator.generateRandomDouble());
             }
 
-            centroids.add(new GeneProfile<>(centroid));
+            centroids.add(new GeneProfile(centroid));
         }
 
         return centroids;
     }
     
-    double getMaxExpressionValue(ArrayList<GeneProfile<Double>> expressionData) {
+    double getMaxExpressionValue(ArrayList<GeneProfile> expressionData) {
         double maxExpression = 0.0;
 
-        for (GeneProfile<Double> geneProfile : expressionData) {
-            maxExpression = Utilities.getMaxValue(geneProfile);
+        for (GeneProfile geneProfile : expressionData) {
+            maxExpression = geneProfile.getMaxValue(geneProfile);
         }
 
         return maxExpression;
     }
 
-    ArrayList<GeneProfile<Double>> getClusterAssignation(GeneExpressionData geneExpressionData, ArrayList<GeneProfile<Double>> centroids) {
+    ArrayList<Integer> getClusterAssignation(GeneExpressionData geneExpressionData, ArrayList<GeneProfile> centroids) {
         int numberOfGenes = geneExpressionData.getExpressionData().size();
         int numberOfClusters = centroids.size();
 
-        ArrayList<GeneProfile<Double>> clusterResult = new ArrayList<>(numberOfGenes);
+        ArrayList<Integer> clusterAssignation = new ArrayList<>(numberOfGenes);
 
         for (int gene = 0; gene < numberOfGenes; gene++) {
             int bestCentroid = 0;
-            double distanceToBestCentorid = Utilities.computeEuclideanDistance(geneExpressionData.getGeneProfile(gene), centroids.getFirst());
+            double distanceToBestCentorid = geneExpressionData.getGeneProfile(gene).computeEuclideanDistance(centroids.getFirst());
             
             for (int centroid = 1; centroid<numberOfClusters; centroid++) {
-                double distanceToCurrentCentroid = Utilities.computeEuclideanDistance(geneExpressionData.getGeneProfile(gene), centroids.getFirst());
+                double distanceToCurrentCentroid = geneExpressionData.getGeneProfile(gene).computeEuclideanDistance(centroids.getFirst());
 
                 if (distanceToCurrentCentroid < distanceToBestCentorid) {
                     bestCentroid = centroid;
                     distanceToBestCentorid = distanceToCurrentCentroid;
                 }
             }
-
-            ArrayList<Double> clusterAssignments = new ArrayList<>(numberOfClusters);
-
-            for (int centroid = 0; centroid<numberOfClusters; centroid++) {
-                clusterAssignments.set(centroid, centroid == bestCentroid ? 1.0 : 0.0);
-            }
-
-            clusterResult.add(new GeneProfile<>(clusterAssignments));
+            clusterAssignation.set(gene, bestCentroid);
         }
 
-        return clusterResult;
+        return clusterAssignation;
     }
 
-    ArrayList<GeneProfile<Double>> calculateCentroids(ArrayList<GeneProfile<Double>> clusteringResult, GeneExpressionData geneExpressionData) {
-        ArrayList<GeneProfile<Double>> centroids = new ArrayList<>();
+    ArrayList<GeneProfile> calculateCentroids(ArrayList<Integer> clusteringResult, GeneExpressionData geneExpressionData) {
+        int numberOfGenes = geneExpressionData.getExpressionData().size();
 
-        for (int centroid = 0; centroid < this.k; centroid++) {
-            int numberOfElements = 0;
-            GeneProfile<Double> centroidProfile = new GeneProfile<>(this.k, 0.0);
+        ArrayList<GeneProfile> centroids = new ArrayList<>();
 
-            for (GeneProfile<Double> geneProfile : clusteringResult) {
-                if (geneProfile.get(centroid) != 0.0) {
-                    centroidProfile = Utilities.add(centroidProfile, geneProfile);
-                    numberOfElements++;
-                }
+        ArrayList<Integer> centroidSize = new ArrayList<>(this.k);
+        Collections.fill(centroidSize, 0);
+
+        for (int gene = 0; gene < numberOfGenes; gene++) {
+            centroids.add(clusteringResult.get(gene), geneExpressionData.getGeneProfile(gene));
+
+            int currentClusterSize = centroidSize.get(gene);
+            centroidSize.set(clusteringResult.get(gene), currentClusterSize + 1);
+        }
+
+        for (int centroid = 0; centroid<this.k; centroid++) {
+            if (centroidSize.get(centroid) == 0) {
+                return new ArrayList<>();
             }
 
-            centroids.add(Utilities.divide(centroidProfile, (double) numberOfElements));
+            GeneProfile centroidGeneProfile = centroids.get(centroid);
+            centroids.set(centroid, centroidGeneProfile.divide((double)centroidSize.get(centroid)));
         }
 
         return centroids;
+    }
+
+    ArrayList<GeneProfile> getClusterResultFromClusterAssignation (ArrayList<Integer> clusterAssignation) {
+        ArrayList<GeneProfile> clusterResult = new ArrayList<>();
+        for (int genes = 0; genes < clusterAssignation.size(); genes++) {
+            ArrayList<Double> clusterProfileData = new ArrayList<>(this.k);
+            Collections.fill(clusterProfileData, 0.0);
+
+            for (int cluster = 0; cluster < this.k; cluster++) {
+                if (clusterAssignation.get(cluster) != 0.0) {
+                    clusterProfileData.set(cluster, 1.0);
+                }
+            }
+
+            clusterResult.add(new GeneProfile(clusterProfileData));
+        }
+
+        return clusterResult;
     }
 }

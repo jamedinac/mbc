@@ -1,6 +1,6 @@
 package org.example;
 
-import ClusteringAlgorithms.DummyAlgorithm;
+import ClusteringAlgorithms.KMeansAlgorithm;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
@@ -26,7 +26,7 @@ public class ClusterGenerationService {
 
         GeneExpressionData geneExpressionData = simulatedGeneExpressionDatasource.getGeneExpressionFormattedData();
 
-        IClusteringAlgorithm dummyAlgorithm = new DummyAlgorithm();
-        GeneClusteringResult geneClusteringData = dummyAlgorithm.clusterGenes(geneExpressionData);
+        IClusteringAlgorithm kMeansAlgorithm = new KMeansAlgorithm(10, 10);
+        GeneClusteringResult geneClusteringData = kMeansAlgorithm.clusterGenes(geneExpressionData);
     }
 }

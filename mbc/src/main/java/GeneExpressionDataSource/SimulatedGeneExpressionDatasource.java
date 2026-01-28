@@ -1,7 +1,7 @@
 package GeneExpressionDataSource;
 
 import Common.GeneExpressionData;
-import Common.GeneProfile;
+import GeneProfile.GeneProfileVector;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
 
@@ -22,7 +22,7 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
     }
 
     public GeneExpressionData getGeneExpressionFormattedData () {
-        ArrayList<GeneProfile> geneExpressionData = new ArrayList<>(numberOfGenes);
+        ArrayList<GeneProfileVector> geneExpressionData = new ArrayList<>(numberOfGenes);
         ArrayList<Integer> metadata = new ArrayList<Integer>(numberOfReplicates * numberOfTimeSeries);
 
         for (int i = 0; i < numberOfGenes; i++) {
@@ -33,7 +33,7 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
                 metadata.set(j, j / numberOfTimeSeries);
             }
 
-            geneExpressionData.add(new GeneProfile(geneProfile));
+            geneExpressionData.add(new GeneProfileVector(geneProfile));
         }
 
         return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, geneExpressionData, metadata);

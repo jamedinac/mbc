@@ -1,16 +1,13 @@
 package GeneProfile;
 
-import Interfaces.IGeneProfile;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class GeneProfileVector implements IGeneProfile<Double> {
+public class DoubleGeneProfile extends AGeneProfile<Double> {
 
-    private ArrayList<Double> profileExpression;
-
-    public GeneProfileVector(ArrayList<Double> profileExpression) {
+    public DoubleGeneProfile(ArrayList<Double> profileExpression, String geneId) {
         this.profileExpression = profileExpression;
+        this.geneId = geneId;
     }
 
     @Override
@@ -19,14 +16,14 @@ public class GeneProfileVector implements IGeneProfile<Double> {
     }
 
     @Override
-    public IGeneProfile add(IGeneProfile geneProfileB) {
+    public DoubleGeneProfile add(AGeneProfile<Double> geneProfileB) {
         ArrayList<Double> profileAdditionResult = new ArrayList<>(this.profileExpression.size());
 
         for (int i=0; i<this.profileExpression.size(); i++) {
-            profileAdditionResult.set(i, this.profileExpression.get(i) + geneProfileB.getIndex(i).doubleValue());
+            profileAdditionResult.set(i, this.profileExpression.get(i) + geneProfileB.getIndex(i));
         }
 
-        return new GeneProfileVector(profileAdditionResult);
+        return new DoubleGeneProfile(profileAdditionResult, null);
     }
 
     @Override
@@ -34,22 +31,12 @@ public class GeneProfileVector implements IGeneProfile<Double> {
         return Collections.max(this.profileExpression);
     }
 
-    @Override
-    public Double getIndex(int i) {
-        return  this.profileExpression.get(i);
-    }
-
-    @Override
-    public Integer getNumberOfComponents() {
-        return this.profileExpression.size();
-    }
-
     /**
-     * Computes the eucledean distance between two gene profiles
+     * Computes the Euclidean distance between two gene profiles
      * @param geneProfileB the other gene profile (vector) to get the Euclidean distance
      * @return Euclidean distance
      */
-    public Double euclideanDistance (GeneProfileVector geneProfileB) {
+    public Double euclideanDistance (AGeneProfile<Double> geneProfileB) {
         double distance = 0.0;
         int numberOfComponents = this.getNumberOfComponents();
 
@@ -63,10 +50,10 @@ public class GeneProfileVector implements IGeneProfile<Double> {
 
     /**
      * Divides all the component values by the given factor M
-     * @param m
+     * @param m factor
      * @return the same instance of th gene profile
      */
-    public GeneProfileVector divide(Double m) {
+    public DoubleGeneProfile divide(Double m) {
         for (int i=0; i<this.getNumberOfComponents(); i++) {
             this.profileExpression.set(i, this.profileExpression.get(i)/ m);
         }

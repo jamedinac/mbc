@@ -1,16 +1,16 @@
 package Common;
 
-import GeneProfile.GeneProfileVector;
+import GeneProfile.DoubleGeneProfile;
 
 import java.util.ArrayList;
 
 public class GeneClusteringResult {
 
     private final int numberOfClusters;
-    private final ArrayList<GeneProfileVector> geneClusteringData;
+    private final ArrayList<DoubleGeneProfile> geneClusteringData;
     private final GeneExpressionData geneExpressionData;
 
-    public GeneClusteringResult(int numberOfClusters, ArrayList<GeneProfileVector> geneClusteringData, GeneExpressionData geneExpressionData) {
+    public GeneClusteringResult(int numberOfClusters, ArrayList<DoubleGeneProfile> geneClusteringData, GeneExpressionData geneExpressionData) {
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
         this.geneExpressionData = geneExpressionData;
@@ -24,7 +24,7 @@ public class GeneClusteringResult {
         return numberOfClusters;
     }
 
-    public ArrayList<GeneProfileVector> getGeneClusteringData() {
+    public ArrayList<DoubleGeneProfile> getGeneClusteringData() {
         return geneClusteringData;
     }
 

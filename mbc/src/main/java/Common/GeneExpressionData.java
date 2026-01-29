@@ -1,6 +1,8 @@
 package Common;
 
-import GeneProfile.GeneProfileVector;
+import GeneProfile.AGeneProfile;
+import GeneProfile.DoubleGeneProfile;
+import GeneProfile.IntegerGeneProfile;
 
 import java.util.ArrayList;
 
@@ -9,10 +11,10 @@ public class GeneExpressionData {
     private final int numberOfGenes;
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
-    private final ArrayList<GeneProfileVector> expressionData;
-    private final ArrayList<Integer> metadata;
+    private final ArrayList<IntegerGeneProfile> expressionData;
+    private final ArrayList<String> metadata;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, ArrayList<GeneProfileVector> expressionData, ArrayList<Integer> metadata) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, ArrayList<IntegerGeneProfile> expressionData, ArrayList<String> metadata) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
@@ -20,7 +22,7 @@ public class GeneExpressionData {
         this.metadata = metadata;
     }
 
-    public ArrayList<GeneProfileVector> getExpressionData() {
+    public ArrayList<IntegerGeneProfile> getExpressionData() {
         return expressionData;
     }
 
@@ -36,11 +38,11 @@ public class GeneExpressionData {
         return numberOfTimeSeries;
     }
 
-    public ArrayList<Integer> getMetadata() {
+    public ArrayList<String> getMetadata() {
         return metadata;
     }
 
-    public GeneProfileVector getGeneProfile(int geneIndex){
+    public IntegerGeneProfile getGeneProfile(int geneIndex){
         return expressionData.get(geneIndex);
     }
 }

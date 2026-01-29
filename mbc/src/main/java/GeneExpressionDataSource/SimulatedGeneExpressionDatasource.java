@@ -1,7 +1,7 @@
 package GeneExpressionDataSource;
 
 import Common.GeneExpressionData;
-import GeneProfile.GeneProfileVector;
+import GeneProfile.IntegerGeneProfile;
 import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
 
@@ -22,18 +22,18 @@ public class SimulatedGeneExpressionDatasource implements IGeneExpressionDataSou
     }
 
     public GeneExpressionData getGeneExpressionFormattedData () {
-        ArrayList<GeneProfileVector> geneExpressionData = new ArrayList<>(numberOfGenes);
-        ArrayList<Integer> metadata = new ArrayList<Integer>(numberOfReplicates * numberOfTimeSeries);
+        ArrayList<IntegerGeneProfile> geneExpressionData = new ArrayList<>(numberOfGenes);
+        ArrayList<String> metadata = new ArrayList<>(numberOfReplicates * numberOfTimeSeries);
 
         for (int i = 0; i < numberOfGenes; i++) {
-            ArrayList<Double> geneProfile = new ArrayList<Double>(numberOfReplicates * numberOfTimeSeries);
+            ArrayList<Integer> geneProfile = new ArrayList<>(numberOfReplicates * numberOfTimeSeries);
 
             for (int j = 0; j < numberOfReplicates * numberOfTimeSeries; j++) {
-                geneProfile.set(j, dataGenerator.generateRandomDouble());
-                metadata.set(j, j / numberOfTimeSeries);
+                geneProfile.set(j, dataGenerator.generateRandomInteger());
+                metadata.set(j, Integer.toString(j / numberOfTimeSeries));
             }
 
-            geneExpressionData.add(new GeneProfileVector(geneProfile));
+            geneExpressionData.add(new IntegerGeneProfile(geneProfile, Integer.toString(i)));
         }
 
         return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, geneExpressionData, metadata);

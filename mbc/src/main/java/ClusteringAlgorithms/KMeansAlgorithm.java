@@ -2,7 +2,7 @@ package ClusteringAlgorithms;
 
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
-import GeneProfile.GeneProfileVector;
+import GeneProfile.DoubleGeneProfile;
 import DataGenerators.UniformDataGenerator;
 import Interfaces.IClusteringAlgorithm;
 
@@ -24,8 +24,8 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         int numberOfGenes = geneExpressionData.getNumberOfGenes();
         int numberOfComponents = geneExpressionData.getNumberOfTimeSeries() * geneExpressionData.getNumberOfReplicates();
 
-        ArrayList<GeneProfileVector> centroids = generateCentroids(
-                getMaxExpressionValue(geneExpressionData.getExpressionData()),
+        ArrayList<DoubleGeneProfile> centroids = generateCentroids(
+                getMaxExpressionValue(geneExpressionData),
                 this.k,
                 numberOfComponents);
 
@@ -38,7 +38,7 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
             // In case of empty assignation, restart the process
             if (centroids.isEmpty()) {
                 centroids = generateCentroids(
-                        getMaxExpressionValue(geneExpressionData.getExpressionData()),
+                        getMaxExpressionValue(geneExpressionData),
                         this.k,
                         numberOfComponents);
                 iteration = 0;
@@ -48,8 +48,8 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData);
     }
 
-    ArrayList<GeneProfileVector> generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
-        ArrayList<GeneProfileVector> centroids = new ArrayList<>();
+    ArrayList<DoubleGeneProfile> generateCentroids(double maxExpressionValue, int numberOfRows, int numberOfColumns) {
+        ArrayList<DoubleGeneProfile> centroids = new ArrayList<>();
         UniformDataGenerator dataGenerator = new UniformDataGenerator((int)maxExpressionValue);
 
         for (int i=0; i<numberOfRows; i++) {
@@ -59,23 +59,23 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
                 centroid.set(j, dataGenerator.generateRandomDouble());
             }
 
-            centroids.add(new GeneProfileVector(centroid));
+            centroids.add(new DoubleGeneProfile(centroid, null));
         }
 
         return centroids;
     }
     
-    double getMaxExpressionValue(ArrayList<GeneProfileVector> expressionData) {
+    double getMaxExpressionValue(GeneExpressionData expressionData) {
         double maxExpression = 0.0;
 
-        for (GeneProfileVector geneProfileVector : expressionData) {
-            maxExpression = geneProfileVector.getMaxExpression();
+        for (var geneProfileVector : expressionData.getExpressionData()) {
+            maxExpression = geneProfileVector.getMaxExpression().doubleValue();
         }
 
         return maxExpression;
     }
 
-    ArrayList<Integer> getClusterAssignation(GeneExpressionData geneExpressionData, ArrayList<GeneProfileVector> centroids) {
+    ArrayList<Integer> getClusterAssignation(GeneExpressionData geneExpressionData, ArrayList<DoubleGeneProfile> centroids) {
         int numberOfGenes = geneExpressionData.getExpressionData().size();
         int numberOfClusters = centroids.size();
 
@@ -83,10 +83,12 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
         for (int gene = 0; gene < numberOfGenes; gene++) {
             int bestCentroid = 0;
-            double distanceToBestCentorid = geneExpressionData.getGeneProfile(gene).euclideanDistance(centroids.getFirst());
+            DoubleGeneProfile geneProfile = geneExpressionData.getGeneProfile(gene).parseToDouble();
+            double distanceToBestCentorid = geneProfile.euclideanDistance(centroids.getFirst());
             
             for (int centroid = 1; centroid<numberOfClusters; centroid++) {
-                double distanceToCurrentCentroid = geneExpressionData.getGeneProfile(gene).euclideanDistance(centroids.getFirst());
+                geneProfile = (DoubleGeneProfile) geneExpressionData.getGeneProfile(gene).parseToDouble();
+                double distanceToCurrentCentroid = geneProfile.euclideanDistance(centroids.getFirst());
 
                 if (distanceToCurrentCentroid < distanceToBestCentorid) {
                     bestCentroid = centroid;
@@ -99,16 +101,16 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         return clusterAssignation;
     }
 
-    ArrayList<GeneProfileVector> calculateCentroids(ArrayList<Integer> clusteringResult, GeneExpressionData geneExpressionData) {
+    ArrayList<DoubleGeneProfile> calculateCentroids(ArrayList<Integer> clusteringResult, GeneExpressionData geneExpressionData) {
         int numberOfGenes = geneExpressionData.getExpressionData().size();
 
-        ArrayList<GeneProfileVector> centroids = new ArrayList<>();
+        ArrayList<DoubleGeneProfile> centroids = new ArrayList<>();
 
         ArrayList<Integer> centroidSize = new ArrayList<>(this.k);
         Collections.fill(centroidSize, 0);
 
         for (int gene = 0; gene < numberOfGenes; gene++) {
-            centroids.add(clusteringResult.get(gene), geneExpressionData.getGeneProfile(gene));
+            centroids.add(clusteringResult.get(gene), (DoubleGeneProfile) geneExpressionData.getGeneProfile(gene).parseToDouble());
 
             int currentClusterSize = centroidSize.get(gene);
             centroidSize.set(clusteringResult.get(gene), currentClusterSize + 1);
@@ -119,15 +121,15 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
                 return new ArrayList<>();
             }
 
-            GeneProfileVector centroidGeneProfileVector = centroids.get(centroid);
-            centroids.set(centroid, centroidGeneProfileVector.divide((double)centroidSize.get(centroid)));
+            DoubleGeneProfile centroidDoubleGeneProfile = centroids.get(centroid);
+            centroids.set(centroid, centroidDoubleGeneProfile.divide((double)centroidSize.get(centroid)));
         }
 
         return centroids;
     }
 
-    ArrayList<GeneProfileVector> getClusterResultFromClusterAssignation (ArrayList<Integer> clusterAssignation) {
-        ArrayList<GeneProfileVector> clusterResult = new ArrayList<>();
+    ArrayList<DoubleGeneProfile> getClusterResultFromClusterAssignation (ArrayList<Integer> clusterAssignation) {
+        ArrayList<DoubleGeneProfile> clusterResult = new ArrayList<>();
         for (int genes = 0; genes < clusterAssignation.size(); genes++) {
             ArrayList<Double> clusterProfileData = new ArrayList<>(this.k);
             Collections.fill(clusterProfileData, 0.0);
@@ -138,7 +140,7 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
                 }
             }
 
-            clusterResult.add(new GeneProfileVector(clusterProfileData));
+            clusterResult.add(new DoubleGeneProfile(clusterProfileData, null));
         }
 
         return clusterResult;

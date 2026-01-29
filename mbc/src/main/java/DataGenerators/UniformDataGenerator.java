@@ -6,15 +6,11 @@ import java.util.Random;
 public class UniformDataGenerator implements IDataGenerator {
 
     private final Random random;
-    private final int limit;
+    private final double limit;
 
-    public UniformDataGenerator(int limit) {
+    public UniformDataGenerator(double limit) {
         this.random = new Random();
         this.limit = limit;
-    }
-
-    public int generateRandomInteger() {
-        return random.nextInt(limit);
     }
 
     public double generateRandomDouble() {return random.nextDouble(limit);}

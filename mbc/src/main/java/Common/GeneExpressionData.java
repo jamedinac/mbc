@@ -1,9 +1,5 @@
 package Common;
 
-import GeneProfile.AGeneProfile;
-import GeneProfile.DoubleGeneProfile;
-import GeneProfile.IntegerGeneProfile;
-
 import java.util.ArrayList;
 
 public class GeneExpressionData {
@@ -11,18 +7,25 @@ public class GeneExpressionData {
     private final int numberOfGenes;
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
-    private final ArrayList<IntegerGeneProfile> expressionData;
-    private final ArrayList<String> metadata;
+    private final double[][] expressionData;
+    private final String[] metadata;
+    private final String[] geneId;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, ArrayList<IntegerGeneProfile> expressionData, ArrayList<String> metadata) {
+    public GeneExpressionData(int numberOfGenes,
+                              int numberOfReplicates,
+                              int numberOfTimeSeries,
+                              double[][] expressionData,
+                              String[] metadata,
+                              String[] geneId) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
         this.expressionData = expressionData;
         this.metadata = metadata;
+        this.geneId = geneId;
     }
 
-    public ArrayList<IntegerGeneProfile> getExpressionData() {
+    public double[][] getExpressionData() {
         return expressionData;
     }
 
@@ -38,11 +41,19 @@ public class GeneExpressionData {
         return numberOfTimeSeries;
     }
 
-    public ArrayList<String> getMetadata() {
+    public int getNumberOfComponents() {
+        return this.numberOfReplicates * this.numberOfTimeSeries;
+    }
+
+    public String[] getMetadata() {
         return metadata;
     }
 
-    public IntegerGeneProfile getGeneProfile(int geneIndex){
-        return expressionData.get(geneIndex);
+    public double[] getGeneProfile(int geneIndex){
+        return expressionData[geneIndex];
+    }
+
+    public String getGeneId(int gene) {
+        return geneId[gene];
     }
 }

@@ -18,17 +18,6 @@ public class RNASeqGeneExpressionDatasource implements IGeneExpressionDataSource
     }
 
     public GeneExpressionData getGeneExpressionFormattedData () {
-        try {
-            Path filePath = Paths.get(geneCountDirectoryPath, "data.txt");
-
-            List<String> lines = Files.readAllLines(filePath);
-
-            bool isFirstLine = true;
-            for (String line : lines) {
-                System.out.println(line);
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        //TODO: Implement file load
     }
 }

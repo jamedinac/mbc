@@ -15,8 +15,8 @@ import java.util.HashMap;
 
 public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
 
-    private String geneCountDirectoryPath;
-    private CompositeFilter geneFilters;
+    private final String geneCountDirectoryPath;
+    private final CompositeFilter geneFilters;
 
     public GeneExpressionDataLoad(String geneCountDirectoryPath) {
         this.geneCountDirectoryPath = geneCountDirectoryPath;

@@ -19,7 +19,6 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
     @Override
     public GeneClusteringResult clusterGenes(GeneExpressionData geneExpressionData) {
         int numberOfGenes = geneExpressionData.getNumberOfGenes();
-        int numberOfComponents = geneExpressionData.getNumberOfComponents();
 
         double[][] centroids = generateCentroids(geneExpressionData);
         int[] clusterAssignation = new int[numberOfGenes];

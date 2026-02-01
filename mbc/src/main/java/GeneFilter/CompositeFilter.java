@@ -6,17 +6,21 @@ import java.util.ArrayList;
 
 public class CompositeFilter implements IGeneFilter {
 
-    private ArrayList<IGeneFilter> filters;
+    private final ArrayList<IGeneFilter> filters;
+
+    public CompositeFilter() {
+        this.filters = new ArrayList<>();
+    }
 
     public void addfilter(IGeneFilter filter) {
-        filters.add(filter);
+        this.filters.add(filter);
     }
 
     @Override
-    public boolean filterGene(String geneExpressionRow) {
+    public boolean filterGene(String[] geneExpressionRow) {
         boolean result = true;
 
-        for (IGeneFilter filter : filters) {
+        for (IGeneFilter filter : this.filters) {
             result &= filter.filterGene(geneExpressionRow);
         }
 

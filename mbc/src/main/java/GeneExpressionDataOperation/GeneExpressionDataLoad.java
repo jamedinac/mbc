@@ -1,13 +1,16 @@
 package GeneExpressionDataOperation;
 
 import Common.GeneExpressionData;
+import Common.SampleMetadata;
 import GeneFilter.CompositeFilter;
 import GeneFilter.GeneFilterByTotalExpression;
+import GeneFilter.GeneFilterByVariance;
 import Interfaces.IGeneExpressionDataSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 
 public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
@@ -20,24 +23,28 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         this.geneFilters = new CompositeFilter();
     }
 
-    public GeneExpressionData getGeneExpressionFormattedData (int numberOfTimeSeries, int numberOfReplicates) {
+    @Override
+    public GeneExpressionData getGeneExpressionFormattedData() {
         String geneExpressionFile = geneCountDirectoryPath + "\\data.txt";
         String[] geneExpressionFileLines = this.getFileLines(geneExpressionFile);
 
+        String geneMetadataFile = geneCountDirectoryPath + "\\metadata.txt";
+        String[] geneMetadataFileLines = this.getFileLines(geneMetadataFile);
+
         geneFilters.addfilter(new GeneFilterByTotalExpression(1000));
+        geneFilters.addfilter(new GeneFilterByVariance(100));
 
         int numberOfGenes = getNumberOfFilteredGenes(geneExpressionFileLines);
-        int numberOfComponents = numberOfReplicates * numberOfTimeSeries;
+        int numberOfComponents = geneMetadataFileLines.length - 1;
 
+        // Read gene expression
         double[][] expressionData = new double[numberOfGenes][numberOfComponents];
-        String[] metadata = new String[numberOfComponents];
         String[] geneIds = new String[numberOfGenes];
-
         int currentGene = 0;
         for (int row = 1; row < geneExpressionFileLines.length; row++) {
-            if (geneFilters.filterGene(geneExpressionFileLines[row])) {
-                String[] dataRow = geneExpressionFileLines[row].split("\t");
+            String[] dataRow = this.getSplittedDataRow(geneExpressionFileLines[row], "\t");
 
+            if (geneFilters.filterGene(dataRow)) {
                 geneIds[currentGene] = dataRow[0];
                 for (int c = 1; c <= numberOfComponents; c++) {
                     expressionData[currentGene][c - 1] = Double.parseDouble(dataRow[c]);
@@ -47,12 +54,25 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
             }
         }
 
-        return new GeneExpressionData(numberOfGenes,
-                numberOfReplicates,
-                numberOfTimeSeries,
-                this.normalizeExpressionData(expressionData),
-                metadata,
-                geneIds);
+        // Read metada
+        String[] columnData = geneMetadataFileLines[0].split(",");
+        HashMap<String, SampleMetadata> metadata = new HashMap<>();
+
+        int numberOfReplicates = 0;
+        int numberOfTimeSeries = 0;
+
+        for (int row = 1; row < geneMetadataFileLines.length; row++) {
+            String[] dataRow = this.getSplittedDataRow(geneMetadataFileLines[row], ",");
+            int replicate = Integer.parseInt(dataRow[4]);
+            int time = Integer.parseInt(dataRow[3]);
+
+            metadata.put(dataRow[0], new SampleMetadata(dataRow[0], replicate, time));
+
+            numberOfReplicates = Math.max(replicate, numberOfReplicates);
+            numberOfTimeSeries = Math.max(replicate, numberOfTimeSeries);
+        }
+
+        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, this.normalizeExpressionData(expressionData), metadata, geneIds, columnData);
     }
 
     private String[] getFileLines (String fileName) {
@@ -93,11 +113,15 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         int numberOfFilteredGenes = 0;
 
         for (int r = 1; r < numberOfRows; r++) {
-            if (geneFilters.filterGene(geneExpressionFileLines[r])) {
+            if (geneFilters.filterGene(this.getSplittedDataRow(geneExpressionFileLines[r], "\t"))) {
                 numberOfFilteredGenes++;
             }
         }
 
         return numberOfFilteredGenes;
+    }
+
+    private String[] getSplittedDataRow(String dataRow, String splitChar) {
+        return dataRow.split(splitChar);
     }
 }

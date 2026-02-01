@@ -11,12 +11,11 @@ public class GeneFilterByTotalExpression implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(String geneExpressionRow) {
+    public boolean filterGene(String[] geneExpressionRow) {
         int expressionSum = 0;
 
-        String[] dataRow = geneExpressionRow.split("\t");
-        for (int c = 1;  c < dataRow.length; c++) {
-            expressionSum += Integer.parseInt(dataRow[c]);
+        for (int c = 1;  c < geneExpressionRow.length; c++) {
+            expressionSum += Integer.parseInt(geneExpressionRow[c]);
         }
 
         return expressionSum > this.expressionThreshold;

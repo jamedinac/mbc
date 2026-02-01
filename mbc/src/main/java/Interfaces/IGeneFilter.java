@@ -7,5 +7,5 @@ public interface IGeneFilter {
      * @param geneExpressionRow gene expresion values
      * @return boolean
      */
-    boolean filterGene(String geneExpressionRow);
+    boolean filterGene(String[] geneExpressionRow);
 }

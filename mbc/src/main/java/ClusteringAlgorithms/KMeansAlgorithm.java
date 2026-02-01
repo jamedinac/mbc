@@ -1,5 +1,6 @@
 package ClusteringAlgorithms;
 
+import Common.ClusteringAlgorithm;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
@@ -34,7 +35,7 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
             }
         }
 
-        return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData);
+        return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData, ClusteringAlgorithm.Kmeans);
     }
 
     double[][] generateCentroids(GeneExpressionData geneExpressionData) {

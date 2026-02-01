@@ -16,7 +16,7 @@ public class ClusterGenerationService {
         IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath);
         GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
 
-        IClusteringAlgorithm kMeans = new KMeansAlgorithm(10, 10);
+        IClusteringAlgorithm kMeans = new KMeansAlgorithm(5, 10);
         GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
 
         IGeneExpressionDataWrite geneExpressionDataWrite = new GeneExpressionDataWrite();

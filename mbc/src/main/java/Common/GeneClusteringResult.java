@@ -1,7 +1,5 @@
 package Common;
 
-import GeneProfile.DoubleGeneProfile;
-
 import java.util.ArrayList;
 
 public class GeneClusteringResult {

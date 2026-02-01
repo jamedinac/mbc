@@ -5,9 +5,6 @@ import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
 import Interfaces.IClusteringAlgorithm;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 public class KMeansAlgorithm implements IClusteringAlgorithm {
 
     int k;
@@ -23,7 +20,7 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         int numberOfGenes = geneExpressionData.getNumberOfGenes();
         int numberOfComponents = geneExpressionData.getNumberOfComponents();
 
-        double[][] centroids = generateCentroids(this.k, numberOfComponents);
+        double[][] centroids = generateCentroids(geneExpressionData);
         int[] clusterAssignation = new int[numberOfGenes];
 
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
@@ -32,7 +29,7 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
             // In case of empty assignation, restart the process
             if (centroids == null) {
-                centroids = generateCentroids(this.k, numberOfComponents);
+                centroids = generateCentroids(geneExpressionData);
                 iteration = 0;
             }
         }
@@ -40,14 +37,12 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData);
     }
 
-    double[][] generateCentroids(int numberOfRows, int numberOfColumns) {
-        double[][] centroids = new double[numberOfRows][numberOfColumns];
-        UniformDataGenerator dataGenerator = new UniformDataGenerator(1.0);
+    double[][] generateCentroids(GeneExpressionData geneExpressionData) {
+        double[][] centroids = new double[this.k][geneExpressionData.getNumberOfComponents()];
+        UniformDataGenerator dataGenerator = new UniformDataGenerator();
 
-        for (int i=0; i<numberOfRows; i++) {
-            for (int j=0; j<numberOfColumns; j++) {
-                centroids[i][j] = dataGenerator.generateRandomDouble();
-            }
+        for (int i=0; i < this.k; i++) {
+            centroids[i] = geneExpressionData.getGeneProfile(dataGenerator.generateRandomInt(geneExpressionData.getNumberOfGenes()));
         }
 
         return centroids;

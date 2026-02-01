@@ -3,30 +3,23 @@ package org.example;
 import ClusteringAlgorithms.KMeansAlgorithm;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
-import DataGenerators.UniformDataGenerator;
-import GeneExpressionDataSource.SimulatedGeneExpressionDatasource;
+import GeneExpressionDataOperation.GeneExpressionDataLoad;
+import GeneExpressionDataOperation.GeneExpressionDataWrite;
 import Interfaces.IClusteringAlgorithm;
-import Interfaces.IDataGenerator;
 import Interfaces.IGeneExpressionDataSource;
+import Interfaces.IGeneExpressionDataWrite;
 
 public class ClusterGenerationService {
+    private static final String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
+
     static void main() {
-        int uniformDataGeneratorLimit = 100;
-        IDataGenerator uniformDataGenerator = new UniformDataGenerator(uniformDataGeneratorLimit);
+        IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath);
+        GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
 
-        int numberOfGenes = 10;
-        int numberOfReplicates = 3;
-        int numberOfTimSeries = 5;
+        IClusteringAlgorithm kMeans = new KMeansAlgorithm(10, 10);
+        GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
 
-        IGeneExpressionDataSource simulatedGeneExpressionDatasource = new SimulatedGeneExpressionDatasource(
-                uniformDataGenerator,
-                numberOfGenes,
-                numberOfReplicates,
-                numberOfTimSeries);
-
-        GeneExpressionData geneExpressionData = simulatedGeneExpressionDatasource.getGeneExpressionFormattedData();
-
-        IClusteringAlgorithm kMeansAlgorithm = new KMeansAlgorithm(10, 10);
-        GeneClusteringResult geneClusteringData = kMeansAlgorithm.clusterGenes(geneExpressionData);
+        IGeneExpressionDataWrite geneExpressionDataWrite = new GeneExpressionDataWrite();
+        geneExpressionDataWrite.writeClusteringDataToFile(kMeansResult, directoryPath);
     }
 }

@@ -1,6 +1,8 @@
 package GeneExpressionDataOperation;
 
 import Common.GeneExpressionData;
+import GeneFilter.CompositeFilter;
+import GeneFilter.GeneFilterByTotalExpression;
 import Interfaces.IGeneExpressionDataSource;
 
 import java.io.IOException;
@@ -11,35 +13,46 @@ import java.nio.file.Paths;
 public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
 
     private String geneCountDirectoryPath;
+    private CompositeFilter geneFilters;
 
     public GeneExpressionDataLoad(String geneCountDirectoryPath) {
         this.geneCountDirectoryPath = geneCountDirectoryPath;
+        this.geneFilters = new CompositeFilter();
     }
 
-    public GeneExpressionData getGeneExpressionFormattedData () {
+    public GeneExpressionData getGeneExpressionFormattedData (int numberOfTimeSeries, int numberOfReplicates) {
         String geneExpressionFile = geneCountDirectoryPath + "\\data.txt";
+        String[] geneExpressionFileLines = this.getFileLines(geneExpressionFile);
 
-        String[] geneExpressionFileLines = getFileLines(geneExpressionFile);
+        geneFilters.addfilter(new GeneFilterByTotalExpression(1000));
 
-        int numberOfGenes = 10;
-        int numberOfReplicates = 10;
-        int numberOfTimeSeries = 1;
+        int numberOfGenes = getNumberOfFilteredGenes(geneExpressionFileLines);
         int numberOfComponents = numberOfReplicates * numberOfTimeSeries;
 
         double[][] expressionData = new double[numberOfGenes][numberOfComponents];
         String[] metadata = new String[numberOfComponents];
         String[] geneIds = new String[numberOfGenes];
 
-        for (int row = 1; row <= numberOfGenes; row++) {
-            String[] dataRow = geneExpressionFileLines[row].split("\t");
+        int currentGene = 0;
+        for (int row = 1; row < geneExpressionFileLines.length; row++) {
+            if (geneFilters.filterGene(geneExpressionFileLines[row])) {
+                String[] dataRow = geneExpressionFileLines[row].split("\t");
 
-            geneIds[row-1] = dataRow[0];
-            for (int c = 1; c <= numberOfComponents; c++) {
-                expressionData[row - 1][c - 1] = Double.parseDouble(dataRow[c]);
+                geneIds[currentGene] = dataRow[0];
+                for (int c = 1; c <= numberOfComponents; c++) {
+                    expressionData[currentGene][c - 1] = Double.parseDouble(dataRow[c]);
+                }
+
+                currentGene++;
             }
         }
 
-        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, normalizeExpressionData(expressionData), metadata, geneIds);
+        return new GeneExpressionData(numberOfGenes,
+                numberOfReplicates,
+                numberOfTimeSeries,
+                this.normalizeExpressionData(expressionData),
+                metadata,
+                geneIds);
     }
 
     private String[] getFileLines (String fileName) {
@@ -56,7 +69,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
 
     private double[][] normalizeExpressionData(double[][] expressionData) {
         int numberOfGenes = expressionData.length;
-        int  numberOfComponents = expressionData[0].length;
+        int numberOfComponents = expressionData[0].length;
 
         double maxExpressionValue = 0.0;
 
@@ -73,5 +86,18 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         }
 
         return expressionData;
+    }
+
+    private int getNumberOfFilteredGenes (String[] geneExpressionFileLines) {
+        int numberOfRows =  geneExpressionFileLines.length;
+        int numberOfFilteredGenes = 0;
+
+        for (int r = 1; r < numberOfRows; r++) {
+            if (geneFilters.filterGene(geneExpressionFileLines[r])) {
+                numberOfFilteredGenes++;
+            }
+        }
+
+        return numberOfFilteredGenes;
     }
 }

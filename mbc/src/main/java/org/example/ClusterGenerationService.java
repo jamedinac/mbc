@@ -14,7 +14,11 @@ public class ClusterGenerationService {
 
     static void main() {
         IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath);
-        GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
+
+        int numberOfReplicates = 3;
+        int numberOfTimeSeries = 12;
+
+        GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData(numberOfTimeSeries, numberOfReplicates);
 
         IClusteringAlgorithm kMeans = new KMeansAlgorithm(5, 10);
         GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);

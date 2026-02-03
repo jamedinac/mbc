@@ -26,12 +26,6 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
             clusterAssignation = getClusterAssignation(geneExpressionData, centroids);
             centroids = calculateCentroids(clusterAssignation, geneExpressionData);
-
-            // In case of empty assignation, restart the process
-            if (centroids == null) {
-                centroids = generateCentroids(geneExpressionData);
-                iteration = 0;
-            }
         }
 
         return new GeneClusteringResult(k, getClusterResultFromClusterAssignation(clusterAssignation), geneExpressionData, ClusteringAlgorithm.Kmeans);

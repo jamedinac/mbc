@@ -2,10 +2,10 @@ package GeneExpressionDataOperation;
 
 import Common.GeneExpressionData;
 import Common.SampleMetadata;
-import GeneFilter.CompositeFilter;
-import GeneFilter.GeneFilterByTotalExpression;
-import GeneFilter.GeneFilterByVariance;
+import Filter.CompositeFilter;
+import Filter.SampleFilter;
 import Interfaces.IGeneExpressionDataSource;
+import Interfaces.IGeneFilter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +16,20 @@ import java.util.HashMap;
 public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
 
     private final String geneCountDirectoryPath;
+    private final int replicateColumnIndex;
+    private final int timeSeriesColumnIndex;
     private final CompositeFilter geneFilters;
+    private final SampleFilter sampleFilter;
 
-    public GeneExpressionDataLoad(String geneCountDirectoryPath) {
+    private final int geneIdColumnIndex = 0;
+    private final int sampleIdColumnIndex = 0;
+
+    public GeneExpressionDataLoad(String geneCountDirectoryPath, int replicateColumnIndex, int timeSeriesColumnIndex) {
         this.geneCountDirectoryPath = geneCountDirectoryPath;
         this.geneFilters = new CompositeFilter();
+        this.replicateColumnIndex = replicateColumnIndex;
+        this.timeSeriesColumnIndex = timeSeriesColumnIndex;
+        this.sampleFilter = new SampleFilter();
     }
 
     @Override
@@ -31,48 +40,78 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         String geneMetadataFile = geneCountDirectoryPath + "\\metadata.txt";
         String[] geneMetadataFileLines = this.getFileLines(geneMetadataFile);
 
-        geneFilters.addfilter(new GeneFilterByTotalExpression(1000));
-        geneFilters.addfilter(new GeneFilterByVariance(100));
-
-        int numberOfGenes = getNumberOfFilteredGenes(geneExpressionFileLines);
-        int numberOfComponents = geneMetadataFileLines.length - 1;
-
-        // Read gene expression
-        double[][] expressionData = new double[numberOfGenes][numberOfComponents];
-        String[] geneIds = new String[numberOfGenes];
-        int currentGene = 0;
-        for (int row = 1; row < geneExpressionFileLines.length; row++) {
-            String[] dataRow = this.getSplittedDataRow(geneExpressionFileLines[row], "\t");
-
-            if (geneFilters.filterGene(dataRow)) {
-                geneIds[currentGene] = dataRow[0];
-                for (int c = 1; c <= numberOfComponents; c++) {
-                    expressionData[currentGene][c - 1] = Double.parseDouble(dataRow[c]);
-                }
-
-                currentGene++;
-            }
-        }
-
-        // Read metada
-        String[] columnData = geneMetadataFileLines[0].split(",");
+        /// Read metada
+        String[] metadataColumnNames = this.getSplitDataRow(geneMetadataFileLines[0],",");
         HashMap<String, SampleMetadata> metadata = new HashMap<>();
 
         int numberOfReplicates = 0;
         int numberOfTimeSeries = 0;
 
         for (int row = 1; row < geneMetadataFileLines.length; row++) {
-            String[] dataRow = this.getSplittedDataRow(geneMetadataFileLines[row], ",");
-            int replicate = Integer.parseInt(dataRow[4]);
-            int time = Integer.parseInt(dataRow[3]);
+            String[] dataRow = this.getSplitDataRow(geneMetadataFileLines[row], ",");
+            String sampleId = dataRow[sampleIdColumnIndex];
+            int replicate = Integer.parseInt(dataRow[replicateColumnIndex]);
+            int time = Integer.parseInt(dataRow[timeSeriesColumnIndex]);
 
-            metadata.put(dataRow[0], new SampleMetadata(dataRow[0], replicate, time));
+            metadata.put(sampleId, new SampleMetadata(sampleId, replicate, time));
+
+            for (int c = 1; c < dataRow.length; c++) {
+                if (c == replicateColumnIndex) {
+                    replicate = Integer.parseInt(dataRow[c]);
+                } else if (c == timeSeriesColumnIndex) {
+                    time = Integer.parseInt(dataRow[c]);
+                } else {
+                    SampleMetadata sampleIdMetadata = metadata.get(sampleId);
+                    sampleIdMetadata.addMetadataKey(metadataColumnNames[c], dataRow[c]);
+
+                    metadata.put(sampleId, sampleIdMetadata);
+                }
+            }
 
             numberOfReplicates = Math.max(replicate, numberOfReplicates);
-            numberOfTimeSeries = Math.max(replicate, numberOfTimeSeries);
+            numberOfTimeSeries = Math.max(time, numberOfTimeSeries);
         }
 
-        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, this.normalizeExpressionData(expressionData), metadata, geneIds, columnData);
+        int numberOfGenes = getNumberOfFilteredGenes(geneExpressionFileLines);
+        int numberOfComponents = getNumberOfComponents(geneMetadataFileLines, metadata);
+
+        /// Read gene expression
+        double[][] expressionData = new double[numberOfGenes][numberOfComponents];
+        String[] geneIds = new String[numberOfGenes];
+        String[] geneDataColumnNames = this.getSplitDataRow(geneExpressionFileLines[0], "\t");
+
+        int currentGene = 0;
+        for (int row = 1; row < geneExpressionFileLines.length; row++) {
+            String[] dataRow = this.getSplitDataRow(geneExpressionFileLines[row], "\t");
+
+            if (geneFilters.filterGene(dataRow)) {
+                geneIds[currentGene] = dataRow[geneIdColumnIndex];
+
+                int currentComponent = 0;
+                for (int c = 1; c < dataRow.length; c++) {
+                    String sampleId = geneDataColumnNames[c];
+
+                    if (metadata.containsKey(sampleId) && this.sampleFilter.isValidSample(metadata.get(sampleId))) {
+                        expressionData[currentGene][currentComponent] = Double.parseDouble(dataRow[c]);
+                        currentComponent++;
+                    }
+                }
+
+                currentGene++;
+            }
+        }
+
+        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, this.normalizeExpressionData(expressionData), metadata, geneIds, metadataColumnNames);
+    }
+
+    @Override
+    public void addGeneFilter(IGeneFilter filter) {
+        this.geneFilters.addfilter(filter);
+    }
+
+    @Override
+    public void addSampleFilter(String sampleTrait, String sampleTraitValue) {
+        this.sampleFilter.addValidSampleTrait(sampleTrait, sampleTraitValue);
     }
 
     private String[] getFileLines (String fileName) {
@@ -113,7 +152,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         int numberOfFilteredGenes = 0;
 
         for (int r = 1; r < numberOfRows; r++) {
-            if (geneFilters.filterGene(this.getSplittedDataRow(geneExpressionFileLines[r], "\t"))) {
+            if (geneFilters.filterGene(this.getSplitDataRow(geneExpressionFileLines[r], "\t"))) {
                 numberOfFilteredGenes++;
             }
         }
@@ -121,7 +160,23 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataSource {
         return numberOfFilteredGenes;
     }
 
-    private String[] getSplittedDataRow(String dataRow, String splitChar) {
+    private int getNumberOfComponents(String[] metadataFileLines, HashMap<String, SampleMetadata> metadata) {
+        int numberOfRows = metadataFileLines.length;
+        int numberOfComponents = 0;
+
+        for (int r = 1; r < numberOfRows; r++) {
+            String[] metaDataRow = this.getSplitDataRow(metadataFileLines[r], ",");
+            String sampleId = metaDataRow[0];
+
+            if (this.sampleFilter.isValidSample(metadata.get(sampleId))) {
+                numberOfComponents++;
+            }
+        }
+
+        return numberOfComponents;
+    }
+
+    private String[] getSplitDataRow(String dataRow, String splitChar) {
         return dataRow.split(splitChar);
     }
 }

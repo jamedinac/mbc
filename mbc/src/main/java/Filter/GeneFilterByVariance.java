@@ -1,4 +1,4 @@
-package GeneFilter;
+package Filter;
 
 import Interfaces.IGeneFilter;
 

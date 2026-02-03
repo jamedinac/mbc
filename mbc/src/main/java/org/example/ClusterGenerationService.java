@@ -1,6 +1,7 @@
 package org.example;
 
 import ClusteringAlgorithms.KMeansAlgorithm;
+import Common.FileExtension;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import GeneExpressionDataOperation.GeneExpressionDataLoad;
@@ -18,11 +19,11 @@ public class ClusterGenerationService {
         int timeSeriesColumnIndex = 4;
         int replicateColumnIndex = 3;
 
-        IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath, replicateColumnIndex, timeSeriesColumnIndex);
+        IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath, replicateColumnIndex, timeSeriesColumnIndex, FileExtension.TSV, FileExtension.CSV);
 
         /// Hardcoded filters
         geneExpressionDataSource.addGeneFilter(new GeneFilterByTotalExpression(1000));
-        geneExpressionDataSource.addGeneFilter(new GeneFilterByVariance(100));
+        geneExpressionDataSource.addGeneFilter(new GeneFilterByVariance(1));
 
         geneExpressionDataSource.addSampleFilter("Drought_Group", "Severe");
         geneExpressionDataSource.addSampleFilter("Condition", "Drought");

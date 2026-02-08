@@ -1,13 +1,13 @@
 package Common;
 
-public enum FileExtension {
+public enum FileFormat {
     TSV("\t", ".tsv"),
     CSV(",", ".csv");
 
     private final String delimiter;
     private final String extension;
 
-    FileExtension(String delimiter, String extension) {
+    FileFormat(String delimiter, String extension) {
         this.delimiter = delimiter;
         this.extension = extension;
     }

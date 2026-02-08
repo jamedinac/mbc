@@ -3,6 +3,7 @@ package GeneExpressionDataOperation;
 import Common.GeneClusteringResult;
 import Interfaces.IGeneExpressionDataWrite;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,7 +13,7 @@ public class GeneExpressionDataWrite implements IGeneExpressionDataWrite {
     @Override
     public void writeClusteringDataToFile(GeneClusteringResult geneClusteringResult, String fileName) {
         try {
-            String geneClusteringResultFilePath = fileName + "\\output_" + geneClusteringResult.getClusteringAlgorithm() + ".txt";
+            String geneClusteringResultFilePath = fileName + File.separator + "output_" + geneClusteringResult.getClusteringAlgorithm() + ".txt";
             StringBuilder fileContent = new StringBuilder();
 
             for (int g = 0; g < geneClusteringResult.getNumberOfGenes(); g++) {

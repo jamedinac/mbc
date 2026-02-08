@@ -5,13 +5,13 @@ public class GeneClusteringResult {
     private final int numberOfClusters;
     private final double[][] geneClusteringData;
     private final GeneExpressionData geneExpressionData;
-    private final ClusteringAlgorithm clusteringAlgorith;
+    private final ClusteringAlgorithm clusteringAlgorithm;
 
-    public GeneClusteringResult(int numberOfClusters, double[][] geneClusteringData, GeneExpressionData geneExpressionData, ClusteringAlgorithm clusteringAlgorith) {
+    public GeneClusteringResult(int numberOfClusters, double[][] geneClusteringData, GeneExpressionData geneExpressionData, ClusteringAlgorithm clusteringAlgorithm) {
         this.numberOfClusters = numberOfClusters;
         this.geneClusteringData = geneClusteringData;
         this.geneExpressionData = geneExpressionData;
-        this.clusteringAlgorith = clusteringAlgorith;
+        this.clusteringAlgorithm = clusteringAlgorithm;
     }
 
     public int getNumberOfGenes() {
@@ -31,6 +31,6 @@ public class GeneClusteringResult {
     }
 
     public ClusteringAlgorithm getClusteringAlgorithm() {
-        return clusteringAlgorith;
+        return clusteringAlgorithm;
     }
 }

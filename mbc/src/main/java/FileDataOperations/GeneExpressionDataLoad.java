@@ -1,4 +1,4 @@
-package GeneExpressionDataOperation;
+package FileDataOperations;
 
 import Common.FileFormat;
 import Common.GeneExpressionData;
@@ -9,11 +9,9 @@ import Interfaces.IDataNormalizer;
 import Interfaces.IGeneExpressionDataLoad;
 import Interfaces.IGeneFilter;
 import Normalizers.CompositeNormalizer;
+import Utilities.FileUtilities;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 
@@ -59,9 +57,9 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
     public GeneExpressionData getGeneExpressionFormattedData() {
         /// Read metada
         String geneMetadataFile = geneCountDirectoryPath + File.separator + this.metadataFileName;
-        String[] geneMetadataFileLines = this.getFileLines(geneMetadataFile);
+        String[] geneMetadataFileLines = FileUtilities.getFileLines(geneMetadataFile);
 
-        String[] metadataColumnNames = this.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
+        String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
         HashMap<String, SampleMetadata> metadata = new HashMap<>();
 
         int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);
@@ -69,7 +67,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         int timeSeriesColumnIndex = this.getColumnIndex(timeSeriesColumn, metadataColumnNames);
 
         for (int row = 1; row < geneMetadataFileLines.length; row++) {
-            String[] dataRow = this.getSplitDataRow(geneMetadataFileLines[row], metadataFileFormat.getDelimiter());
+            String[] dataRow = FileUtilities.getSplitDataRow(geneMetadataFileLines[row], metadataFileFormat.getDelimiter());
             String sampleId = dataRow[sampleIdColumnIndex];
 
             int replicate = Integer.parseInt(dataRow[replicateColumnIndex]);
@@ -86,7 +84,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
 
         /// Read gene expression
         String geneExpressionFile = geneCountDirectoryPath + File.separator + this.geneExpressionFileName;
-        String[] geneExpressionFileLines = this.getFileLines(geneExpressionFile);
+        String[] geneExpressionFileLines = FileUtilities.getFileLines(geneExpressionFile);
 
         int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata);
 
@@ -98,7 +96,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         double[][] expressionData = new double[numberOfGenes][numberOfComponents];
 
         String[] geneIds = this.getGeneIds(geneExpressionFileLines, filteredGenes, numberOfGenes);
-        String[] geneDataColumnNames = this.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
+        String[] geneDataColumnNames = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
 
         int currentGene = 0;
         for (int r = 0; r < normalizedData.length; r++) {
@@ -126,25 +124,13 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         this.compositeNormalizer.add(normalizer);
     }
 
-    private String[] getFileLines (String fileName) {
-        String[] fileLines = null;
-
-        try {
-            fileLines = Files.readAllLines(Paths.get(fileName)).toArray(new String[0]);
-        } catch (IOException e) {
-            System.out.println("Error reading gene expression file: " + e.getMessage());
-        }
-
-        return fileLines;
-    }
-
     private double[][] getRawExpressionData (String[] geneExpressionFileLines, int numberOfComponents, HashMap<String, SampleMetadata> metadata) {
-        String[] sampleIds = this.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
+        String[] sampleIds = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
         int rows = geneExpressionFileLines.length - 1;
         double[][] rawData = new double[rows][numberOfComponents];
 
         for (int row = 1; row <= rows; row++) {
-            String[] splitRow = this.getSplitDataRow(geneExpressionFileLines[row], geneFileFormat.getDelimiter());
+            String[] splitRow = FileUtilities.getSplitDataRow(geneExpressionFileLines[row], geneFileFormat.getDelimiter());
 
             int currentComponent = 0;
             for (int column = 1; column < splitRow.length; column++) {
@@ -164,7 +150,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
 
         for (int r=1; r<geneExpressionFileLines.length; r++) {
             if (filteredGenes[r-1]) {
-                geneIds[currentGene] = this.getSplitDataRow(geneExpressionFileLines[r], this.geneFileFormat.getDelimiter())[0];
+                geneIds[currentGene] = FileUtilities.getSplitDataRow(geneExpressionFileLines[r], this.geneFileFormat.getDelimiter())[0];
                 currentGene++;
             }
         }
@@ -204,7 +190,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         int numberOfComponents = 0;
 
         for (int r = 1; r < numberOfRows; r++) {
-            String[] metaDataRow = this.getSplitDataRow(metadataFileLines[r], metadataFileFormat.getDelimiter());
+            String[] metaDataRow = FileUtilities.getSplitDataRow(metadataFileLines[r], metadataFileFormat.getDelimiter());
             String sampleId = metaDataRow[0];
 
             if (this.sampleFilter.isValidSample(metadata.get(sampleId))) {
@@ -213,10 +199,6 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         }
 
         return numberOfComponents;
-    }
-
-    private String[] getSplitDataRow(String dataRow, String splitChar) {
-        return dataRow.split(splitChar);
     }
 
     private int getColumnIndex(String column, String[] columnNames) {

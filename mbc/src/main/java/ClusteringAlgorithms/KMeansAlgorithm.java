@@ -5,6 +5,7 @@ import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
 import DataGenerators.UniformDataGenerator;
 import Interfaces.IClusteringAlgorithm;
+import Utilities.GeneOperations;
 
 public class KMeansAlgorithm implements IClusteringAlgorithm {
 
@@ -50,10 +51,10 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
         for (int gene = 0; gene < numberOfGenes; gene++) {
             int bestCentroid = 0;
-            double distanceToBestCentorid = this.euclideanDistance(geneExpressionData.getGeneProfile(gene), centroids[0]);
+            double distanceToBestCentorid = GeneOperations.euclideanDistance(geneExpressionData.getGeneProfile(gene), centroids[0]);
             
             for (int centroid = 1; centroid < numberOfClusters; centroid++) {
-                double distanceToCurrentCentroid = euclideanDistance(geneExpressionData.getGeneProfile(gene), centroids[centroid]);
+                double distanceToCurrentCentroid = GeneOperations.euclideanDistance(geneExpressionData.getGeneProfile(gene), centroids[centroid]);
 
                 if (distanceToCurrentCentroid < distanceToBestCentorid) {
                     bestCentroid = centroid;
@@ -101,18 +102,6 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         }
 
         return clusterResult;
-    }
-
-    double euclideanDistance(double[] geneExpressionData, double[] centroid) {
-        double distance = 0.0;
-        int numberOfComponents = geneExpressionData.length;
-
-        for (int componentIndex = 0; componentIndex < numberOfComponents; componentIndex++) {
-            double difference = geneExpressionData[componentIndex] - centroid[componentIndex];
-            distance += difference * difference;
-        }
-
-        return Math.sqrt(distance);
     }
 
     double[] add(double[] centroid, double[] geneExpressionData) {

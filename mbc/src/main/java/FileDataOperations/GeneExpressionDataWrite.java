@@ -1,4 +1,4 @@
-package GeneExpressionDataOperation;
+package FileDataOperations;
 
 import Common.GeneClusteringResult;
 import Interfaces.IGeneExpressionDataWrite;

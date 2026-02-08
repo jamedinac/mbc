@@ -10,6 +10,7 @@ public class ClusterBenchmarkFactory {
         IClusterBenchmark clusterBenchmark = null;
 
         switch (benchmarkType) {
+            case  Silhouette -> clusterBenchmark = new Silhouette(geneClusteringResult);
             case Jaccard -> clusterBenchmark = new Jaccard(geneClusteringResult, goldStandard);
             case MeanSquaredError -> throw new UnsupportedOperationException("Not supported yet.");
             default -> throw new UnsupportedOperationException("Select a valid benchmark");

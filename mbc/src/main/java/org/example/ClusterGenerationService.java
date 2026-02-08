@@ -1,13 +1,16 @@
 package org.example;
 
+import ClusterBenchmark.Silhouette;
 import ClusteringAlgorithms.KMeansAlgorithm;
+import Common.ClusterBenchmarkResult;
 import Common.FileFormat;
 import Common.GeneClusteringResult;
 import Common.GeneExpressionData;
-import GeneExpressionDataOperation.GeneExpressionDataLoad;
-import GeneExpressionDataOperation.GeneExpressionDataWrite;
+import FileDataOperations.GeneExpressionDataLoad;
+import FileDataOperations.GeneExpressionDataWrite;
 import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
+import Interfaces.IClusterBenchmark;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneExpressionDataLoad;
 import Interfaces.IGeneExpressionDataWrite;
@@ -31,11 +34,16 @@ public class ClusterGenerationService {
 
         GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
 
-        IClusteringAlgorithm kMeans = new KMeansAlgorithm(20, 100);
+        IClusteringAlgorithm kMeans = new KMeansAlgorithm(5, 100);
         GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
 
         IGeneExpressionDataWrite geneExpressionDataWrite = new GeneExpressionDataWrite();
         geneExpressionDataWrite.writeClusteringDataToFile(kMeansResult, directoryPath);
+
+        IClusterBenchmark silhouetteClustering = new Silhouette(kMeansResult);
+        ClusterBenchmarkResult clusterBenchmarkResult = silhouetteClustering.evaluate();
+
+        clusterBenchmarkResult.writeClusterBenchmarkToFile(directoryPath);
     }
 
     private static IGeneExpressionDataLoad getIGeneExpressionDataLoad(String directoryPath) {

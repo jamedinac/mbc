@@ -15,6 +15,6 @@ public class Jaccard implements IClusterBenchmark {
         this.goldStandard = goldStandard;
     }
     public ClusterBenchmarkResult evaluate() {
-        return new ClusterBenchmarkResult(BenchmarkType.Jaccard, 1);
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

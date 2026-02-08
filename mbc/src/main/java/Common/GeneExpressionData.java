@@ -1,6 +1,5 @@
 package Common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GeneExpressionData {
@@ -11,16 +10,16 @@ public class GeneExpressionData {
     private final double[][] expressionData;
     private final HashMap<String, SampleMetadata> metadata;
     private final String[] geneId;
-    private final String[] columnData;
+    private final String[] geneColumnData;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, double[][] expressionData, HashMap<String, SampleMetadata> metadata, String[] geneId, String[] columnData) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, double[][] expressionData, HashMap<String, SampleMetadata> metadata, String[] geneId, String[] geneColumnData) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
         this.expressionData = expressionData;
         this.metadata = metadata;
         this.geneId = geneId;
-        this.columnData = columnData;
+        this.geneColumnData = geneColumnData;
     }
 
     public double[][] getExpressionData() {
@@ -55,7 +54,7 @@ public class GeneExpressionData {
         return geneId[gene];
     }
 
-    public String[] getColumnData() {
-        return columnData;
+    public String[] getGeneColumnData() {
+        return geneColumnData;
     }
 }

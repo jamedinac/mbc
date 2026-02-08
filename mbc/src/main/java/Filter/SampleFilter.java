@@ -29,8 +29,11 @@ public class SampleFilter implements ISampleFilter {
 
     @Override
     public boolean isValidSample(SampleMetadata sampleMetadata) {
-        boolean isValid = true;
+        if (sampleMetadata == null) {
+            return false;
+        }
 
+        boolean isValid = true;
         for (HashMap.Entry<String, String> sampleEntry : sampleMetadata.getMetadata().entrySet()) {
             String sampleTrait = sampleEntry.getKey();
             String sampleTraitValue = sampleEntry.getValue();

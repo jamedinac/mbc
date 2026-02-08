@@ -9,24 +9,31 @@ import GeneExpressionDataOperation.GeneExpressionDataWrite;
 import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
 import Interfaces.IClusteringAlgorithm;
-import Interfaces.IGeneExpressionDataSource;
+import Interfaces.IGeneExpressionDataLoad;
 import Interfaces.IGeneExpressionDataWrite;
+import Normalizers.PseudologarithmNormalizer;
+import Normalizers.ZScoreNormalizer;
 
 public class ClusterGenerationService {
-    private static final String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
-
     static void main() {
-        int timeSeriesColumnIndex = 4;
-        int replicateColumnIndex = 3;
+        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
+        String replicateColumn = "Replicate";
+        String timeSeriesColumn = "Time";
+        String sampleColumn = "Sample";
 
-        IGeneExpressionDataSource geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath, replicateColumnIndex, timeSeriesColumnIndex, FileExtension.TSV, FileExtension.CSV);
+        int numberOfReplicates = 3;
+        int numberOfTimeSeries = 13;
 
-        /// Hardcoded filters
-        geneExpressionDataSource.addGeneFilter(new GeneFilterByTotalExpression(1000));
+        IGeneExpressionDataLoad geneExpressionDataSource = new GeneExpressionDataLoad(directoryPath, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, FileExtension.TSV, FileExtension.CSV);
+
+        geneExpressionDataSource.addGeneFilter(new GeneFilterByTotalExpression(1));
         geneExpressionDataSource.addGeneFilter(new GeneFilterByVariance(1));
 
         geneExpressionDataSource.addSampleFilter("Drought_Group", "Severe");
         geneExpressionDataSource.addSampleFilter("Condition", "Drought");
+
+        geneExpressionDataSource.addNormalizer(new PseudologarithmNormalizer());
+        geneExpressionDataSource.addNormalizer(new ZScoreNormalizer());
 
         GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
 

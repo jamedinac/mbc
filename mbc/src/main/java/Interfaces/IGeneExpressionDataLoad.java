@@ -2,7 +2,7 @@ package Interfaces;
 
 import Common.GeneExpressionData;
 
-public interface IGeneExpressionDataSource {
+public interface IGeneExpressionDataLoad {
 
     /**
      * Converts gene expression source data to a matrix with columns per sample per time series
@@ -22,4 +22,10 @@ public interface IGeneExpressionDataSource {
      * @param sampleTraitValue sample trait value
      */
     void addSampleFilter(String sampleTrait, String sampleTraitValue);
+
+    /**
+     * Adds a normalizer to apply to data
+     * @param normalizer the normalizer to apply
+     */
+    void addNormalizer(IDataNormalizer normalizer);
 }

@@ -11,17 +11,17 @@ public class GeneFilterByVariance implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(String[] geneExpressionRow) {
+    public boolean filterGene(double[] geneExpressionRow) {
         double mean = 0.0;
         double variance = 0.0;
 
         for (int c = 1; c < geneExpressionRow.length; c++) {
-            mean += Double.parseDouble(geneExpressionRow[c]);
+            mean += geneExpressionRow[c];
         }
         mean /= geneExpressionRow.length;
 
         for (int c = 1; c < geneExpressionRow.length; c++) {
-            double difference = Double.parseDouble(geneExpressionRow[c]) - mean;
+            double difference = geneExpressionRow[c] - mean;
             variance += difference * difference;
         }
         variance /= geneExpressionRow.length - 1;

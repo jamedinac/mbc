@@ -17,7 +17,7 @@ public class CompositeFilter implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(String[] geneExpressionRow) {
+    public boolean filterGene(double[] geneExpressionRow) {
         boolean result = true;
 
         for (IGeneFilter filter : this.filters) {

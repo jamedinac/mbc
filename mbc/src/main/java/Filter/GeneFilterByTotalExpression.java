@@ -4,18 +4,18 @@ import Interfaces.IGeneFilter;
 
 public class GeneFilterByTotalExpression implements IGeneFilter {
 
-    private final int expressionThreshold;
+    private final double expressionThreshold;
 
-    public GeneFilterByTotalExpression(int expressionThreshold) {
+    public GeneFilterByTotalExpression(double expressionThreshold) {
         this.expressionThreshold = expressionThreshold;
     }
 
     @Override
-    public boolean filterGene(String[] geneExpressionRow) {
-        int expressionSum = 0;
+    public boolean filterGene(double[] geneExpressionRow) {
+        double expressionSum = 0;
 
         for (int c = 1;  c < geneExpressionRow.length; c++) {
-            expressionSum += Integer.parseInt(geneExpressionRow[c]);
+            expressionSum += geneExpressionRow[c];
         }
 
         return expressionSum > this.expressionThreshold;

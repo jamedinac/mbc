@@ -1,24 +1,24 @@
 package org.example;
 
-import ClusterBenchmark.ClusterBenchmarkFactory;
-import Common.BenchmarkType;
+import ClusterBenchmark.Silhouette;
+import ClusteringAlgorithms.KMeansAlgorithm;
 import Common.ClusterBenchmarkResult;
 import Common.GeneClusteringResult;
+import Common.GeneExpressionData;
 import Interfaces.IClusterBenchmark;
-
-import java.util.ArrayList;
+import Interfaces.IClusteringAlgorithm;
 
 public class ClusterBenchmarkService {
     static void main() {
-        GeneClusteringResult geneClusteringResult = null;
-        GeneClusteringResult goldStandard = null;
+        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
+        GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(directoryPath);
 
-        IClusterBenchmark clusterBenchmark = null;
-        ArrayList<ClusterBenchmarkResult> clusterBenchmarkResults = new ArrayList<>();
+        IClusteringAlgorithm kMeans = new KMeansAlgorithm(10, 20);
+        GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
 
-        for (BenchmarkType benchmarkType : BenchmarkType.values()) {
-            clusterBenchmark = ClusterBenchmarkFactory.create(benchmarkType, geneClusteringResult, goldStandard);
-            clusterBenchmarkResults.add(clusterBenchmark.evaluate());
-        }
+        IClusterBenchmark silhouetteClustering = new Silhouette(kMeansResult);
+        ClusterBenchmarkResult clusterBenchmarkResult = silhouetteClustering.evaluate();
+
+        clusterBenchmarkResult.writeClusterBenchmarkToFile(directoryPath);
     }
 }

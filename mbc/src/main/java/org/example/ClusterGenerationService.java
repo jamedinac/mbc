@@ -14,6 +14,7 @@ import Interfaces.IClusterBenchmark;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneExpressionDataLoad;
 import Interfaces.IGeneExpressionDataWrite;
+import Normalizers.MedianRatiosNormalization;
 import Normalizers.PseudologarithmNormalizer;
 import Normalizers.ZScoreNormalizer;
 
@@ -21,20 +22,9 @@ public class ClusterGenerationService {
     static void main() {
         String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
 
-        IGeneExpressionDataLoad geneExpressionDataSource = getIGeneExpressionDataLoad(directoryPath);
+        GeneExpressionData geneExpressionData = getGeneExpressionData(directoryPath);
 
-        geneExpressionDataSource.addGeneFilter(new GeneFilterByTotalExpression(1));
-        geneExpressionDataSource.addGeneFilter(new GeneFilterByVariance(1));
-
-        geneExpressionDataSource.addSampleFilter("Drought_Group", "Severe");
-        geneExpressionDataSource.addSampleFilter("Condition", "Drought");
-
-        geneExpressionDataSource.addNormalizer(new PseudologarithmNormalizer());
-        geneExpressionDataSource.addNormalizer(new ZScoreNormalizer());
-
-        GeneExpressionData geneExpressionData = geneExpressionDataSource.getGeneExpressionFormattedData();
-
-        IClusteringAlgorithm kMeans = new KMeansAlgorithm(5, 100);
+        IClusteringAlgorithm kMeans = new KMeansAlgorithm(10, 20);
         GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
 
         IGeneExpressionDataWrite geneExpressionDataWrite = new GeneExpressionDataWrite();
@@ -46,7 +36,23 @@ public class ClusterGenerationService {
         clusterBenchmarkResult.writeClusterBenchmarkToFile(directoryPath);
     }
 
-    private static IGeneExpressionDataLoad getIGeneExpressionDataLoad(String directoryPath) {
+    public static GeneExpressionData getGeneExpressionData(String directoryPath) {
+        IGeneExpressionDataLoad geneExpressionDataSource = getGeneExpressionDataLoad(directoryPath);
+
+        geneExpressionDataSource.addGeneFilter(new GeneFilterByTotalExpression(1));
+        geneExpressionDataSource.addGeneFilter(new GeneFilterByVariance(1));
+
+        geneExpressionDataSource.addSampleFilter("Drought_Group", "Severe");
+        geneExpressionDataSource.addSampleFilter("Condition", "Drought");
+
+        // geneExpressionDataSource.addNormalizer(new PseudologarithmNormalizer());
+        // geneExpressionDataSource.addNormalizer(new ZScoreNormalizer());
+        geneExpressionDataSource.addNormalizer(new MedianRatiosNormalization());
+
+        return geneExpressionDataSource.getGeneExpressionFormattedData();
+    }
+
+    private static IGeneExpressionDataLoad getGeneExpressionDataLoad(String directoryPath) {
         String geneExpressionFileName = "data.txt";
         String metadataFileName = "metadata.txt";
         FileFormat geneExpressionFileFormat = FileFormat.TSV;

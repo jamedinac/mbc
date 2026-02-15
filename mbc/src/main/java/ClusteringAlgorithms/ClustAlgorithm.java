@@ -1,6 +1,6 @@
 package ClusteringAlgorithms;
 
-import Common.GeneClusteringResult;
+import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import Interfaces.IClusteringAlgorithm;
 
@@ -22,7 +22,7 @@ public class ClustAlgorithm implements IClusteringAlgorithm {
     };
 
     static class MNScatterPlotParameters {
-        GeneClusteringResult geneClusteringElite;
+        GeneClusterData geneClusteringElite;
         ArrayList<Double> mnDistances;
     }
 
@@ -33,22 +33,22 @@ public class ClustAlgorithm implements IClusteringAlgorithm {
     }
 
     @Override
-    public GeneClusteringResult clusterGenes(GeneExpressionData geneExpresionData) {
-        GeneClusteringResult seed = bicopam(geneExpresionData);
+    public GeneClusterData clusterGenes(GeneExpressionData geneExpresionData) {
+        GeneClusterData seed = bicopam(geneExpresionData);
         MNScatterPlotParameters mnScatterPlotParameters = mnScatterPlot(geneExpresionData, seed);
-        GeneClusteringResult finalClusters = optimise(geneExpresionData, mnScatterPlotParameters);
+        GeneClusterData finalClusters = optimise(geneExpresionData, mnScatterPlotParameters);
         return finalClusters;
     }
 
-    private GeneClusteringResult bicopam(GeneExpressionData geneExpressionData) {
+    private GeneClusterData bicopam(GeneExpressionData geneExpressionData) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private MNScatterPlotParameters mnScatterPlot (GeneExpressionData geneExpressionData, GeneClusteringResult seed) {
+    private MNScatterPlotParameters mnScatterPlot (GeneExpressionData geneExpressionData, GeneClusterData seed) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private GeneClusteringResult optimise(GeneExpressionData geneExpressionData, MNScatterPlotParameters mnScatterPlotParameters) {
+    private GeneClusterData optimise(GeneExpressionData geneExpressionData, MNScatterPlotParameters mnScatterPlotParameters) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

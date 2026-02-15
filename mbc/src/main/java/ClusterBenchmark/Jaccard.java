@@ -1,20 +1,20 @@
 package ClusterBenchmark;
 
-import Common.BenchmarkType;
 import Common.ClusterBenchmarkResult;
-import Common.GeneClusteringResult;
+import Common.GeneClusterData;
+import Common.GeneExpressionData;
 import Interfaces.IClusterBenchmark;
 
 public class Jaccard implements IClusterBenchmark {
 
-    GeneClusteringResult geneClustering;
-    GeneClusteringResult goldStandard;
+    GeneClusterData goldStandard;
 
-    public Jaccard(GeneClusteringResult geneClustering, GeneClusteringResult goldStandard) {
-        this.geneClustering = geneClustering;
+    public Jaccard(GeneClusterData goldStandard) {
         this.goldStandard = goldStandard;
     }
-    public ClusterBenchmarkResult evaluate() {
+
+    @Override
+    public ClusterBenchmarkResult evaluate(GeneExpressionData geneExpressionData,  GeneClusterData geneClusterData) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -5,7 +5,6 @@ import Interfaces.ISampleFilter;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 public class SampleFilter implements ISampleFilter {
 

@@ -1,24 +1,30 @@
 package org.example;
 
 import ClusterBenchmark.Silhouette;
-import ClusteringAlgorithms.KMeansAlgorithm;
-import Common.ClusterBenchmarkResult;
-import Common.GeneClusteringResult;
-import Common.GeneExpressionData;
+import ClusterBenchmark.WCSS;
+import Common.*;
+import FileDataOperations.GeneClusterDataLoad;
+import GeneDistance.CorrelationDistance;
+import GeneDistance.EuclideanDistance;
 import Interfaces.IClusterBenchmark;
-import Interfaces.IClusteringAlgorithm;
+import Interfaces.IDataNormalizer;
+import Interfaces.IGeneDistance;
+import Interfaces.IGeneFilter;
+
+import java.util.ArrayList;
 
 public class ClusterBenchmarkService {
-    static void main() {
-        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
-        GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(directoryPath);
-
-        IClusteringAlgorithm kMeans = new KMeansAlgorithm(10, 20);
-        GeneClusteringResult kMeansResult = kMeans.clusterGenes(geneExpressionData);
-
-        IClusterBenchmark silhouetteClustering = new Silhouette(kMeansResult);
-        ClusterBenchmarkResult clusterBenchmarkResult = silhouetteClustering.evaluate();
-
+    static void RunBenchmark(String directoryPath, String geneExpressionFileName, String metadataFileName, String outputFileName, IClusterBenchmark clusterBenchmark, ArrayList<IGeneFilter> geneFilter, ArrayList<SampleTrait> sampleFilter, ArrayList<IDataNormalizer> normalizers) {
+        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(directoryPath, geneExpressionFileName, metadataFileName, outputFileName, clusterBenchmark,  geneFilter, sampleFilter, normalizers);
         clusterBenchmarkResult.writeClusterBenchmarkToFile(directoryPath);
+    }
+
+    public static ClusterBenchmarkResult getClusterBenchmarkResult(String directoryPath, String geneExpressionFileName, String metadataFileName, String outputFileName, IClusterBenchmark clusterBenchmark, ArrayList<IGeneFilter> geneFilter, ArrayList<SampleTrait> sampleFilter, ArrayList<IDataNormalizer> normalizers) {
+        GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(directoryPath,  geneExpressionFileName, metadataFileName, geneFilter, sampleFilter, normalizers);
+
+        GeneClusterDataLoad geneClusterDataLoad = new GeneClusterDataLoad(directoryPath, outputFileName);
+        GeneClusterData clusterData = geneClusterDataLoad.readClusterData();
+
+        return clusterBenchmark.evaluate(geneExpressionData, clusterData);
     }
 }

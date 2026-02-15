@@ -54,6 +54,8 @@ public class GeneExpressionData {
         return geneId[gene];
     }
 
+    public String[] getGeneIds() { return this.geneId; }
+
     public String[] getGeneColumnData() {
         return geneColumnData;
     }

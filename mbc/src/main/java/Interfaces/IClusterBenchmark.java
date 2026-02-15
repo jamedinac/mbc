@@ -1,6 +1,8 @@
 package Interfaces;
 
 import Common.ClusterBenchmarkResult;
+import Common.GeneClusterData;
+import Common.GeneExpressionData;
 
 public interface IClusterBenchmark {
 
@@ -9,5 +11,5 @@ public interface IClusterBenchmark {
      *
      * @return Cluster result
      */
-    ClusterBenchmarkResult evaluate();
+    ClusterBenchmarkResult evaluate(GeneExpressionData geneExpressionData, GeneClusterData geneClusterData);
 }

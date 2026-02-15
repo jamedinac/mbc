@@ -1,43 +1,40 @@
 package ClusterBenchmark;
 
-import Common.BenchmarkType;
-import Common.ClusterBenchmarkResult;
-import Common.GeneClusteringResult;
+import Common.*;
 import Interfaces.IClusterBenchmark;
-import Utilities.GeneOperations;
+import Interfaces.IGeneDistance;
 
 public class Silhouette implements IClusterBenchmark {
+    IGeneDistance geneDistance;
 
-    GeneClusteringResult geneClustering;
-
-    public Silhouette(GeneClusteringResult geneClustering) {
-        this.geneClustering = geneClustering;
+    public Silhouette(IGeneDistance  geneDistance) {
+        this.geneDistance = geneDistance;
     }
 
     @Override
-    public ClusterBenchmarkResult evaluate() {
-        int[] clusterId = new int[geneClustering.getNumberOfGenes()];
-        int[] clusterSize = new int[geneClustering.getNumberOfClusters()];
+    public ClusterBenchmarkResult evaluate(GeneExpressionData geneExpressionData, GeneClusterData geneClusterData) {
+        int[] clusterId = new int[geneClusterData.getNumberOfGenes()];
+        int[] clusterSize = new int[geneClusterData.getNumberOfClusters()];
 
-        for (int g=0; g < geneClustering.getNumberOfGenes(); g++) {
-            clusterId[g] = this.getGeneClusterId(g, this.geneClustering);
+        for (int g = 0; g < geneClusterData.getNumberOfGenes(); g++) {
+            clusterId[g] = this.getGeneClusterId(g, geneClusterData);
             clusterSize[clusterId[g]]++;
         }
 
-        double[] similarity = new double[geneClustering.getNumberOfGenes()];
-        double[] dissimilarity = new double[geneClustering.getNumberOfGenes()];
-        double[] silhoutte = new  double[geneClustering.getNumberOfGenes()];
+        double[] similarity = new double[geneClusterData.getNumberOfGenes()];
+        double[] dissimilarity = new double[geneClusterData.getNumberOfGenes()];
+        double[] silhoutte = new  double[geneClusterData.getNumberOfGenes()];
 
-        for (int currentGene=0; currentGene<geneClustering.getNumberOfGenes(); currentGene++) {
-            double[] distance = new double[geneClustering.getNumberOfClusters()];
+        for (int currentGene = 0; currentGene< geneClusterData.getNumberOfGenes(); currentGene++) {
+            double[] distance = new double[geneClusterData.getNumberOfClusters()];
 
-            for (int iteratingGene=0; iteratingGene < geneClustering.getNumberOfGenes(); iteratingGene++) {
+            for (int iteratingGene = 0; iteratingGene < geneClusterData.getNumberOfGenes(); iteratingGene++) {
                 if (iteratingGene != currentGene) {
-                    distance[clusterId[iteratingGene]] += GeneOperations.euclideanDistance(geneClustering.getGeneExpressionData().getGeneProfile(currentGene), geneClustering.getGeneExpressionData().getGeneProfile(iteratingGene));
+                    distance[clusterId[iteratingGene]] += this.geneDistance.getDistance(geneExpressionData.getGeneProfile(currentGene), geneExpressionData.getGeneProfile(iteratingGene));
                 }
             }
 
-            for (int cluster = 0;  cluster < geneClustering.getNumberOfClusters(); cluster++) {
+            for (int cluster = 0; cluster < geneClusterData.getNumberOfClusters(); cluster++) {
                 if (cluster != clusterId[currentGene]) {
                     distance[cluster] /= clusterSize[cluster];
                     dissimilarity[currentGene] = distance[cluster];
@@ -47,7 +44,7 @@ public class Silhouette implements IClusterBenchmark {
             }
 
             similarity[currentGene] = distance[clusterId[currentGene]];
-            for (int cluster = 0;  cluster < geneClustering.getNumberOfClusters(); cluster++) {
+            for (int cluster = 0; cluster < geneClusterData.getNumberOfClusters(); cluster++) {
                 if (cluster != clusterId[currentGene]) {
                     dissimilarity[currentGene] = Math.min(dissimilarity[currentGene], distance[cluster]);
                 }
@@ -55,7 +52,7 @@ public class Silhouette implements IClusterBenchmark {
         }
 
         double meanSilhouette = 0;
-        for (int gene = 0; gene < geneClustering.getNumberOfGenes(); gene++) {
+        for (int gene = 0; gene < geneClusterData.getNumberOfGenes(); gene++) {
             if (clusterSize[clusterId[gene]] == 1) {
                 silhoutte[gene] = 0;
             } else {
@@ -64,13 +61,13 @@ public class Silhouette implements IClusterBenchmark {
             meanSilhouette += silhoutte[gene];
         }
 
-        return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhoutte ,meanSilhouette / this.geneClustering.getNumberOfGenes(), this.geneClustering);
+        return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhoutte ,meanSilhouette / geneClusterData.getNumberOfGenes(), geneClusterData);
     }
 
-    private int getGeneClusterId(int g, GeneClusteringResult geneClustering) {
+    private int getGeneClusterId(int g, GeneClusterData geneClusterData) {
         int clusterId = -1;
-        for(int c=0; c<geneClustering.getNumberOfClusters(); c++) {
-            if (geneClustering.getGeneClusteringData()[g][c] == 1.0) {
+        for(int c = 0; c < geneClusterData.getNumberOfClusters(); c++) {
+            if (geneClusterData.getClusteringData()[g][c] == 1.0) {
                 clusterId = c;
             }
         }

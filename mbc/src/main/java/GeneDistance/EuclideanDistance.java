@@ -1,8 +1,10 @@
-package Utilities;
+package GeneDistance;
 
-public class GeneOperations {
+import Interfaces.IGeneDistance;
 
-    public static double euclideanDistance(double[] geneExpressionData, double[] centroid) {
+public class EuclideanDistance implements IGeneDistance {
+    @Override
+    public double getDistance(double[] geneExpressionData, double[] centroid) {
         double distance = 0.0;
         int numberOfComponents = geneExpressionData.length;
 

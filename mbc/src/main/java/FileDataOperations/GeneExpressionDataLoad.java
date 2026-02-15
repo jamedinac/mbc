@@ -60,6 +60,43 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         String[] geneMetadataFileLines = FileUtilities.getFileLines(geneMetadataFile);
 
         String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
+        HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines);
+
+        /// Read gene expression
+        String geneExpressionFile = geneCountDirectoryPath + File.separator + this.geneExpressionFileName;
+        String[] geneExpressionFileLines = FileUtilities.getFileLines(geneExpressionFile);
+
+        int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata);
+        String[] geneDataColumnNames = this.getGeneDataColumnNames(FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter()), numberOfComponents, metadata);
+
+
+        double[][] sampleFilteredExpressionData = this.getSampleFilteredExpressionData(geneExpressionFileLines, numberOfComponents, metadata);
+        boolean[] filteredGenes = this.buildFilteredGene(sampleFilteredExpressionData);
+        double [][] sortedData = this.getSortedData(sampleFilteredExpressionData, metadata, filteredGenes, geneDataColumnNames);
+        double[][] normalizedData = this.compositeNormalizer.normalize(sortedData);
+
+        int numberOfGenes = this.getNumberOfFilteredGenes(filteredGenes);
+        String[] geneIds = this.getGeneIds(geneExpressionFileLines, filteredGenes, numberOfGenes);
+
+        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, normalizedData, geneIds);
+    }
+
+    @Override
+    public void addGeneFilter(IGeneFilter filter) {
+        this.geneFilters.addfilter(filter);
+    }
+
+    @Override
+    public void addSampleFilter(String sampleTrait, String sampleTraitValue) {
+        this.sampleFilter.addValidSampleTrait(sampleTrait, sampleTraitValue);
+    }
+
+    @Override
+    public void addNormalizer(IDataNormalizer normalizer) {
+        this.compositeNormalizer.add(normalizer);
+    }
+
+    private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines) {
         HashMap<String, SampleMetadata> metadata = new HashMap<>();
 
         int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);
@@ -82,49 +119,10 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
             }
         }
 
-        /// Read gene expression
-        String geneExpressionFile = geneCountDirectoryPath + File.separator + this.geneExpressionFileName;
-        String[] geneExpressionFileLines = FileUtilities.getFileLines(geneExpressionFile);
+        return metadata;
+    };
 
-        int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata);
-
-        double[][] rawData = this.getRawExpressionData(geneExpressionFileLines, numberOfComponents, metadata);
-        double[][] normalizedData = this.compositeNormalizer.normalize(rawData);
-        boolean[] filteredGenes = this.buildFilteredGene(rawData);
-
-        int numberOfGenes = this.getNumberOfFilteredGenes(filteredGenes);
-        double[][] expressionData = new double[numberOfGenes][numberOfComponents];
-
-        String[] geneIds = this.getGeneIds(geneExpressionFileLines, filteredGenes, numberOfGenes);
-        String[] geneDataColumnNames = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
-
-        int currentGene = 0;
-        for (int r = 0; r < normalizedData.length; r++) {
-            if (filteredGenes[r]) {
-                expressionData[currentGene] = normalizedData[r];
-                currentGene++;
-            }
-        }
-
-        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, expressionData, metadata, geneIds, geneDataColumnNames);
-    }
-
-    @Override
-    public void addGeneFilter(IGeneFilter filter) {
-        this.geneFilters.addfilter(filter);
-    }
-
-    @Override
-    public void addSampleFilter(String sampleTrait, String sampleTraitValue) {
-        this.sampleFilter.addValidSampleTrait(sampleTrait, sampleTraitValue);
-    }
-
-    @Override
-    public void addNormalizer(IDataNormalizer normalizer) {
-        this.compositeNormalizer.add(normalizer);
-    }
-
-    private double[][] getRawExpressionData (String[] geneExpressionFileLines, int numberOfComponents, HashMap<String, SampleMetadata> metadata) {
+    private double[][] getSampleFilteredExpressionData(String[] geneExpressionFileLines, int numberOfComponents, HashMap<String, SampleMetadata> metadata) {
         String[] sampleIds = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
         int rows = geneExpressionFileLines.length - 1;
         double[][] rawData = new double[rows][numberOfComponents];
@@ -144,6 +142,40 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         return rawData;
     }
 
+    private double[][] getSortedData(double[][] data, HashMap<String, SampleMetadata> metadata, boolean[] filteredGenes, String[] geneColumn) {
+        int numberOfGenes = this.getNumberOfFilteredGenes(filteredGenes);
+        int numberOfComponents = this.numberOfReplicates * numberOfTimeSeries;
+        double[][] sortedData = new double[numberOfGenes][numberOfComponents];
+
+        for (int c=0; c < geneColumn.length; c++) {
+            int replicate = metadata.get(geneColumn[c]).getReplicate();
+            int time = metadata.get(geneColumn[c]).getTime();
+
+            int currentGene = 0;
+            for (int g=0; g < data.length; ++g) {
+                if (filteredGenes[g]) {
+                    sortedData[currentGene][time*numberOfReplicates + replicate - 1] = data[g][c];
+                    currentGene++;
+                }
+            }
+        }
+
+        return sortedData;
+    }
+
+    private String[] getGeneDataColumnNames(String[] geneColumnNames, int numberOfComponents,  HashMap<String, SampleMetadata> metadata) {
+        String[] geneDataColumnNames = new String[numberOfComponents];
+
+        int currentColumn = 0;
+        for (String column :  geneColumnNames) {
+            if (this.sampleFilter.isValidSample(metadata.get(column))) {
+                geneDataColumnNames[currentColumn] = column;
+                currentColumn++;
+            }
+        }
+
+        return geneDataColumnNames;
+    }
     private String[] getGeneIds(String[] geneExpressionFileLines, boolean[] filteredGenes, int numberOfGenes) {
         String[] geneIds = new String[numberOfGenes];
         int currentGene = 0;
@@ -158,12 +190,12 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         return geneIds;
     }
 
-    private boolean[] buildFilteredGene(double[][] normalizedData) {
-        int numberOfRows =  normalizedData.length;
+    private boolean[] buildFilteredGene(double[][] data) {
+        int numberOfRows =  data.length;
         boolean[] filteredGenes = new boolean[numberOfRows];
 
         for (int r=0; r<numberOfRows; r++) {
-            filteredGenes[r] = this.geneFilters.filterGene(normalizedData[r]);
+            filteredGenes[r] = this.geneFilters.filterGene(data[r]);
         }
 
         return filteredGenes;

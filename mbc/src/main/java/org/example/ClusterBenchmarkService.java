@@ -1,14 +1,9 @@
 package org.example;
 
-import ClusterBenchmark.Silhouette;
-import ClusterBenchmark.WCSS;
 import Common.*;
 import FileDataOperations.GeneClusterDataLoad;
-import GeneDistance.CorrelationDistance;
-import GeneDistance.EuclideanDistance;
 import Interfaces.IClusterBenchmark;
 import Interfaces.IDataNormalizer;
-import Interfaces.IGeneDistance;
 import Interfaces.IGeneFilter;
 
 import java.util.ArrayList;

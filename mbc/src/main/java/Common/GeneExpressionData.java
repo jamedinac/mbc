@@ -8,18 +8,14 @@ public class GeneExpressionData {
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
     private final double[][] expressionData;
-    private final HashMap<String, SampleMetadata> metadata;
     private final String[] geneId;
-    private final String[] geneColumnData;
 
-    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, double[][] expressionData, HashMap<String, SampleMetadata> metadata, String[] geneId, String[] geneColumnData) {
+    public GeneExpressionData(int numberOfGenes, int numberOfReplicates, int numberOfTimeSeries, double[][] expressionData, String[] geneId) {
         this.numberOfGenes = numberOfGenes;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
         this.expressionData = expressionData;
-        this.metadata = metadata;
         this.geneId = geneId;
-        this.geneColumnData = geneColumnData;
     }
 
     public double[][] getExpressionData() {
@@ -39,11 +35,7 @@ public class GeneExpressionData {
     }
 
     public int getNumberOfComponents() {
-        return this.metadata.size();
-    }
-
-    public HashMap<String, SampleMetadata> getMetadata() {
-        return metadata;
+        return numberOfReplicates*numberOfTimeSeries;
     }
 
     public double[] getGeneProfile(int geneIndex){
@@ -56,7 +48,4 @@ public class GeneExpressionData {
 
     public String[] getGeneIds() { return this.geneId; }
 
-    public String[] getGeneColumnData() {
-        return geneColumnData;
-    }
 }

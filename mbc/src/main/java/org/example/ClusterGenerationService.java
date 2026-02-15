@@ -1,6 +1,6 @@
 package org.example;
 
-import Common.FileFormat;
+import Enum.FileFormat;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import Common.SampleTrait;
@@ -11,8 +11,8 @@ import Interfaces.*;
 import java.util.ArrayList;
 
 public class ClusterGenerationService {
-    static void RunClustering(String directoryPath, String geneExpressionFileName, String metadataFileName, int numberOfClusters, int numberOfIterations, ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers, IClusteringAlgorithm algorithm) {
-        GeneExpressionData geneExpressionData = getGeneExpressionData(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers);
+    static void RunClustering(String directoryPath, String geneExpressionFileName, String metadataFileName, int numberOfClusters, int numberOfIterations, ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers, IClusteringAlgorithm algorithm, IReplicateCompression replicateCompression) {
+        GeneExpressionData geneExpressionData = getGeneExpressionData(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers, replicateCompression);
 
         GeneClusterData result = algorithm.clusterGenes(geneExpressionData);
 
@@ -20,22 +20,24 @@ public class ClusterGenerationService {
         geneExpressionDataWrite.writeClusteringDataToFile(result, directoryPath);
     }
 
-    public static GeneExpressionData getGeneExpressionData(String directoryPath, String geneExpressionFileName, String metadataFileName,  ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers) {
-        IGeneExpressionDataLoad geneExpressionDataSource = getGeneExpressionDataLoad(directoryPath, geneExpressionFileName, metadataFileName);
+    public static GeneExpressionData getGeneExpressionData(String directoryPath, String geneExpressionFileName, String metadataFileName,  ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers, IReplicateCompression replicateCompression) {
+        IGeneExpressionDataLoad geneExpressionDataLoad = getGeneExpressionDataLoad(directoryPath, geneExpressionFileName, metadataFileName);
 
         for (IGeneFilter filter : geneFilters) {
-            geneExpressionDataSource.addGeneFilter(filter);
+            geneExpressionDataLoad.addGeneFilter(filter);
         }
 
         for (SampleTrait sampleTrait : sampleFilters) {
-            geneExpressionDataSource.addSampleFilter(sampleTrait.getTrait(), sampleTrait.getValue());
+            geneExpressionDataLoad.addSampleFilter(sampleTrait.getTrait(), sampleTrait.getValue());
         }
 
         for (IDataNormalizer normalizer : normalizers) {
-            geneExpressionDataSource.addNormalizer(normalizer);
+            geneExpressionDataLoad.addNormalizer(normalizer);
         }
 
-        return geneExpressionDataSource.getGeneExpressionFormattedData();
+        geneExpressionDataLoad.setReplicatesCompressor(replicateCompression);
+
+        return geneExpressionDataLoad.getGeneExpressionFormattedData();
     }
 
     private static IGeneExpressionDataLoad getGeneExpressionDataLoad(String directoryPath, String geneExpressionFileName, String metadataFileName) {

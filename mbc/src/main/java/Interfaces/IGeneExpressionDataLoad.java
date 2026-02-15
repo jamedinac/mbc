@@ -28,4 +28,10 @@ public interface IGeneExpressionDataLoad {
      * @param normalizer the normalizer to apply
      */
     void addNormalizer(IDataNormalizer normalizer);
+
+    /**
+     * Sets the replicate compression for the expression data
+     * @param replicateCompression the compressor
+     */
+    void setReplicatesCompressor(IReplicateCompression replicateCompression);
 }

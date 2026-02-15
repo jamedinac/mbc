@@ -1,6 +1,6 @@
 package FileDataOperations;
 
-import Common.FileFormat;
+import Enum.FileFormat;
 import Common.GeneExpressionData;
 import Common.SampleMetadata;
 import Filter.CompositeFilter;
@@ -8,6 +8,7 @@ import Filter.SampleFilter;
 import Interfaces.IDataNormalizer;
 import Interfaces.IGeneExpressionDataLoad;
 import Interfaces.IGeneFilter;
+import Interfaces.IReplicateCompression;
 import Normalizers.CompositeNormalizer;
 import Utilities.FileUtilities;
 
@@ -30,6 +31,8 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
     private final CompositeFilter geneFilters;
     private final SampleFilter sampleFilter;
     private final CompositeNormalizer compositeNormalizer;
+
+    private IReplicateCompression replicateCompression;
 
     FileFormat geneFileFormat;
     FileFormat metadataFileFormat;
@@ -73,12 +76,13 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         double[][] sampleFilteredExpressionData = this.getSampleFilteredExpressionData(geneExpressionFileLines, numberOfComponents, metadata);
         boolean[] filteredGenes = this.buildFilteredGene(sampleFilteredExpressionData);
         double [][] sortedData = this.getSortedData(sampleFilteredExpressionData, metadata, filteredGenes, geneDataColumnNames);
-        double[][] normalizedData = this.compositeNormalizer.normalize(sortedData);
+        double[][] compressedData = this.replicateCompression.compress(sortedData, numberOfReplicates, numberOfTimeSeries);
+        double[][] normalizedData = this.compositeNormalizer.normalize(compressedData);
 
         int numberOfGenes = this.getNumberOfFilteredGenes(filteredGenes);
         String[] geneIds = this.getGeneIds(geneExpressionFileLines, filteredGenes, numberOfGenes);
 
-        return new GeneExpressionData(numberOfGenes, numberOfReplicates, numberOfTimeSeries, normalizedData, geneIds);
+        return new GeneExpressionData(numberOfGenes, normalizedData, geneIds);
     }
 
     @Override
@@ -94,6 +98,11 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
     @Override
     public void addNormalizer(IDataNormalizer normalizer) {
         this.compositeNormalizer.add(normalizer);
+    }
+
+    @Override
+    public void setReplicatesCompressor(IReplicateCompression replicateCompression) {
+        this.replicateCompression = replicateCompression;
     }
 
     private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines) {
@@ -176,6 +185,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
 
         return geneDataColumnNames;
     }
+
     private String[] getGeneIds(String[] geneExpressionFileLines, boolean[] filteredGenes, int numberOfGenes) {
         String[] geneIds = new String[numberOfGenes];
         int currentGene = 0;

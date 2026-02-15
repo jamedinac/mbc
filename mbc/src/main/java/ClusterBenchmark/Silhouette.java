@@ -3,6 +3,7 @@ package ClusterBenchmark;
 import Common.*;
 import Interfaces.IClusterBenchmark;
 import Interfaces.IGeneDistance;
+import Enum.BenchmarkType;
 
 public class Silhouette implements IClusterBenchmark {
     IGeneDistance geneDistance;

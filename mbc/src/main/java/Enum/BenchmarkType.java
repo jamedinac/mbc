@@ -1,4 +1,4 @@
-package Common;
+package Enum;
 
 public enum BenchmarkType {
     Jaccard,

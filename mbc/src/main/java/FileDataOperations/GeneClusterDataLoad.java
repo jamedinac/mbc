@@ -1,6 +1,6 @@
 package FileDataOperations;
 
-import Common.FileFormat;
+import Enum.FileFormat;
 import Common.GeneClusterData;
 import Utilities.FileUtilities;
 

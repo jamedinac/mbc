@@ -1,5 +1,7 @@
 package Common;
 
+import Enum.BenchmarkType;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,12 +9,12 @@ import java.nio.file.Paths;
 
 public class ClusterBenchmarkResult {
 
-    private BenchmarkType benchmarkType;
+    private final BenchmarkType benchmarkType;
     double[] benchmarkGeneValue;
     double benchmarkValue;
     GeneClusterData geneClusterData;
 
-    public ClusterBenchmarkResult(BenchmarkType benchmarkType, double[] benchmarkGeneValue, double benchmarkValue,  GeneClusterData geneClusterData) {
+    public ClusterBenchmarkResult(BenchmarkType benchmarkType, double[] benchmarkGeneValue, double benchmarkValue, GeneClusterData geneClusterData) {
         this.benchmarkType = benchmarkType;
         this.benchmarkGeneValue = benchmarkGeneValue;
         this.benchmarkValue = benchmarkValue;

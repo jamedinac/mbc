@@ -1,6 +1,6 @@
 package ClusteringAlgorithms;
 
-import Common.ClusteringAlgorithmType;
+import Enum.ClusteringAlgorithmType;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneDistance;
 

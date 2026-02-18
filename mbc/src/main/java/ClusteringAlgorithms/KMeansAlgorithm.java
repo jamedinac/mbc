@@ -2,7 +2,7 @@ package ClusteringAlgorithms;
 
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
-import DataGenerators.UniformDataGenerator;
+import DataGenerators.RandomGenerator;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneDistance;
 
@@ -29,6 +29,11 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
             clusterAssignation = getClusterAssignation(geneExpressionData, centroids);
             centroids = calculateCentroids(clusterAssignation, geneExpressionData);
+
+            if (centroids == null) {
+                iteration = 0;
+                centroids  = generateCentroids(geneExpressionData);
+            }
         }
 
         return new GeneClusterData(numberOfGenes, this.k, geneExpressionData.getGeneIds(), this.getClusterResultFromClusterAssignation(clusterAssignation));
@@ -36,10 +41,9 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
     double[][] generateCentroids(GeneExpressionData geneExpressionData) {
         double[][] centroids = new double[this.k][geneExpressionData.getNumberOfComponents()];
-        UniformDataGenerator dataGenerator = new UniformDataGenerator();
 
         for (int i=0; i < this.k; i++) {
-            centroids[i] = geneExpressionData.getGeneProfile(dataGenerator.generateRandomInt(geneExpressionData.getNumberOfGenes()));
+            centroids[i] = geneExpressionData.getGeneProfile(RandomGenerator.uniformRandomInt(geneExpressionData.getNumberOfGenes()));
         }
 
         return centroids;

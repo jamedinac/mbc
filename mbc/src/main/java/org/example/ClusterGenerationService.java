@@ -41,7 +41,7 @@ public class ClusterGenerationService {
     }
 
     private static IGeneExpressionDataLoad getGeneExpressionDataLoad(String directoryPath, String geneExpressionFileName, String metadataFileName) {
-        FileFormat geneExpressionFileFormat = FileFormat.TSV;
+        FileFormat geneExpressionFileFormat = FileFormat.CSV;
         FileFormat metadataFileFormat = FileFormat.CSV;
         String replicateColumn = "Replicate";
         String timeSeriesColumn = "Time";

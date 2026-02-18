@@ -4,7 +4,7 @@ import Interfaces.IDataNormalizer;
 
 public class EnthropyNormalizer implements IDataNormalizer {
 
-    private final double epsilon = 1e-6;
+    private final double epsilon = 1e-18;
     @Override
     public double[][] normalize(double[][] data) {
         double[][] normalizedData = new double[data.length][data[0].length];
@@ -12,6 +12,9 @@ public class EnthropyNormalizer implements IDataNormalizer {
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
                 normalizedData[i][j] = calculateEntropy(data[i][j]);
+                if (normalizedData[i][j] < epsilon){
+                    normalizedData[i][j] = epsilon;
+                }
             }
         }
 

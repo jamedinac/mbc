@@ -10,7 +10,7 @@ import Interfaces.IReplicateCompression;
 import java.util.ArrayList;
 
 public class ClusterBenchmarkService {
-    static void RunBenchmark(String directoryPath, String geneExpressionFileName, String metadataFileName, String outputFileName, IClusterBenchmark clusterBenchmark, ArrayList<IGeneFilter> geneFilter, ArrayList<SampleTrait> sampleFilter, ArrayList<IDataNormalizer> normalizers, IReplicateCompression replicateCompression) {
+    public static void RunBenchmark(String directoryPath, String geneExpressionFileName, String metadataFileName, String outputFileName, IClusterBenchmark clusterBenchmark, ArrayList<IGeneFilter> geneFilter, ArrayList<SampleTrait> sampleFilter, ArrayList<IDataNormalizer> normalizers, IReplicateCompression replicateCompression) {
         ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(directoryPath, geneExpressionFileName, metadataFileName, outputFileName, clusterBenchmark,  geneFilter, sampleFilter, normalizers, replicateCompression);
         clusterBenchmarkResult.writeClusterBenchmarkToFile(directoryPath);
     }

@@ -3,8 +3,8 @@ package org.example;
 import ClusterBenchmark.ClusterBenchmarkFactory;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
 import Enum.BenchmarkType;
+import Enum.FileFormat;
 import Enum.ReplicateCompressionType;
-import Common.ClusterBenchmarkResult;
 import Enum.ClusteringAlgorithmType;
 import Common.SampleTrait;
 import Filter.GeneFilterByTotalExpression;
@@ -14,20 +14,28 @@ import GeneDistance.EuclideanDistance;
 import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
 import Normalizers.EnthropyNormalizer;
-import Normalizers.MedianRatiosNormalization;
 import ReplicateCompression.ReplicateCompressionFactory;
 
 import java.util.ArrayList;
 
 public class ClusterTestService {
     static void main() {
-        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64";
+        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated";
         String fileName = "output.txt";
-        String geneExpressionFileName = "data.txt";
-        String metadataFileName = "metadata.txt";
+        String geneExpressionFileName = "data.csv";
+        String metadataFileName = "metadata.csv";
 
-        int numberOfClusters = 10;
-        int numberOfIterations = 20;
+        FileFormat geneExpressionFileFormat = FileFormat.CSV;
+        FileFormat metadataFileFormat = FileFormat.CSV;
+        String replicateColumn = "Replicate";
+        String timeSeriesColumn = "Time";
+        String sampleColumn = "Sample";
+
+        int numberOfReplicates = 3;
+        int numberOfTimeSeries = 13;
+
+        int numberOfClusters = 4;
+        int numberOfIterations = 50;
 
         ArrayList<IGeneFilter> geneFilters = new ArrayList<>();
         geneFilters.add(new ZeroFilter());
@@ -35,36 +43,23 @@ public class ClusterTestService {
         geneFilters.add(new GeneFilterByVariance(1));
 
         ArrayList<SampleTrait>  sampleFilters = new ArrayList<>();
-        sampleFilters.add(new SampleTrait("Drought_Group", "Severe"));
-        sampleFilters.add(new SampleTrait("Condition", "Drought"));
 
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
         normalizers.add(new EnthropyNormalizer());
-        //normalizers.add(new MedianRatiosNormalization());
-        //normalizers.add(new PseudologarithmNormalizer());
-        //normalizers.add(new ZScoreNormalizer());
 
-        IGeneDistance geneDistance = new JensenShannonDistance();
+        IGeneDistance geneDistance = new EuclideanDistance();
 
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance);
 
-        BenchmarkType benchmarkType = BenchmarkType.WCSS;
-        IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, new EuclideanDistance(), null);
+        BenchmarkType benchmarkType = BenchmarkType.Silhouette;
+        IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
 
-        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Variance;
+        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Mean;
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(replicateCompression);
 
-        //ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, numberOfClusters, numberOfIterations, geneFilters, sampleFilters, normalizers, algorithm, compression);
-        //ClusterBenchmarkService.RunBenchmark(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression);
-
-        for (int c=1; c<=numberOfClusters; c++) {
-            ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, c, numberOfIterations, geneFilters, sampleFilters, normalizers, algorithm, compression);
-            ClusterBenchmarkResult clusterBenchmarkResult = ClusterBenchmarkService.getClusterBenchmarkResult(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression);
-
-            double value = clusterBenchmarkResult.getBenchmarkValue();
-            System.out.println(c + "\t" + String.format("%.6f", value));
-        }
+        ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, numberOfClusters, numberOfIterations, geneFilters, sampleFilters, normalizers, algorithm, compression);
+        ClusterBenchmarkService.RunBenchmark(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression);
     }
 
 }

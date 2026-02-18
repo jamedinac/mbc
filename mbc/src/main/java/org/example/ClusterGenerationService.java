@@ -11,8 +11,41 @@ import Interfaces.*;
 import java.util.ArrayList;
 
 public class ClusterGenerationService {
-    static void RunClustering(String directoryPath, String geneExpressionFileName, String metadataFileName, int numberOfClusters, int numberOfIterations, ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers, IClusteringAlgorithm algorithm, IReplicateCompression replicateCompression) {
-        GeneExpressionData geneExpressionData = getGeneExpressionData(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers, replicateCompression);
+    /**
+     * Runs the clustering algorithm
+     * @param directoryPath
+     * @param geneExpressionFileName
+     * @param metadataFileName
+     * @param geneFilters
+     * @param sampleFilters
+     * @param normalizers
+     * @param algorithm
+     * @param replicateCompression
+     * @param replicateColumn
+     * @param timeSeriesColumn
+     * @param sampleColumn
+     * @param numberOfReplicates
+     * @param numberOfTimeSeries
+     * @param geneExpressionFileFormat
+     * @param metadataFileFormat
+     */
+    static void RunClustering(String directoryPath,
+                              String geneExpressionFileName,
+                              String metadataFileName,
+                              ArrayList<IGeneFilter> geneFilters,
+                              ArrayList<SampleTrait> sampleFilters,
+                              ArrayList<IDataNormalizer> normalizers,
+                              IClusteringAlgorithm algorithm,
+                              IReplicateCompression replicateCompression,
+                              String replicateColumn,
+                              String timeSeriesColumn,
+                              String sampleColumn,
+                              int numberOfReplicates,
+                              int numberOfTimeSeries,
+                              FileFormat geneExpressionFileFormat,
+                              FileFormat metadataFileFormat
+    ) {
+        GeneExpressionData geneExpressionData = getGeneExpressionData(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers, replicateCompression, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries,  geneExpressionFileFormat, metadataFileFormat);
 
         GeneClusterData result = algorithm.clusterGenes(geneExpressionData);
 
@@ -20,8 +53,40 @@ public class ClusterGenerationService {
         geneExpressionDataWrite.writeClusteringDataToFile(result, directoryPath);
     }
 
-    public static GeneExpressionData getGeneExpressionData(String directoryPath, String geneExpressionFileName, String metadataFileName,  ArrayList<IGeneFilter> geneFilters, ArrayList<SampleTrait> sampleFilters, ArrayList<IDataNormalizer> normalizers, IReplicateCompression replicateCompression) {
-        IGeneExpressionDataLoad geneExpressionDataLoad = getGeneExpressionDataLoad(directoryPath, geneExpressionFileName, metadataFileName);
+    /**
+     * Builds the gene expresion data model
+     * @param directoryPath
+     * @param geneExpressionFileName
+     * @param metadataFileName
+     * @param geneFilters
+     * @param sampleFilters
+     * @param normalizers
+     * @param replicateCompression
+     * @param replicateColumn
+     * @param timeSeriesColumn
+     * @param sampleColumn
+     * @param numberOfReplicates
+     * @param numberOfTimeSeries
+     * @param geneExpressionFileFormat
+     * @param metadataFileFormat
+     * @return
+     */
+    public static GeneExpressionData getGeneExpressionData(String directoryPath,
+                                                           String geneExpressionFileName,
+                                                           String metadataFileName,
+                                                           ArrayList<IGeneFilter> geneFilters,
+                                                           ArrayList<SampleTrait> sampleFilters,
+                                                           ArrayList<IDataNormalizer> normalizers,
+                                                           IReplicateCompression replicateCompression,
+                                                           String replicateColumn,
+                                                           String timeSeriesColumn,
+                                                           String sampleColumn,
+                                                           int numberOfReplicates,
+                                                           int numberOfTimeSeries,
+                                                           FileFormat geneExpressionFileFormat,
+                                                           FileFormat metadataFileFormat
+    ) {
+        IGeneExpressionDataLoad geneExpressionDataLoad = getGeneExpressionDataLoad(directoryPath, geneExpressionFileName, metadataFileName, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
 
         for (IGeneFilter filter : geneFilters) {
             geneExpressionDataLoad.addGeneFilter(filter);
@@ -40,16 +105,17 @@ public class ClusterGenerationService {
         return geneExpressionDataLoad.getGeneExpressionFormattedData();
     }
 
-    private static IGeneExpressionDataLoad getGeneExpressionDataLoad(String directoryPath, String geneExpressionFileName, String metadataFileName) {
-        FileFormat geneExpressionFileFormat = FileFormat.CSV;
-        FileFormat metadataFileFormat = FileFormat.CSV;
-        String replicateColumn = "Replicate";
-        String timeSeriesColumn = "Time";
-        String sampleColumn = "Sample";
-
-        int numberOfReplicates = 3;
-        int numberOfTimeSeries = 13;
-
+    private static IGeneExpressionDataLoad getGeneExpressionDataLoad(String directoryPath,
+                                                                     String geneExpressionFileName,
+                                                                     String metadataFileName,
+                                                                     String replicateColumn,
+                                                                     String timeSeriesColumn,
+                                                                     String sampleColumn,
+                                                                     int numberOfReplicates,
+                                                                     int numberOfTimeSeries,
+                                                                     FileFormat geneExpressionFileFormat,
+                                                                     FileFormat metadataFileFormat
+    ) {
         return new GeneExpressionDataLoad(directoryPath, geneExpressionFileName, metadataFileName, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
     }
 }

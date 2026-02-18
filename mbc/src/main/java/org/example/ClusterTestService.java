@@ -47,7 +47,7 @@ public class ClusterTestService {
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
         normalizers.add(new EnthropyNormalizer());
 
-        IGeneDistance geneDistance = new EuclideanDistance();
+        IGeneDistance geneDistance = new JensenShannonDistance();
 
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance);
@@ -55,11 +55,11 @@ public class ClusterTestService {
         BenchmarkType benchmarkType = BenchmarkType.Silhouette;
         IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
 
-        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Mean;
+        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Variance;
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(replicateCompression);
 
-        ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, numberOfClusters, numberOfIterations, geneFilters, sampleFilters, normalizers, algorithm, compression);
-        ClusterBenchmarkService.RunBenchmark(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression);
+        ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers, algorithm, compression, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
+        ClusterBenchmarkService.RunBenchmark(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
     }
 
 }

@@ -30,7 +30,7 @@ public class WCSS implements IClusterBenchmark {
 
         }
 
-        return new ClusterBenchmarkResult(BenchmarkType.WCSS, new double[0], sum, geneClusterData);
+        return new ClusterBenchmarkResult(BenchmarkType.WCSS, new double[geneExpressionData.getNumberOfGenes()], sum, geneClusterData);
     }
 
     private double[][] getCentroids(GeneExpressionData geneExpressionData, GeneClusterData geneClusterData) {

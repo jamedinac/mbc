@@ -2,11 +2,11 @@ package org.example;
 
 import ClusterBenchmark.ClusterBenchmarkFactory;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
+import Common.*;
 import Enum.BenchmarkType;
 import Enum.FileFormat;
 import Enum.ReplicateCompressionType;
 import Enum.ClusteringAlgorithmType;
-import Common.SampleTrait;
 import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
 import Filter.ZeroFilter;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class ClusterTestService {
     static void main() {
         String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated";
-        String fileName = "output.txt";
+        String outputFileName = "output.txt";
         String geneExpressionFileName = "data.csv";
         String metadataFileName = "metadata.csv";
 
@@ -47,19 +47,35 @@ public class ClusterTestService {
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
         normalizers.add(new EnthropyNormalizer());
 
-        IGeneDistance geneDistance = new JensenShannonDistance();
+        IGeneDistance geneDistance = new EuclideanDistance();
 
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance);
 
-        BenchmarkType benchmarkType = BenchmarkType.Silhouette;
+        BenchmarkType benchmarkType = BenchmarkType.WCSS;
         IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
 
-        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Variance;
+        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Mean;
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(replicateCompression);
 
-        ClusterGenerationService.RunClustering(directoryPath, geneExpressionFileName, metadataFileName, geneFilters, sampleFilters, normalizers, algorithm, compression, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
-        ClusterBenchmarkService.RunBenchmark(directoryPath, geneExpressionFileName, metadataFileName, fileName, benchmark, geneFilters, sampleFilters, normalizers, compression, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, geneExpressionFileFormat, metadataFileFormat);
+        ClusterGenerationInputData clusterGenerationInputData = new ClusterGenerationInputData(directoryPath, geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, compression, geneFilters, sampleFilters, normalizers, algorithmType, algorithm);
+        ClusterBenchmarkInputData clusterBenchmarkInputData = new ClusterBenchmarkInputData(directoryPath, geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, compression, geneFilters, sampleFilters, normalizers, outputFileName, benchmark);
+
+        RunSeveralClustersAttempt(clusterGenerationInputData, clusterBenchmarkInputData, 1, 20, numberOfIterations, algorithmType, geneDistance);
+        //RunSingleClusterAttempt(clusterGenerationInputData, clusterBenchmarkInputData);
     }
 
+    private static void RunSingleClusterAttempt(ClusterGenerationInputData clusterGenerationInputData, ClusterBenchmarkInputData clusterBenchmarkInputData) {
+        ClusterGenerationService.RunClustering(clusterGenerationInputData);
+        ClusterBenchmarkService.RunBenchmark(clusterBenchmarkInputData);
+    }
+
+    private static void RunSeveralClustersAttempt(ClusterGenerationInputData clusterGenerationInputData, ClusterBenchmarkInputData clusterBenchmarkInputData, int startCluster, int endCluster, int numberOfIterations, ClusteringAlgorithmType algorithmType, IGeneDistance geneDistance) {
+        for (int c = startCluster; c <= endCluster; c++) {
+            clusterGenerationInputData.setAlgorithm(ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, c, numberOfIterations, geneDistance));
+
+            ClusterGenerationService.RunClustering(clusterGenerationInputData);
+            System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterBenchmarkInputData).getBenchmarkValue());
+        }
+    }
 }

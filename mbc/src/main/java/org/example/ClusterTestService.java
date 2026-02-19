@@ -10,10 +10,12 @@ import Enum.ClusteringAlgorithmType;
 import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
 import Filter.ZeroFilter;
+import GeneDistance.CorrelationDistance;
 import GeneDistance.EuclideanDistance;
 import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
 import Normalizers.EnthropyNormalizer;
+import Normalizers.MedianRatiosNormalization;
 import ReplicateCompression.ReplicateCompressionFactory;
 
 import java.util.ArrayList;
@@ -45,24 +47,24 @@ public class ClusterTestService {
         ArrayList<SampleTrait>  sampleFilters = new ArrayList<>();
 
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
-        normalizers.add(new EnthropyNormalizer());
+        normalizers.add(new MedianRatiosNormalization());
 
         IGeneDistance geneDistance = new EuclideanDistance();
 
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance);
 
-        BenchmarkType benchmarkType = BenchmarkType.WCSS;
+        BenchmarkType benchmarkType = BenchmarkType.Silhouette;
         IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
 
-        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Mean;
+        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Default;
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(replicateCompression);
 
         ClusterGenerationInputData clusterGenerationInputData = new ClusterGenerationInputData(directoryPath, geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, compression, geneFilters, sampleFilters, normalizers, algorithmType, algorithm);
         ClusterBenchmarkInputData clusterBenchmarkInputData = new ClusterBenchmarkInputData(directoryPath, geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, replicateColumn, timeSeriesColumn, sampleColumn, numberOfReplicates, numberOfTimeSeries, compression, geneFilters, sampleFilters, normalizers, outputFileName, benchmark);
 
-        RunSeveralClustersAttempt(clusterGenerationInputData, clusterBenchmarkInputData, 1, 20, numberOfIterations, algorithmType, geneDistance);
-        //RunSingleClusterAttempt(clusterGenerationInputData, clusterBenchmarkInputData);
+        //RunSeveralClustersAttempt(clusterGenerationInputData, clusterBenchmarkInputData, 1, 20, numberOfIterations, algorithmType, geneDistance);
+        RunSingleClusterAttempt(clusterGenerationInputData, clusterBenchmarkInputData);
     }
 
     private static void RunSingleClusterAttempt(ClusterGenerationInputData clusterGenerationInputData, ClusterBenchmarkInputData clusterBenchmarkInputData) {

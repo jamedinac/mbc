@@ -2,20 +2,21 @@ package org.example;
 
 import Common.*;
 import FileDataOperations.GeneClusterDataLoad;
+import Interfaces.IClusterBenchmark;
 
 public class ClusterBenchmarkService {
 
-    public static void RunBenchmark(ClusterParameters clusterParameters) {
-        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(clusterParameters);
-        clusterBenchmarkResult.writeClusterBenchmarkToFile(clusterParameters.getOutputFileName());
+    public static void RunBenchmark(ClusterParameters clusterParameters, IClusterBenchmark clusterBenchmark) {
+        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(clusterParameters, clusterBenchmark);
+        clusterBenchmarkResult.writeClusterBenchmarkToFile(clusterParameters.getOutputFilePrefix());
     }
 
-    public static ClusterBenchmarkResult getClusterBenchmarkResult(ClusterParameters clusterParameters) {
+    public static ClusterBenchmarkResult getClusterBenchmarkResult(ClusterParameters clusterParameters, IClusterBenchmark benchmark) {
         GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(clusterParameters);
 
-        GeneClusterDataLoad geneClusterDataLoad = new GeneClusterDataLoad(clusterBenchmarkInputData.getDirectoryPath(), clusterBenchmarkInputData.getOutputFileName());
+        GeneClusterDataLoad geneClusterDataLoad = new GeneClusterDataLoad(clusterParameters.getOutputFilePrefix());
         GeneClusterData clusterData = geneClusterDataLoad.readClusterData();
 
-        return clusterBenchmarkInputData.getBenchmark().evaluate(geneExpressionData, clusterData);
+        return benchmark.evaluate(geneExpressionData, clusterData);
     }
 }

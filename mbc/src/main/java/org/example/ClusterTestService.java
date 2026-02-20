@@ -58,20 +58,20 @@ public class ClusterTestService {
 
 
         //RunSeveralClustersAttempt(clusterGenerationInputData, clusterBenchmarkInputData, 1, 20, numberOfIterations, algorithmType, geneDistance);
-        RunSingleClusterAttempt(clusterGenerationParameters);
+        RunSingleClusterAttempt(clusterGenerationParameters, benchmark);
     }
 
-    private static void RunSingleClusterAttempt(ClusterParameters clusterParameters) {
+    private static void RunSingleClusterAttempt(ClusterParameters clusterParameters, IClusterBenchmark benchmark) {
         ClusterGenerationService.RunClustering(clusterParameters);
-        ClusterBenchmarkService.RunBenchmark(clusterParameters);
+        ClusterBenchmarkService.RunBenchmark(clusterParameters, benchmark);
     }
 
-    private static void RunSeveralClustersAttempt(ClusterParameters clusterParameters, int startCluster, int endCluster, int numberOfIterations, ClusteringAlgorithmType algorithmType, IGeneDistance geneDistance) {
+    private static void RunSeveralClustersAttempt(ClusterParameters clusterParameters, int startCluster, int endCluster, int numberOfIterations, ClusteringAlgorithmType algorithmType, IGeneDistance geneDistance, IClusterBenchmark benchmark) {
         for (int c = startCluster; c <= endCluster; c++) {
             clusterParameters.setAlgorithm(ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, c, numberOfIterations, geneDistance));
 
             ClusterGenerationService.RunClustering(clusterParameters);
-            System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterParameters).getBenchmarkValue());
+            System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterParameters, benchmark).getBenchmarkValue());
         }
     }
 }

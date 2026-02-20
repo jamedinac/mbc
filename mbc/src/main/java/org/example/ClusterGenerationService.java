@@ -14,7 +14,7 @@ public class ClusterGenerationService {
         GeneClusterData result = clusterParameters.getAlgorithm().clusterGenes(geneExpressionData);
 
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();
-        geneExpressionDataWrite.writeClusteringDataToFile(result, clusterParameters.getOutputFileName());
+        geneExpressionDataWrite.writeClusteringDataToFile(result, clusterParameters.getOutputFilePrefix());
     }
 
     public static GeneExpressionData getGeneExpressionData(ClusterParameters clusterParameters) {

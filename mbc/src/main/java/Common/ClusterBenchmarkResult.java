@@ -23,7 +23,7 @@ public class ClusterBenchmarkResult {
 
     public void writeClusterBenchmarkToFile (String directoryPath) {
         try {
-            String clusterBenchmarkFile = directoryPath + File.separator + this.benchmarkType + ".txt";
+            String clusterBenchmarkFile = directoryPath + File.separator + "output_" + this.benchmarkType + ".txt";
             StringBuilder fileContent = new StringBuilder();
 
             fileContent.append("Benchmark global result").append("\t").append(this.benchmarkValue).append("\n");

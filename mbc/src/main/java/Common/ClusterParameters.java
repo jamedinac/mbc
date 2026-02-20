@@ -16,7 +16,7 @@ public class ClusterParameters {
 
     protected final FileFormat metadataFileFormat;
 
-    protected final String outputFileName;
+    protected final String outputFilePrefix;
 
     protected final ClusteringAlgorithmType algorithmType;
 
@@ -45,7 +45,7 @@ public class ClusterParameters {
             String metadataFileName,
             FileFormat geneExpressionFileFormat,
             FileFormat metadataFileFormat,
-            String  outputFileName,
+            String outputFilePrefix,
             ClusteringAlgorithmType algorithmType,
             IClusteringAlgorithm algorithm
     ) {
@@ -53,7 +53,7 @@ public class ClusterParameters {
         this.metadataFileName = metadataFileName;
         this.geneExpressionFileFormat = geneExpressionFileFormat;
         this.metadataFileFormat = metadataFileFormat;
-        this.outputFileName = outputFileName;
+        this.outputFilePrefix = outputFilePrefix;
         this.algorithmType = algorithmType;
         this.algorithm = algorithm;
     }
@@ -74,8 +74,8 @@ public class ClusterParameters {
         return metadataFileFormat;
     }
 
-    public String getOutputFileName() {
-        return outputFileName;
+    public String getOutputFilePrefix() {
+        return outputFilePrefix;
     }
 
     public ClusteringAlgorithmType getAlgorithmType() {

@@ -56,8 +56,9 @@ public class ClusterTestService {
         BenchmarkType benchmarkType = BenchmarkType.Silhouette;
         IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
 
-
-        //RunSeveralClustersAttempt(clusterGenerationInputData, clusterBenchmarkInputData, 1, 20, numberOfIterations, algorithmType, geneDistance);
+        int startCluster = 1;
+        int endCluster = 20;
+        RunSeveralClustersAttempt(clusterGenerationParameters, startCluster, endCluster, numberOfIterations, algorithmType, geneDistance, benchmark);
         RunSingleClusterAttempt(clusterGenerationParameters, benchmark);
     }
 

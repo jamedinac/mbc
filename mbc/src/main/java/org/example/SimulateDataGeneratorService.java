@@ -7,7 +7,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class SimlateDataGeneratorService {
+public class SimulateDataGeneratorService {
 
     static String dataFileName = "data";
     static String metadataFileName = "metadata";
@@ -18,7 +18,7 @@ public class SimlateDataGeneratorService {
 
     public static void main() {
 
-        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\";
+        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.csv";
         double[][] expressionData = new double[numberOfGenes][numberOfReplicates * numberOfTimeSeries];
         generateData(0, 4, expressionData);
         generateData(5, 9, expressionData);

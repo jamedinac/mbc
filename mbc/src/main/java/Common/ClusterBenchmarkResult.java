@@ -21,9 +21,9 @@ public class ClusterBenchmarkResult {
         this.geneClusterData = geneClusterData;
     }
 
-    public void writeClusterBenchmarkToFile (String directoryPath) {
+    public void writeClusterBenchmarkToFile (String outputFilePrefix) {
         try {
-            String clusterBenchmarkFile = directoryPath + File.separator + "output_" + this.benchmarkType + ".txt";
+            String clusterBenchmarkFile = this.getFileName(outputFilePrefix) +  "_" + this.benchmarkType + ".txt";
             StringBuilder fileContent = new StringBuilder();
 
             fileContent.append("Benchmark global result").append("\t").append(this.benchmarkValue).append("\n");
@@ -41,5 +41,10 @@ public class ClusterBenchmarkResult {
 
     public double getBenchmarkValue () {
         return benchmarkValue;
+    }
+
+    private String getFileName(String fileName) {
+        int dotIndex = fileName.lastIndexOf('.');
+        return fileName.substring(0, dotIndex);
     }
 }

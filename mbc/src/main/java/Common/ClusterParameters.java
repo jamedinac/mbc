@@ -16,7 +16,7 @@ public class ClusterParameters {
 
     protected final FileFormat metadataFileFormat;
 
-    protected final String outputFilePrefix;
+    protected String outputFilePrefix;
 
     protected final ClusteringAlgorithmType algorithmType;
 
@@ -160,5 +160,9 @@ public class ClusterParameters {
 
     public void setNumberOfTimeSeries(int numberOfTimeSeries) {
         this.numberOfTimeSeries = numberOfTimeSeries;
+    }
+
+    public void setOutputFilePrefix(String outputFilePrefix) {
+        this.outputFilePrefix = outputFilePrefix;
     }
 }

@@ -14,7 +14,7 @@ public class GeneFilterByTotalExpression implements IGeneFilter {
     public boolean filterGene(double[] geneExpressionRow) {
         double expressionSum = 0;
 
-        for (int c = 1;  c < geneExpressionRow.length; c++) {
+        for (int c = 0;  c < geneExpressionRow.length; c++) {
             expressionSum += geneExpressionRow[c];
         }
 

@@ -15,12 +15,12 @@ public class GeneFilterByVariance implements IGeneFilter {
         double mean = 0.0;
         double variance = 0.0;
 
-        for (int c = 1; c < geneExpressionRow.length; c++) {
+        for (int c = 0; c < geneExpressionRow.length; c++) {
             mean += geneExpressionRow[c];
         }
         mean /= geneExpressionRow.length;
 
-        for (int c = 1; c < geneExpressionRow.length; c++) {
+        for (int c = 0; c < geneExpressionRow.length; c++) {
             double difference = geneExpressionRow[c] - mean;
             variance += difference * difference;
         }

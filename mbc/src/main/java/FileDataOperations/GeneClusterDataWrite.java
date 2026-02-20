@@ -11,8 +11,9 @@ import java.nio.file.Paths;
 public class GeneClusterDataWrite implements IGeneClusterDataWrite {
 
     @Override
-    public void writeClusteringDataToFile(GeneClusterData geneClusterData, String fileName) {
+    public void writeClusteringDataToFile(GeneClusterData geneClusterData, String outputFilePrefix) {
         try {
+            outputFilePrefix = outputFilePrefix + File.separator + "txt";
             StringBuilder fileContent = new StringBuilder();
 
             for (int g = 0; g < geneClusterData.getNumberOfGenes(); g++) {
@@ -25,7 +26,7 @@ public class GeneClusterDataWrite implements IGeneClusterDataWrite {
                 fileContent.append("\n");
             }
 
-            Files.writeString(Paths.get(fileName), fileContent.toString());
+            Files.writeString(Paths.get(outputFilePrefix), fileContent.toString());
         } catch (IOException e) {
             System.out.println("Error writing gene expression file: " + e.getMessage());
         }

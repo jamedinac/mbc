@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class SimulateDataGeneratorService {
+    static String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated";
 
     static String dataFileName = "data";
     static String metadataFileName = "metadata";
@@ -17,13 +18,14 @@ public class SimulateDataGeneratorService {
     static int numberOfTimeSeries = 13;
 
     public static void main() {
+        int numberOfComponents = numberOfReplicates * numberOfTimeSeries;
 
-        String directoryPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.csv";
-        double[][] expressionData = new double[numberOfGenes][numberOfReplicates * numberOfTimeSeries];
-        generateData(0, 4, expressionData);
-        generateData(5, 9, expressionData);
-        generateData(10, 14, expressionData);
-        generateData(15, 99, expressionData);
+        double[][] expressionData = new double[numberOfGenes][numberOfComponents];
+
+        generateData(0, 4, expressionData,numberOfTimeSeries - 1);
+        generateData(5, 9, expressionData, 0);
+        generateData(10, 14, expressionData, numberOfTimeSeries / 2);
+        generateData(15, 99, expressionData, -1);
 
         String[] geneIds = generateGeneIds();
         String[] columns = generateColumns();
@@ -35,25 +37,22 @@ public class SimulateDataGeneratorService {
 
     }
 
-    private static void generateData(int startGene, int endGene, double[][] expressionData) {
-        int[] expressionAddition = new int[numberOfTimeSeries];
-        for (int t=0; t<numberOfTimeSeries; t++) {
-            expressionAddition[t] = RandomGenerator.uniformRandomInt(100);
-            if (RandomGenerator.randomBoolean()) {
-                expressionAddition[t] *= -1;
-            }
-        }
+    private static void generateData(int startGene, int endGene, double[][] expressionData, int pivot) {
+        int delta = pivot == -1 ? 0 : 1;
 
         for (int gene = startGene; gene <= endGene; gene++) {
-            int currentExpression = RandomGenerator.uniformRandomIntInRange(1, 50);
+            int currentExpression = RandomGenerator.uniformRandomIntInRange(20, 50);
 
             for (int t = 0; t < numberOfTimeSeries; t++) {
                 for (int r = 0; r < numberOfReplicates; r++) {
-                    expressionData[gene][t*numberOfReplicates + r] = Math.round(RandomGenerator.gaussianRandom(currentExpression, 1.0));
-                    expressionData[gene][t*numberOfReplicates + r] = Math.max(1, expressionData[gene][t*numberOfReplicates + r]);
+                    expressionData[gene][t*numberOfReplicates + r] = currentExpression;
                 }
 
-                currentExpression += expressionAddition[t] + RandomGenerator.uniformRandomIntInRange(1, 3);
+                if (t == pivot) {
+                    delta *= -1;
+                }
+
+                currentExpression += delta;
             }
         }
     }
@@ -119,8 +118,8 @@ public class SimulateDataGeneratorService {
     }
 
     private static void writeMetadata(String directoryPath, String[] metadataColumns, String[][] metadata) {
-        String separator = FileFormat.CSV.getDelimiter();
-        String extension = FileFormat.CSV.getExtension();
+        String separator = FileFormat.TSV.getDelimiter();
+        String extension = FileFormat.TSV.getExtension();
         try {
             String dataFilePath = directoryPath + File.separator + metadataFileName + extension;
             StringBuilder fileContent = new StringBuilder();

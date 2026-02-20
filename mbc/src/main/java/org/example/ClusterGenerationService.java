@@ -8,47 +8,46 @@ import Interfaces.*;
 
 public class ClusterGenerationService {
 
-    static void RunClustering(ClusterGenerationInputData clusterGenerationInputData) {
-        GeneExpressionData geneExpressionData = getGeneExpressionData(clusterGenerationInputData);
+    static void RunClustering(ClusterParameters clusterParameters) {
+        GeneExpressionData geneExpressionData = getGeneExpressionData(clusterParameters);
 
-        GeneClusterData result = clusterGenerationInputData.getAlgorithm().clusterGenes(geneExpressionData);
+        GeneClusterData result = clusterParameters.getAlgorithm().clusterGenes(geneExpressionData);
 
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();
-        geneExpressionDataWrite.writeClusteringDataToFile(result, clusterGenerationInputData.getDirectoryPath());
+        geneExpressionDataWrite.writeClusteringDataToFile(result, clusterParameters.getOutputFileName());
     }
 
-    public static GeneExpressionData getGeneExpressionData(ClusterGenerationInputData clusterGenerationInputData) {
-        IGeneExpressionDataLoad geneExpressionDataLoad = getGeneExpressionDataLoad(clusterGenerationInputData);
+    public static GeneExpressionData getGeneExpressionData(ClusterParameters clusterParameters) {
+        IGeneExpressionDataLoad geneExpressionDataLoad = getGeneExpressionDataLoad(clusterParameters);
 
-        for (IGeneFilter filter : clusterGenerationInputData.getGeneFilters()) {
+        for (IGeneFilter filter : clusterParameters.getGeneFilters()) {
             geneExpressionDataLoad.addGeneFilter(filter);
         }
 
-        for (SampleTrait sampleTrait : clusterGenerationInputData.getSampleFilters()) {
+        for (SampleTrait sampleTrait : clusterParameters.getSampleFilters()) {
             geneExpressionDataLoad.addSampleFilter(sampleTrait.getTrait(), sampleTrait.getValue());
         }
 
-        for (IDataNormalizer normalizer : clusterGenerationInputData.getNormalizers()) {
+        for (IDataNormalizer normalizer : clusterParameters.getNormalizers()) {
             geneExpressionDataLoad.addNormalizer(normalizer);
         }
 
-        geneExpressionDataLoad.setReplicatesCompressor(clusterGenerationInputData.getCompression());
+        geneExpressionDataLoad.setReplicatesCompressor(clusterParameters.getCompression());
 
         return geneExpressionDataLoad.getGeneExpressionFormattedData();
     }
 
-    private static IGeneExpressionDataLoad getGeneExpressionDataLoad(ClusterGenerationInputData clusterGenerationInputData) {
+    private static IGeneExpressionDataLoad getGeneExpressionDataLoad(ClusterParameters clusterParameters) {
         return new GeneExpressionDataLoad(
-                clusterGenerationInputData.getDirectoryPath(),
-                clusterGenerationInputData.getGeneExpressionFileName(),
-                clusterGenerationInputData.getMetadataFileName(),
-                clusterGenerationInputData.getReplicateColumn(),
-                clusterGenerationInputData.getTimeSeriesColumn(),
-                clusterGenerationInputData.getSampleColumn(),
-                clusterGenerationInputData.getNumberOfReplicates(),
-                clusterGenerationInputData.getNumberOfTimeSeries(),
-                clusterGenerationInputData.getGeneExpressionFileFormat(),
-                clusterGenerationInputData.getMetadataFileFormat()
+                clusterParameters.getGeneExpressionFileName(),
+                clusterParameters.getMetadataFileName(),
+                clusterParameters.getReplicateColumn(),
+                clusterParameters.getTimeSeriesColumn(),
+                clusterParameters.getSampleColumn(),
+                clusterParameters.getNumberOfReplicates(),
+                clusterParameters.getNumberOfTimeSeries(),
+                clusterParameters.getGeneExpressionFileFormat(),
+                clusterParameters.getMetadataFileFormat()
         );
     }
 }

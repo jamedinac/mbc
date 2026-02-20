@@ -5,13 +5,13 @@ import FileDataOperations.GeneClusterDataLoad;
 
 public class ClusterBenchmarkService {
 
-    public static void RunBenchmark(ClusterBenchmarkInputData clusterBenchmarkInputData) {
-        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(clusterBenchmarkInputData);
-        clusterBenchmarkResult.writeClusterBenchmarkToFile(clusterBenchmarkInputData.getDirectoryPath());
+    public static void RunBenchmark(ClusterParameters clusterParameters) {
+        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(clusterParameters);
+        clusterBenchmarkResult.writeClusterBenchmarkToFile(clusterParameters.getOutputFileName());
     }
 
-    public static ClusterBenchmarkResult getClusterBenchmarkResult(ClusterBenchmarkInputData clusterBenchmarkInputData) {
-        GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(clusterBenchmarkInputData.getClusterGenerationInputData());
+    public static ClusterBenchmarkResult getClusterBenchmarkResult(ClusterParameters clusterParameters) {
+        GeneExpressionData geneExpressionData = ClusterGenerationService.getGeneExpressionData(clusterParameters);
 
         GeneClusterDataLoad geneClusterDataLoad = new GeneClusterDataLoad(clusterBenchmarkInputData.getDirectoryPath(), clusterBenchmarkInputData.getOutputFileName());
         GeneClusterData clusterData = geneClusterDataLoad.readClusterData();

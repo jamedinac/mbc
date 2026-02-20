@@ -18,7 +18,6 @@ import java.util.HashMap;
 
 public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
 
-    private final String geneCountDirectoryPath;
     private final String geneExpressionFileName;
     private final String metadataFileName;
     private final String replicateColumn;
@@ -37,8 +36,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
     FileFormat geneFileFormat;
     FileFormat metadataFileFormat;
 
-    public GeneExpressionDataLoad(String geneCountDirectoryPath, String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfReplicates, int numberOfTimeSeries, FileFormat geneFileFormat, FileFormat metadataFileFormat) {
-        this.geneCountDirectoryPath = geneCountDirectoryPath;
+    public GeneExpressionDataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfReplicates, int numberOfTimeSeries, FileFormat geneFileFormat, FileFormat metadataFileFormat) {
         this.geneExpressionFileName = geneExpressionFileName;
         this.metadataFileName = metadataFileName;
         this.replicateColumn = replicateColumn;
@@ -59,14 +57,14 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
     @Override
     public GeneExpressionData getGeneExpressionFormattedData() {
         /// Read metada
-        String geneMetadataFile = geneCountDirectoryPath + File.separator + this.metadataFileName;
+        String geneMetadataFile = this.metadataFileName;
         String[] geneMetadataFileLines = FileUtilities.getFileLines(geneMetadataFile);
 
         String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
         HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines);
 
         /// Read gene expression
-        String geneExpressionFile = geneCountDirectoryPath + File.separator + this.geneExpressionFileName;
+        String geneExpressionFile = this.geneExpressionFileName;
         String[] geneExpressionFileLines = FileUtilities.getFileLines(geneExpressionFile);
 
         int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata);

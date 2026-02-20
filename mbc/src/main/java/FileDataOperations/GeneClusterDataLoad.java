@@ -8,16 +8,14 @@ import java.io.File;
 
 public class GeneClusterDataLoad {
 
-    String directoryPath;
     String filename;
 
-    public GeneClusterDataLoad(String directoryPath, String fileName ) {
-        this.directoryPath = directoryPath;
+    public GeneClusterDataLoad(String fileName ) {
         this.filename = fileName;
     }
 
     public GeneClusterData readClusterData() {
-        String[] fileLines = FileUtilities.getFileLines(directoryPath + File.separator + filename);
+        String[] fileLines = FileUtilities.getFileLines(filename);
 
         int numberOfGenes = fileLines.length;
         int numberOfClusters = FileUtilities.getSplitDataRow(fileLines[0], FileFormat.TSV.getDelimiter()).length - 1;

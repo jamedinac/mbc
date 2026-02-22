@@ -13,7 +13,7 @@ public class GeneClusterDataWrite implements IGeneClusterDataWrite {
     @Override
     public void writeClusteringDataToFile(GeneClusterData geneClusterData, String outputFilePrefix) {
         try {
-            outputFilePrefix = outputFilePrefix + File.separator + "txt";
+            outputFilePrefix = outputFilePrefix + ".txt";
             StringBuilder fileContent = new StringBuilder();
 
             for (int g = 0; g < geneClusterData.getNumberOfGenes(); g++) {

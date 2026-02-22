@@ -11,7 +11,10 @@ import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
 import Filter.ZeroFilter;
 import GeneDistance.EuclideanDistance;
+import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
+import Normalizers.CountDistributionNormalizer;
+import Normalizers.EmpiricalBayesShrinkageEstimationNormalizer;
 import Normalizers.MedianRatiosNormalization;
 import ReplicateCompression.ReplicateCompressionFactory;
 
@@ -32,7 +35,7 @@ public class ClusterTestService {
         int numberOfIterations = 50;
 
         ///  TODO: Set distance definition
-        IGeneDistance geneDistance = new EuclideanDistance();
+        IGeneDistance geneDistance = new JensenShannonDistance();
 
         ///  TODO: Set Cluster algorithm
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
@@ -53,11 +56,11 @@ public class ClusterTestService {
 
         /// TODO Set normalizers
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
-        normalizers.add(new MedianRatiosNormalization());
+        normalizers.add(new EmpiricalBayesShrinkageEstimationNormalizer(clusterGenerationParameters.getNumberOfReplicates(), clusterGenerationParameters.getNumberOfTimeSeries(), 1e-9));
         clusterGenerationParameters.setNormalizers(normalizers);
 
         /// TODO: Set compression type
-        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Mean;
+        ReplicateCompressionType replicateCompression = ReplicateCompressionType.Default;
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(replicateCompression);
         clusterGenerationParameters.setCompression(compression);
 
@@ -68,7 +71,7 @@ public class ClusterTestService {
         int startCluster = 1;
         int endCluster = 10;
 
-        // RunSeveralClustersAttempt(clusterGenerationParameters, startCluster, endCluster, numberOfIterations, algorithmType, geneDistance, benchmark);
+        //RunSeveralClustersAttempt(clusterGenerationParameters, startCluster, endCluster, numberOfIterations, algorithmType, geneDistance, benchmark);
         RunSingleClusterAttempt(clusterGenerationParameters, benchmark);
     }
 
@@ -79,9 +82,10 @@ public class ClusterTestService {
     }
 
     private static void RunSeveralClustersAttempt(ClusterParameters clusterParameters, int startCluster, int endCluster, int numberOfIterations, ClusteringAlgorithmType algorithmType, IGeneDistance geneDistance, IClusterBenchmark benchmark) {
+        clusterParameters.setOutputFilePrefix(clusterParameters.getOutputFilePrefix() + ".txt");
+
         for (int c = startCluster; c <= endCluster; c++) {
             clusterParameters.setAlgorithm(ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, c, numberOfIterations, geneDistance));
-            clusterParameters.setOutputFilePrefix(clusterParameters.getOutputFilePrefix() + ".txt");
             ClusterGenerationService.RunClustering(clusterParameters);
             System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterParameters, benchmark).getBenchmarkValue());
         }

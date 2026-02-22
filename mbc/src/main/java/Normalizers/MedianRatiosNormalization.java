@@ -10,22 +10,22 @@ public class MedianRatiosNormalization implements IDataNormalizer {
         int numberOfGenes = data.length;
         int numberOfSamples = data[0].length;
 
-        double[][] pseudoDaata = new double[numberOfGenes][numberOfSamples];
+        double[][] pseudoData = new double[numberOfGenes][numberOfSamples];
         for (int i=0; i<numberOfGenes; i++) {
             for (int j=0; j<numberOfSamples; j++) {
-                pseudoDaata[i][j] = data[i][j] + 1;
+                pseudoData[i][j] = data[i][j] + 1;
             }
         }
 
         double[] geometricMean = new double[numberOfGenes];
         for (int i=0; i<numberOfGenes; i++) {
-            geometricMean[i] = this.getGeometricMean(pseudoDaata[i]);
+            geometricMean[i] = this.getGeometricMean(pseudoData[i]);
         }
 
         double[][] geometricRatio = new double[numberOfGenes][numberOfSamples];
         for (int i=0; i<numberOfGenes; i++) {
             for (int j=0; j<numberOfSamples; j++) {
-                geometricRatio[i][j] = pseudoDaata[i][j] / geometricMean[i];
+                geometricRatio[i][j] = pseudoData[i][j] / geometricMean[i];
             }
         }
 
@@ -34,7 +34,7 @@ public class MedianRatiosNormalization implements IDataNormalizer {
 
         for (int i=0; i<numberOfGenes; i++) {
             for (int j=0; j<numberOfSamples; j++) {
-                normalizedData[i][j] = pseudoDaata[i][j] / sampleMedian[j];
+                normalizedData[i][j] = pseudoData[i][j] / sampleMedian[j];
             }
         }
 

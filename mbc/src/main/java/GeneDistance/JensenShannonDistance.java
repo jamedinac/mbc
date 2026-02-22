@@ -4,9 +4,9 @@ import Interfaces.IGeneDistance;
 
 public class JensenShannonDistance implements IGeneDistance {
     @Override
-    public double getDistance(double[] geneExpressionData, double[] centroid) {
-        double[] mean = this.getMean(geneExpressionData, centroid);
-        double jsd = this.getKullbackLeiblerDivergence(geneExpressionData, mean) + this.getKullbackLeiblerDivergence(centroid, mean);
+    public double getDistance(double[] P, double[] Q) {
+        double[] mean = this.getMean(P, Q);
+        double jsd = this.getKullbackLeiblerDivergence(P, mean) + this.getKullbackLeiblerDivergence(Q, mean);
         return Math.sqrt(jsd / 2.0);
     }
 

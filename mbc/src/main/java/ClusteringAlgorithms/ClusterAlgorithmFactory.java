@@ -3,15 +3,17 @@ package ClusteringAlgorithms;
 import Enum.ClusteringAlgorithmType;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneDistance;
+import Interfaces.ILinkageCriterion;
 
 public class ClusterAlgorithmFactory {
 
-    public static IClusteringAlgorithm getClusteringAlgorithm(ClusteringAlgorithmType clusteringAlgorithm, int k, int iterations, IGeneDistance geneDistance) {
+    public static IClusteringAlgorithm getClusteringAlgorithm(ClusteringAlgorithmType clusteringAlgorithm, int k, int iterations, IGeneDistance geneDistance, ILinkageCriterion linkageCriterion) {
         IClusteringAlgorithm algorithm = null;
 
         switch (clusteringAlgorithm) {
             case ClusteringAlgorithmType.KMeans -> algorithm = new KMeansAlgorithm(k, iterations, geneDistance);
-            default -> throw new UnsupportedOperationException("Select a valid benchmark");
+            case ClusteringAlgorithmType.Hierarchical -> algorithm = new HierachicalClusteringAlgorithm(k, geneDistance, linkageCriterion);
+            default -> throw new UnsupportedOperationException("Select a valid clustering algorithm");
         }
 
         return algorithm;

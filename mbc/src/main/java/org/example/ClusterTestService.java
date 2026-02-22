@@ -39,7 +39,7 @@ public class ClusterTestService {
 
         ///  TODO: Set Cluster algorithm
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
-        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance);
+        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, numberOfClusters, numberOfIterations, geneDistance, null);
 
         ClusterParameters clusterGenerationParameters = new ClusterParameters(geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, outputFilePrefix, algorithmType, algorithm);
 
@@ -85,7 +85,7 @@ public class ClusterTestService {
         clusterParameters.setOutputFilePrefix(clusterParameters.getOutputFilePrefix() + ".txt");
 
         for (int c = startCluster; c <= endCluster; c++) {
-            clusterParameters.setAlgorithm(ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, c, numberOfIterations, geneDistance));
+            clusterParameters.setAlgorithm(ClusterAlgorithmFactory.getClusteringAlgorithm(algorithmType, c, numberOfIterations, geneDistance, null));
             ClusterGenerationService.RunClustering(clusterParameters);
             System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterParameters, benchmark).getBenchmarkValue());
         }

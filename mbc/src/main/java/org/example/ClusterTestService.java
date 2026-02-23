@@ -7,6 +7,7 @@ import Enum.BenchmarkType;
 import Enum.FileFormat;
 import Enum.ReplicateCompressionType;
 import Enum.ClusteringAlgorithmType;
+import FileDataOperations.GeneClusterDataLoad;
 import Filter.GeneFilterByTotalExpression;
 import Filter.GeneFilterByVariance;
 import Filter.ZeroFilter;
@@ -66,8 +67,10 @@ public class ClusterTestService {
         clusterGenerationParameters.setCompression(compression);
 
         /// TODO: Set benchmark
-        BenchmarkType benchmarkType = BenchmarkType.Silhouette;
-        IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, null);
+        BenchmarkType benchmarkType = BenchmarkType.Jaccard;
+        String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
+        GeneClusterData goldStandard = new GeneClusterDataLoad(goldStandardFileName).readClusterData();
+        IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, goldStandard);
 
         int startCluster = 1;
         int endCluster = 10;

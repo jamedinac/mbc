@@ -1,7 +1,9 @@
 package org.example;
 
+import Common.GeneClusterData;
 import DataGenerators.RandomGenerator;
 import Enum.FileFormat;
+import FileDataOperations.GeneClusterDataWrite;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -12,6 +14,7 @@ public class SimulateDataGeneratorService {
 
     static String dataFileName = "data";
     static String metadataFileName = "metadata";
+    static String groundTruthFileName = "ground_truth";
 
     static int numberOfGenes = 100;
     static int numberOfReplicates = 3;
@@ -39,6 +42,7 @@ public class SimulateDataGeneratorService {
 
         writeExpressionData(directoryPath, geneIds, columns, expressionData);
         writeMetadata(directoryPath, metadataColumns, metadata);
+        writeGroundTruth(directoryPath, geneIds);
 
     }
 
@@ -154,5 +158,28 @@ public class SimulateDataGeneratorService {
         } catch(Exception e) {
             System.out.println("Error writing metadata file: " + e.getMessage());
         }
+    }
+
+    private static void writeGroundTruth(String directoryPath, String[] geneIds) {
+        int numberOfClusters = 4;
+        double[][] clusteringData = new double[numberOfGenes][numberOfClusters];
+
+        for (int g = 0; g < numberOfGenes; g++) {
+            int cluster;
+            if (g <= 4) {
+                cluster = 0;
+            } else if (g <= 9) {
+                cluster = 1;
+            } else if (g <= 14) {
+                cluster = 2;
+            } else {
+                cluster = 3;
+            }
+            clusteringData[g][cluster] = 1.0;
+        }
+
+        GeneClusterData groundTruth = new GeneClusterData(numberOfGenes, numberOfClusters, geneIds, clusteringData);
+        String outputPath = directoryPath + File.separator + groundTruthFileName;
+        new GeneClusterDataWrite().writeClusteringDataToFile(groundTruth, outputPath);
     }
 }

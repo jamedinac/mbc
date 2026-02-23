@@ -13,6 +13,8 @@ public class ClusterBenchmarkFactory {
         switch (benchmarkType) {
             case  Silhouette -> clusterBenchmark = new Silhouette(geneDistance);
             case Jaccard -> clusterBenchmark = new Jaccard(goldStandard);
+            case Accuracy -> clusterBenchmark = new Accuracy(goldStandard);
+            case NMI -> clusterBenchmark = new NormalizedMutualInformation(goldStandard);
             case MeanSquaredError -> throw new UnsupportedOperationException("Not supported yet.");
             case WCSS -> clusterBenchmark = new WCSS(geneDistance);
             default -> throw new UnsupportedOperationException("Select a valid benchmark");

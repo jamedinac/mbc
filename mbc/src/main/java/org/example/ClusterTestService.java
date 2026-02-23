@@ -13,6 +13,7 @@ import Filter.ZeroFilter;
 import GeneDistance.EuclideanDistance;
 import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
+import LinkageCriteria.AverageLinkage;
 import Normalizers.CountDistributionNormalizer;
 import Normalizers.EmpiricalBayesShrinkageEstimationNormalizer;
 import Normalizers.MedianRatiosNormalization;
@@ -39,7 +40,7 @@ public class ClusterTestService {
 
         ///  TODO: Set Cluster algorithm
         ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
-        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createKMeans(numberOfClusters, numberOfIterations, geneDistance);
+        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createHierarchical(numberOfClusters, geneDistance, new AverageLinkage());
 
         ClusterParameters clusterGenerationParameters = new ClusterParameters(geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, outputFilePrefix, algorithmType, algorithm);
 

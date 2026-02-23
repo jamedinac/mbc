@@ -15,7 +15,7 @@ public class RandomGenerator {
     }
 
     public static double uniformRandomDoubleInRange(double a, double b) {
-        return uniformRandomDouble(a - b + 1) + b;
+        return uniformRandomDouble(b - a) + a;
     }
 
     public static double uniformRandomDouble(double limit) {
@@ -23,7 +23,7 @@ public class RandomGenerator {
     }
 
     public static double gaussianRandom(double mean, double sd) {
-        return random.nextGaussian() + mean;
+        return random.nextGaussian() * sd + mean;
     }
 
     public static boolean randomBoolean() {

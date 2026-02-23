@@ -17,6 +17,11 @@ public class SimulateDataGeneratorService {
     static int numberOfReplicates = 3;
     static int numberOfTimeSeries = 13;
 
+    static double replicateNoiseSd = 1.5;
+    static double trajectoryNoiseSd = 0.3;
+    static int maxDeltaVariation = 1;
+    static int verticalOffsetRange = 10;
+
     public static void main() {
         int numberOfComponents = numberOfReplicates * numberOfTimeSeries;
 
@@ -38,21 +43,30 @@ public class SimulateDataGeneratorService {
     }
 
     private static void generateData(int startGene, int endGene, double[][] expressionData, int pivot) {
-        int delta = pivot == -1 ? 0 : 1;
+        int baseDelta = pivot == -1 ? 0 : 1;
 
         for (int gene = startGene; gene <= endGene; gene++) {
             int currentExpression = RandomGenerator.uniformRandomIntInRange(20, 50);
 
+            int verticalOffset = RandomGenerator.uniformRandomIntInRange(-verticalOffsetRange, verticalOffsetRange);
+            currentExpression += verticalOffset;
+            currentExpression = Math.max(1, currentExpression);
+
+            int delta = baseDelta == 0 ? 0 : RandomGenerator.uniformRandomIntInRange(baseDelta, baseDelta + maxDeltaVariation);
+
             for (int t = 0; t < numberOfTimeSeries; t++) {
                 for (int r = 0; r < numberOfReplicates; r++) {
-                    expressionData[gene][t*numberOfReplicates + r] = currentExpression;
+                    int replicateNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, replicateNoiseSd));
+                    expressionData[gene][t * numberOfReplicates + r] = Math.max(0, currentExpression + replicateNoise);
                 }
 
                 if (t == pivot) {
                     delta *= -1;
                 }
 
-                currentExpression += delta;
+                int trajectoryNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, trajectoryNoiseSd));
+                currentExpression += delta + trajectoryNoise;
+                currentExpression = Math.max(0, currentExpression);
             }
         }
     }

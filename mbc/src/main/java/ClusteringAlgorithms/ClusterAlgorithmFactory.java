@@ -1,22 +1,20 @@
 package ClusteringAlgorithms;
 
-import Enum.ClusteringAlgorithmType;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneDistance;
 import Interfaces.ILinkageCriterion;
 
 public class ClusterAlgorithmFactory {
 
-    public static IClusteringAlgorithm getClusteringAlgorithm(ClusteringAlgorithmType clusteringAlgorithm, int k, int iterations, IGeneDistance geneDistance, ILinkageCriterion linkageCriterion, double eps, int minPts) {
-        IClusteringAlgorithm algorithm = null;
+    public static IClusteringAlgorithm createKMeans(int k, int maxIterations, IGeneDistance geneDistance) {
+        return new KMeansAlgorithm(k, maxIterations, geneDistance);
+    }
 
-        switch (clusteringAlgorithm) {
-            case ClusteringAlgorithmType.KMeans -> algorithm = new KMeansAlgorithm(k, iterations, geneDistance);
-            case ClusteringAlgorithmType.Hierarchical -> algorithm = new HierachicalClusteringAlgorithm(k, geneDistance, linkageCriterion);
-            case ClusteringAlgorithmType.DBSCAN -> algorithm = new DBSCANAlgorithm(eps, minPts, geneDistance);
-            default -> throw new UnsupportedOperationException("Select a valid clustering algorithm");
-        }
+    public static IClusteringAlgorithm createHierarchical(int k, IGeneDistance geneDistance, ILinkageCriterion linkageCriterion) {
+        return new HierachicalClusteringAlgorithm(k, geneDistance, linkageCriterion);
+    }
 
-        return algorithm;
+    public static IClusteringAlgorithm createDBSCAN(double eps, int minPts, IGeneDistance geneDistance) {
+        return new DBSCANAlgorithm(eps, minPts, geneDistance);
     }
 }

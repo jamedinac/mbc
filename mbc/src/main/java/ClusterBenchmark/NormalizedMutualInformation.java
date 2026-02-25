@@ -73,7 +73,7 @@ public class NormalizedMutualInformation implements IClusterBenchmark {
             }
         }
 
-        double nmi = (hu + hv) == 0.0 ? 0.0 : 2.0 * mi / (hu + hv);
+        double nmi = Math.max(hu, hv) == 0.0 ? 0.0 : mi / Math.max(hu, hv);
 
         return new ClusterBenchmarkResult(BenchmarkType.NMI, new double[geneClusterData.getNumberOfGenes()], nmi, geneClusterData);
     }

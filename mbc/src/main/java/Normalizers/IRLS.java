@@ -5,6 +5,7 @@ import Interfaces.IReplicateCompression;
 import ReplicateCompression.MeanReplicateCompression;
 import ReplicateCompression.VarianceReplicateCompression;
 import Utilities.AggregationUtilities;
+import Utilities.NormalizationUtilities;
 
 import java.util.ArrayList;
 
@@ -32,16 +33,23 @@ public class IRLS implements IDataNormalizer {
 
     @Override
     public double[][] normalize(double[][] data) {
-        double[][] estimatedMean = meanCompression.compress(data, numberOfReplicates, numberOfTimeSeries);
-        double[][] estimatedVariance = varianceCompression.compress(data, numberOfReplicates, numberOfTimeSeries);
+        double[][] pseudoData = new double[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            pseudoData[i] = NormalizationUtilities.getPseudoData(data[i]);
+        }
+
+        double[] scaleFactor = normalizer.getSampleMedian(pseudoData);
+        double[][] normalizedData = NormalizationUtilities.getDivideByColumn(pseudoData, scaleFactor);
+
+        double[][] estimatedMean = meanCompression.compress(normalizedData, numberOfReplicates, numberOfTimeSeries);
+        double[][] estimatedVariance = varianceCompression.compress(normalizedData, numberOfReplicates, numberOfTimeSeries);
         double[] alphas = this.getEstimatedAlphas(estimatedMean, estimatedVariance);
 
-        double[] scaleFactor = normalizer.getSampleMedian(data);
         double[][] x = this.getDesignMatrix();
 
         double[][] betas = new double[data.length][numberOfTimeSeries];
-        for (int g=0; g<data.length; g++) {
-            betas[g] = this.newtonRaphson(data[g], alphas[g], scaleFactor, x);
+        for (int g = 0; g < data.length; g++) {
+            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x);
         }
         return betas;
     }
@@ -61,7 +69,8 @@ public class IRLS implements IDataNormalizer {
             avgMean /= estimatedMean[i].length;
             avgVariance /= estimatedVariance[i].length;
 
-            alphas[i] = (avgVariance - avgMean) / (avgMean * avgVariance);
+            alphas[i] = (avgVariance - avgMean) / (avgMean * avgMean);
+            alphas[i] = Math.max(alphas[i], 1e-8);
         }
 
         return alphas;
@@ -118,7 +127,7 @@ public class IRLS implements IDataNormalizer {
                 }
             }
 
-            if (!historicBetas.isEmpty()) {
+            if (it > 1) {
                 for (int i = 0; i < numberOfTimeSeries; ++i) {
                     variance[i] = AggregationUtilities.variance(historicBetas.get(i));
                 }

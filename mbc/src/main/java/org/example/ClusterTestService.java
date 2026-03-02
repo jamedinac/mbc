@@ -41,8 +41,8 @@ public class ClusterTestService {
         IGeneDistance geneDistance = new CorrelationDistance();
 
         ///  TODO: Set Cluster algorithm
-        ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.FuzzyCMeans;
-        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createFuzzyCMeans(numberOfClusters, fuzziness, numberOfIterations, epsilon, geneDistance);
+        ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.KMeans;
+        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createKMeans(numberOfClusters, numberOfIterations, geneDistance);
 
         ClusterParameters clusterGenerationParameters = new ClusterParameters(geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, outputFilePrefix, algorithmType, algorithm);
 

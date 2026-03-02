@@ -65,7 +65,7 @@ public class ClusterTestService {
         clusterGenerationParameters.setCompression(compression);
 
         /// TODO: Set benchmark
-        BenchmarkType benchmarkType = BenchmarkType.NMI;
+        BenchmarkType benchmarkType = BenchmarkType.Jaccard;
         String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
         GeneClusterData goldStandard = new GeneClusterDataLoad(goldStandardFileName).readClusterData();
         IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(benchmarkType, geneDistance, goldStandard);

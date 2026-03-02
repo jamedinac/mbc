@@ -17,4 +17,8 @@ public class ClusterAlgorithmFactory {
     public static IClusteringAlgorithm createDBSCAN(double eps, int minPts, IGeneDistance geneDistance) {
         return new DBSCANAlgorithm(eps, minPts, geneDistance);
     }
+
+    public static IClusteringAlgorithm createFuzzyCMeans(int k, double m, int maxIterations, double epsilon, IGeneDistance geneDistance) {
+        return new FuzzyCMeansAlgorithm(k, m, maxIterations, epsilon, geneDistance);
+    }
 }

@@ -16,6 +16,7 @@ import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
 import LinkageCriteria.AverageLinkage;
 import Normalizers.IRLS;
+import Normalizers.ZScoreNormalizer;
 import ReplicateCompression.ReplicateCompressionFactory;
 
 import java.util.ArrayList;
@@ -32,14 +33,16 @@ public class ClusterTestService {
 
         /// TODO: Set number of clusters and iterations
         int numberOfClusters = 4;
-        int numberOfIterations = 50;
+        int numberOfIterations = 100;
+        double fuzziness = 2.0;
+        double epsilon = 0.001;
 
         ///  TODO: Set distance definition
         IGeneDistance geneDistance = new CorrelationDistance();
 
         ///  TODO: Set Cluster algorithm
-        ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.Hierarchical;
-        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createHierarchical(numberOfClusters, geneDistance, new AverageLinkage());
+        ClusteringAlgorithmType algorithmType = ClusteringAlgorithmType.FuzzyCMeans;
+        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createFuzzyCMeans(numberOfClusters, fuzziness, numberOfIterations, epsilon, geneDistance);
 
         ClusterParameters clusterGenerationParameters = new ClusterParameters(geneExpressionFileName, metadataFileName, geneExpressionFileFormat, metadataFileFormat, outputFilePrefix, algorithmType, algorithm);
 
@@ -57,6 +60,7 @@ public class ClusterTestService {
         /// TODO Set normalizers
         ArrayList<IDataNormalizer> normalizers = new ArrayList<>();
         normalizers.add(new IRLS(clusterGenerationParameters.getNumberOfReplicates(), clusterGenerationParameters.getNumberOfTimeSeries()));
+        normalizers.add(new ZScoreNormalizer());
         clusterGenerationParameters.setNormalizers(normalizers);
 
         /// TODO: Set compression type

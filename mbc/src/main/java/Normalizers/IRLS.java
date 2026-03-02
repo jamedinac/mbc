@@ -70,7 +70,7 @@ public class IRLS implements IDataNormalizer {
             avgVariance /= estimatedVariance[i].length;
 
             alphas[i] = (avgVariance - avgMean) / (avgMean * avgMean);
-            alphas[i] = Math.max(alphas[i], 1e-8);
+            alphas[i] = Math.max(alphas[i], EPS);
         }
 
         return alphas;

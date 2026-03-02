@@ -3,6 +3,7 @@ package Normalizers;
 import Interfaces.IDataNormalizer;
 import Interfaces.IReplicateCompression;
 import ReplicateCompression.MeanReplicateCompression;
+import ReplicateCompression.VarianceReplicateCompression;
 import Utilities.AggregationUtilities;
 
 import java.util.ArrayList;
@@ -19,14 +20,14 @@ public class IRLS implements IDataNormalizer {
 
     private final MedianRatiosNormalization normalizer = new MedianRatiosNormalization();
     private final IReplicateCompression meanCompression = new MeanReplicateCompression();
-    private final IReplicateCompression varianceCompression = new MeanReplicateCompression();
+    private final IReplicateCompression varianceCompression = new VarianceReplicateCompression();
 
 
 
     public IRLS(int numberOfReplicates, int numberOfTimeSeries) {
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
-        this.numberOfSamples = numberOfReplicates * numberOfReplicates;
+        this.numberOfSamples = numberOfReplicates * numberOfTimeSeries;
     }
 
     @Override
@@ -79,6 +80,9 @@ public class IRLS implements IDataNormalizer {
         double[] betas = new double[numberOfTimeSeries];
         double[] variance = new double[numberOfTimeSeries];
         ArrayList<ArrayList<Double>> historicBetas = new ArrayList<>(numberOfTimeSeries);
+        for (int i = 0; i < numberOfTimeSeries; i++) {
+            historicBetas.add(new ArrayList<>());
+        }
 
         for (int it = 0;  it < numberOfIterations; it++) {
             double[] etas = new double[numberOfSamples];
@@ -125,12 +129,15 @@ public class IRLS implements IDataNormalizer {
             }
 
             double[] deltaBetas = this.solveGauss(h, gradient);
+            if (deltaBetas == null) {
+                break;
+            }
             for (int i = 0; i < numberOfTimeSeries; ++i) {
                 betas[i] += deltaBetas[i];
                 historicBetas.get(i).add(betas[i]);
             }
 
-            if (AggregationUtilities.maxElement(deltaBetas) < threshold) {
+            if (AggregationUtilities.maxAbsElement(deltaBetas) < threshold) {
                 break;
             }
         }

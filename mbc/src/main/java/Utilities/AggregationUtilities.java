@@ -32,4 +32,12 @@ public class AggregationUtilities {
         }
         return res;
     }
+
+    public static double maxAbsElement(double[] a) {
+        double res = Math.abs(a[0]);
+        for (int i = 1; i < a.length; i++) {
+            res = Math.max(res, Math.abs(a[i]));
+        }
+        return res;
+    }
 }

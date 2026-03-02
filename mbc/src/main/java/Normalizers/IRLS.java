@@ -86,6 +86,13 @@ public class IRLS implements IDataNormalizer {
 
     private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x){
         double[] betas = new double[numberOfTimeSeries];
+        double meanData = 0;
+        double meanScale = 0;
+        for (int i = 0; i < numberOfSamples; i++) {
+            meanData += data[i];
+            meanScale += scaleFactor[i];
+        }
+        betas[0] = Math.log((meanData / numberOfSamples) / (meanScale / numberOfSamples));
         double[] variance = new double[numberOfTimeSeries];
         ArrayList<ArrayList<Double>> historicBetas = new ArrayList<>(numberOfTimeSeries);
         for (int i = 0; i < numberOfTimeSeries; i++) {
@@ -98,6 +105,7 @@ public class IRLS implements IDataNormalizer {
                 for (int j = 0; j < numberOfTimeSeries; ++j) {
                     etas[i] += x[i][j] * betas[j];
                 }
+                etas[i] = Math.max(-30, Math.min(30, etas[i]));
             }
 
             double[] miu = new double[numberOfSamples];
@@ -128,7 +136,7 @@ public class IRLS implements IDataNormalizer {
 
             if (it > 1) {
                 for (int i = 0; i < numberOfTimeSeries; ++i) {
-                    variance[i] = AggregationUtilities.variance(historicBetas.get(i));
+                    variance[i] = Math.max(AggregationUtilities.variance(historicBetas.get(i)), EPS);
                 }
                 for (int i = 1; i < numberOfTimeSeries; ++i) {
                     gradient[i] -= betas[i] / variance[i];

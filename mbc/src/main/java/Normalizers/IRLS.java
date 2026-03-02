@@ -99,30 +99,44 @@ public class IRLS implements IDataNormalizer {
             historicBetas.add(new ArrayList<>());
         }
 
+        double[] logScaleFactor = new double[numberOfSamples];
+        for (int i = 0; i < numberOfSamples; i++) {
+            logScaleFactor[i] = Math.log(scaleFactor[i]);
+        }
+
         for (int it = 0;  it < numberOfIterations; it++) {
-            double[] etas = new double[numberOfSamples];
+            double[] logMu = new double[numberOfSamples];
             for (int i = 0; i < numberOfSamples; ++i) {
                 for (int j = 0; j < numberOfTimeSeries; ++j) {
-                    etas[i] += x[i][j] * betas[j];
+                    logMu[i] += x[i][j] * betas[j];
                 }
-                etas[i] = Math.max(-30, Math.min(30, etas[i]));
-            }
-
-            double[] miu = new double[numberOfSamples];
-            for (int i = 0; i < numberOfSamples; ++i) {
-                miu[i] += scaleFactor[i] * Math.exp(etas[i]);
+                logMu[i] += logScaleFactor[i];
             }
 
             double[] gradient = new double[numberOfTimeSeries];
             for (int i = 0; i < numberOfTimeSeries; ++i) {
                 for (int j = 0; j < numberOfSamples; ++j) {
-                    gradient[i] += (data[j] - miu[j]) / (1.0 + alpha * miu[j]) * x[j][i];
+                    double g;
+                    if (logMu[j] >= 0) {
+                        double expNeg = Math.exp(-logMu[j]);
+                        g = (data[j] * expNeg - 1.0) / (expNeg + alpha);
+                    } else {
+                        double expPos = Math.exp(logMu[j]);
+                        g = (data[j] - expPos) / (1.0 + alpha * expPos);
+                    }
+                    gradient[i] += g * x[j][i];
                 }
             }
 
             double[] weight = new double[numberOfSamples];
             for (int i = 0; i < numberOfSamples; ++i) {
-                weight[i] = miu[i] / (1.0 + alpha * miu[i]);
+                if (logMu[i] >= 0) {
+                    double expNeg = Math.exp(-logMu[i]);
+                    weight[i] = 1.0 / (expNeg + alpha);
+                } else {
+                    double expPos = Math.exp(logMu[i]);
+                    weight[i] = expPos / (1.0 + alpha * expPos);
+                }
             }
 
             double[][] h = new double[numberOfTimeSeries][numberOfTimeSeries];

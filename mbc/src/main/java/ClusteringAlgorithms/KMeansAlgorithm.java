@@ -46,10 +46,43 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
     }
 
     double[][] generateCentroids(GeneExpressionData geneExpressionData) {
-        double[][] centroids = new double[this.k][geneExpressionData.getNumberOfComponents()];
+        int numberOfComponents = geneExpressionData.getNumberOfComponents();
+        int numberOfGenes = geneExpressionData.getNumberOfGenes();
+        double[][] centroids = new double[this.k][numberOfComponents];
 
-        for (int i=0; i < this.k; i++) {
-            centroids[i] = geneExpressionData.getGeneProfile(RandomGenerator.uniformRandomInt(geneExpressionData.getNumberOfGenes()));
+        double[] minValues = new double[numberOfComponents];
+        double[] maxValues = new double[numberOfComponents];
+
+        // Initialize min and max with the first gene's profile
+        if (numberOfGenes > 0) {
+            double[] firstGeneProfile = geneExpressionData.getGeneProfile(0);
+            System.arraycopy(firstGeneProfile, 0, minValues, 0, numberOfComponents);
+            System.arraycopy(firstGeneProfile, 0, maxValues, 0, numberOfComponents);
+        }
+
+        // Find min and max for each component
+        for (int i = 1; i < numberOfGenes; i++) {
+            double[] geneProfile = geneExpressionData.getGeneProfile(i);
+            for (int j = 0; j < numberOfComponents; j++) {
+                if (geneProfile[j] < minValues[j]) {
+                    minValues[j] = geneProfile[j];
+                }
+                if (geneProfile[j] > maxValues[j]) {
+                    maxValues[j] = geneProfile[j];
+                }
+            }
+        }
+
+        // Generate random centroids
+        for (int i = 0; i < this.k; i++) {
+            for (int j = 0; j < numberOfComponents; j++) {
+                double range = maxValues[j] - minValues[j];
+                if (range <= 1e-9) { // Handle effectively zero range
+                     centroids[i][j] = minValues[j];
+                } else {
+                     centroids[i][j] = RandomGenerator.uniformRandomDoubleInRange(minValues[j], maxValues[j]);
+                }
+            }
         }
 
         return centroids;

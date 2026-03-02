@@ -44,7 +44,7 @@ public class NormalizationUtilities {
         int n = data.length;
         int m = data[0].length;
 
-        double[][] divideByRow = new double[m][n];
+        double[][] divideByRow = new double[n][m];
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
@@ -59,7 +59,7 @@ public class NormalizationUtilities {
         int n = data.length;
         int m = data[0].length;
 
-        double[][] divideByColumn = new double[m][n];
+        double[][] divideByColumn = new double[n][m];
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {

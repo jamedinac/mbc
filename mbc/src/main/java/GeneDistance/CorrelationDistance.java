@@ -17,6 +17,10 @@ public class CorrelationDistance implements IGeneDistance {
         double sdA = this.getSDFromGeneProfile(geneA);
         double sdB = this.getSDFromGeneProfile(geneB);
 
+        if (sdA == 0 || sdB == 0) {
+            return 1.0;
+        }
+
         return 1.0 - covariance / (sdA * sdB);
     }
 

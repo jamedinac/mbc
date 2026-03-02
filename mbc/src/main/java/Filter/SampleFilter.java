@@ -32,13 +32,14 @@ public class SampleFilter implements ISampleFilter {
             return false;
         }
 
-        boolean isValid = true;
-        for (HashMap.Entry<String, String> sampleEntry : sampleMetadata.getMetadata().entrySet()) {
-            String sampleTrait = sampleEntry.getKey();
-            String sampleTraitValue = sampleEntry.getValue();
+        for (HashMap.Entry<String, HashSet<String>> filterEntry : this.validSampleTrait.entrySet()) {
+            String requiredTrait = filterEntry.getKey();
+            String sampleValue = sampleMetadata.getMetadataParameter(requiredTrait);
 
-            isValid &= !this.validSampleTrait.containsKey(sampleTrait) || this.validSampleTrait.get(sampleTrait).contains(sampleTraitValue);
+            if (sampleValue == null || !filterEntry.getValue().contains(sampleValue)) {
+                return false;
+            }
         }
-        return isValid;
+        return true;
     }
 }

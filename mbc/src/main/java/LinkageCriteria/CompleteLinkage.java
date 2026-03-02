@@ -10,7 +10,7 @@ public class CompleteLinkage implements ILinkageCriterion {
     @Override
     public double computeDistance(GeneExpressionData data, IGeneDistance geneDistance,
                                   List<Integer> clusterA, List<Integer> clusterB) {
-        double maxDistance = Double.MIN_VALUE;
+        double maxDistance = -Double.MAX_VALUE;
 
         for (int geneA : clusterA) {
             for (int geneB : clusterB) {

@@ -84,11 +84,13 @@ public class ClusterTestService {
     }
 
     private static void RunSeveralClustersAttempt(ClusterParameters clusterParameters, int startCluster, int endCluster, int numberOfIterations, ClusteringAlgorithmType algorithmType, IGeneDistance geneDistance, IClusterBenchmark benchmark) {
-        clusterParameters.setOutputFilePrefix(clusterParameters.getOutputFilePrefix() + ".txt");
+        String basePrefix = clusterParameters.getOutputFilePrefix();
 
         for (int c = startCluster; c <= endCluster; c++) {
+            clusterParameters.setOutputFilePrefix(basePrefix);
             clusterParameters.setAlgorithm(ClusterAlgorithmFactory.createKMeans(c, numberOfIterations, geneDistance));
             ClusterGenerationService.RunClustering(clusterParameters);
+            clusterParameters.setOutputFilePrefix(basePrefix + ".txt");
             System.out.println(c + "\t" + ClusterBenchmarkService.getClusterBenchmarkResult(clusterParameters, benchmark).getBenchmarkValue());
         }
     }

@@ -14,10 +14,10 @@ public class CompositeNormalizer implements IDataNormalizer {
 
     @Override
     public double[][] normalize(double[][] data) {
-        double[][] normalizedData = new double[data.length][data[0].length];
+        double[][] normalizedData = data;
 
         for(IDataNormalizer normalizer : normalizers){
-            normalizedData = normalizer.normalize(data);
+            normalizedData = normalizer.normalize(normalizedData);
         }
         return normalizedData;
     }

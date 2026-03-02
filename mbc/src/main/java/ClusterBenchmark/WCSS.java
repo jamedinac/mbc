@@ -24,7 +24,10 @@ public class WCSS implements IClusterBenchmark {
 
         double sum = 0.0;
         for (int g=0; g<geneExpressionData.getNumberOfGenes(); g++) {
-            int ki = geneCluster.get(geneExpressionData.getGeneId(g));
+            Integer ki = geneCluster.get(geneExpressionData.getGeneId(g));
+            if (ki == null) {
+                continue;
+            }
             double distance = this.geneDistance.getDistance(centroids[ki], geneExpressionData.getGeneProfile(g));
             sum += (distance)*(distance);
 

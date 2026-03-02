@@ -13,7 +13,9 @@ public class JensenShannonDistance implements IGeneDistance {
     private double getKullbackLeiblerDivergence(double[] p, double[] q) {
         double result = 0;
         for (int i = 0; i < p.length; i++) {
-            result += p[i] * Math.log(p[i]/q[i]);
+            if (p[i] > 0 && q[i] > 0) {
+                result += p[i] * Math.log(p[i] / q[i]);
+            }
         }
         return result;
     }

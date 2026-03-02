@@ -25,12 +25,18 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
         double[][] centroids = generateCentroids(geneExpressionData);
         int[] clusterAssignation = new int[numberOfGenes];
+        int restarts = 0;
+        int maxRestarts = 10;
 
         for  (int iteration = 0; iteration < maxIterations; iteration++) {
             clusterAssignation = getClusterAssignation(geneExpressionData, centroids);
             centroids = calculateCentroids(clusterAssignation, geneExpressionData);
 
             if (centroids == null) {
+                if (++restarts > maxRestarts) {
+                    centroids = generateCentroids(geneExpressionData);
+                    break;
+                }
                 iteration = 0;
                 centroids  = generateCentroids(geneExpressionData);
             }

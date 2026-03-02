@@ -67,7 +67,7 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         String geneExpressionFile = this.geneExpressionFileName;
         String[] geneExpressionFileLines = FileUtilities.getFileLines(geneExpressionFile);
 
-        int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata);
+        int numberOfComponents = this.getNumberOfComponents(geneMetadataFileLines, metadata, metadataColumnNames);
         String[] geneDataColumnNames = this.getGeneDataColumnNames(FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter()), numberOfComponents, metadata);
 
 
@@ -225,13 +225,14 @@ public class GeneExpressionDataLoad implements IGeneExpressionDataLoad {
         return numberOfFilteredGenes;
     }
 
-    private int getNumberOfComponents(String[] metadataFileLines, HashMap<String, SampleMetadata> metadata) {
+    private int getNumberOfComponents(String[] metadataFileLines, HashMap<String, SampleMetadata> metadata, String[] metadataColumnNames) {
+        int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);
         int numberOfRows = metadataFileLines.length;
         int numberOfComponents = 0;
 
         for (int r = 1; r < numberOfRows; r++) {
             String[] metaDataRow = FileUtilities.getSplitDataRow(metadataFileLines[r], metadataFileFormat.getDelimiter());
-            String sampleId = metaDataRow[0];
+            String sampleId = metaDataRow[sampleIdColumnIndex];
 
             if (this.sampleFilter.isValidSample(metadata.get(sampleId))) {
                 numberOfComponents++;

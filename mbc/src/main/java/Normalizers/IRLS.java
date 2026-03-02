@@ -7,15 +7,16 @@ import ReplicateCompression.VarianceReplicateCompression;
 import Utilities.AggregationUtilities;
 import Utilities.NormalizationUtilities;
 
-import java.util.ArrayList;
-
 public class IRLS implements IDataNormalizer {
 
     private final int numberOfTimeSeries;
     private final int numberOfReplicates;
     private final int numberOfSamples;
 
-    private final static double EPS = 1e-9;
+    private static final double CONVERGENCE_TOL = 1e-7;
+    private static final double PIVOT_TOL = 1e-12;
+    private static final double ALPHA_FLOOR = 1e-9;
+    private static final double SOLVE_TOL = 1e-6;
     private int numberOfIterations = 100;
 
     private final MedianRatiosNormalization normalizer = new MedianRatiosNormalization();
@@ -46,11 +47,40 @@ public class IRLS implements IDataNormalizer {
 
         double[][] x = this.getDesignMatrix();
 
+        // Pass 1: MLE estimation (no prior)
+        double[][] mleBetas = new double[data.length][numberOfTimeSeries];
+        for (int g = 0; g < data.length; g++) {
+            mleBetas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, null);
+        }
+
+        // Estimate prior variance from cross-gene MLE distribution (DESeq2-style)
+        double[] priorVariance = this.estimatePriorVariance(mleBetas);
+
+        // Pass 2: MAP estimation with empirical Bayes prior
         double[][] betas = new double[data.length][numberOfTimeSeries];
         for (int g = 0; g < data.length; g++) {
-            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x);
+            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, priorVariance);
         }
         return betas;
+    }
+
+    private double[] estimatePriorVariance(double[][] mleBetas) {
+        int nGenes = mleBetas.length;
+        double[] priorVariance = new double[numberOfTimeSeries];
+
+        for (int p = 1; p < numberOfTimeSeries; p++) {
+            double sum = 0.0;
+            double sumSq = 0.0;
+            for (int g = 0; g < nGenes; g++) {
+                sum += mleBetas[g][p];
+                sumSq += mleBetas[g][p] * mleBetas[g][p];
+            }
+            double mean = sum / nGenes;
+            priorVariance[p] = (sumSq / nGenes) - (mean * mean);
+            priorVariance[p] = Math.max(priorVariance[p], ALPHA_FLOOR);
+        }
+
+        return priorVariance;
     }
 
     private double[] getEstimatedAlphas(double[][] estimatedMean, double[][] estimatedVariance) {
@@ -69,7 +99,7 @@ public class IRLS implements IDataNormalizer {
             avgVariance /= estimatedVariance[i].length;
 
             alphas[i] = (avgVariance - avgMean) / (avgMean * avgMean);
-            alphas[i] = Math.max(alphas[i], EPS);
+            alphas[i] = Math.max(alphas[i], ALPHA_FLOOR);
         }
 
         return alphas;
@@ -84,7 +114,7 @@ public class IRLS implements IDataNormalizer {
         return designMatrix;
     }
 
-    private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x){
+    private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x, double[] priorVariance){
         double[] betas = new double[numberOfTimeSeries];
         double meanData = 0;
         double meanScale = 0;
@@ -93,11 +123,6 @@ public class IRLS implements IDataNormalizer {
             meanScale += scaleFactor[i];
         }
         betas[0] = Math.log((meanData / numberOfSamples) / (meanScale / numberOfSamples));
-        double[] variance = new double[numberOfTimeSeries];
-        ArrayList<ArrayList<Double>> historicBetas = new ArrayList<>(numberOfTimeSeries);
-        for (int i = 0; i < numberOfTimeSeries; i++) {
-            historicBetas.add(new ArrayList<>());
-        }
 
         double[] logScaleFactor = new double[numberOfSamples];
         for (int i = 0; i < numberOfSamples; i++) {
@@ -148,13 +173,11 @@ public class IRLS implements IDataNormalizer {
                 }
             }
 
-            if (it > 1) {
-                for (int i = 0; i < numberOfTimeSeries; ++i) {
-                    variance[i] = Math.max(AggregationUtilities.variance(historicBetas.get(i)), EPS);
-                }
+            // DESeq2-style MAP penalization: N(0, σ²_p) prior on non-intercept coefficients
+            if (priorVariance != null) {
                 for (int i = 1; i < numberOfTimeSeries; ++i) {
-                    gradient[i] -= betas[i] / variance[i];
-                    h[i][i] += 1.0 / variance[i];
+                    gradient[i] -= betas[i] / priorVariance[i];
+                    h[i][i] += 1.0 / priorVariance[i];
                 }
             }
 
@@ -164,10 +187,9 @@ public class IRLS implements IDataNormalizer {
             }
             for (int i = 0; i < numberOfTimeSeries; ++i) {
                 betas[i] += deltaBetas[i];
-                historicBetas.get(i).add(betas[i]);
             }
 
-            if (AggregationUtilities.maxAbsElement(deltaBetas) < EPS) {
+            if (AggregationUtilities.maxAbsElement(deltaBetas) < CONVERGENCE_TOL) {
                 break;
             }
         }
@@ -199,7 +221,7 @@ public class IRLS implements IDataNormalizer {
                 }
             }
 
-            if (Math.abs(a[sel][col]) < EPS) {
+            if (Math.abs(a[sel][col]) < PIVOT_TOL) {
                 continue;
             }
 
@@ -231,7 +253,7 @@ public class IRLS implements IDataNormalizer {
             for (int j = 0; j < m; ++j) {
                 sum += ans[j] * a[i][j];
             }
-            if (Math.abs(sum - a[i][m]) > EPS) {
+            if (Math.abs(sum - a[i][m]) > SOLVE_TOL) {
                 return null;
             }
         }

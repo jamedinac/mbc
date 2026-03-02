@@ -15,7 +15,6 @@ public class IRLS implements IDataNormalizer {
     private final int numberOfReplicates;
     private final int numberOfSamples;
 
-    private double threshold = 1e-6;
     private final static double EPS = 1e-9;
     private int numberOfIterations = 100;
 
@@ -146,7 +145,7 @@ public class IRLS implements IDataNormalizer {
                 historicBetas.get(i).add(betas[i]);
             }
 
-            if (AggregationUtilities.maxAbsElement(deltaBetas) < threshold) {
+            if (AggregationUtilities.maxAbsElement(deltaBetas) < EPS) {
                 break;
             }
         }

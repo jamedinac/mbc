@@ -1,12 +1,14 @@
 package Normalizers;
 
 import Interfaces.IDataNormalizer;
+import Interfaces.IReplicateCompression;
+import ReplicateCompression.MeanReplicateCompression;
 
 public class CountDistributionNormalizer implements IDataNormalizer {
-    private int numberOfTimeSeries;
-    private int numberOfReplicates;
+    private final int numberOfTimeSeries;
+    private final int numberOfReplicates;
 
-    private IDataNormalizer medianRatioNormalizer = new MedianRatiosNormalization();
+    IReplicateCompression replicateCompression = new MeanReplicateCompression();
 
     public CountDistributionNormalizer(int numberOfReplicates, int numberOfTimeSeries) {
         this.numberOfTimeSeries = numberOfTimeSeries;
@@ -15,40 +17,22 @@ public class CountDistributionNormalizer implements IDataNormalizer {
 
     @Override
     public double[][] normalize(double[][] data) {
-        data =  medianRatioNormalizer.normalize(data);
-
-        double[][] estimatedMean = this.getEstimatedMean(data);
+        double[][] estimatedMean = replicateCompression.compress(data, numberOfReplicates, numberOfTimeSeries);
         return this.getProbabilityVector(estimatedMean);
     }
 
-    public double[][] getEstimatedMean(double[][] data) {
-        double[][] estimatedMean = new double[data.length][numberOfTimeSeries];
+    private double[][] getProbabilityVector(double[][] data) {
+        double[][] probabilityVector = new double[data.length][data[0].length];
 
         for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < numberOfTimeSeries; j++) {
-                estimatedMean[i][j] = 0;
-                for (int c = 0; c<numberOfReplicates; c++) {
-                    estimatedMean[i][j] += data[i][j*numberOfReplicates + c];
-                }
-                estimatedMean[i][j] /= numberOfReplicates;
-            }
-        }
-
-        return  estimatedMean;
-    }
-
-    private double[][] getProbabilityVector(double[][] estimatedMean) {
-        double[][] probabilityVector = new double[estimatedMean.length][estimatedMean[0].length];
-
-        for (int i = 0; i < estimatedMean.length; i++) {
             double sum = 0.0;
 
-            for (int j = 0; j < estimatedMean[i].length; j++) {
-                sum += estimatedMean[i][j];
+            for (int j = 0; j < data[i].length; j++) {
+                sum += data[i][j];
             }
 
-            for (int j = 0; j < estimatedMean[i].length; j++) {
-                probabilityVector[i][j] = estimatedMean[i][j] / sum;
+            for (int j = 0; j < data[i].length; j++) {
+                probabilityVector[i][j] = data[i][j] / sum;
             }
         }
 

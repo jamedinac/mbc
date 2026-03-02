@@ -1,74 +1,49 @@
 package Normalizers;
 
 import Interfaces.IDataNormalizer;
-
-import java.util.Arrays;
+import ReplicateCompression.ReplicateCompressionFactory;
+import Utilities.NormalizationUtilities;
 
 public class MedianRatiosNormalization implements IDataNormalizer {
     @Override
     public double[][] normalize(double[][] data) {
-        int numberOfGenes = data.length;
-        int numberOfSamples = data[0].length;
+        int n = data.length;
+        int m = data[0].length;
 
-        double[][] pseudoData = new double[numberOfGenes][numberOfSamples];
-        for (int i=0; i<numberOfGenes; i++) {
-            for (int j=0; j<numberOfSamples; j++) {
-                pseudoData[i][j] = data[i][j] + 1;
-            }
-        }
-
-        double[] geometricMean = new double[numberOfGenes];
-        for (int i=0; i<numberOfGenes; i++) {
-            geometricMean[i] = this.getGeometricMean(pseudoData[i]);
-        }
-
-        double[][] geometricRatio = new double[numberOfGenes][numberOfSamples];
-        for (int i=0; i<numberOfGenes; i++) {
-            for (int j=0; j<numberOfSamples; j++) {
-                geometricRatio[i][j] = pseudoData[i][j] / geometricMean[i];
-            }
-        }
-
-        double[] sampleMedian = this.getGeometricRatioMedianPerSample(geometricRatio);
-        double[][] normalizedData = new double[numberOfGenes][numberOfSamples];
-
-        for (int i=0; i<numberOfGenes; i++) {
-            for (int j=0; j<numberOfSamples; j++) {
-                normalizedData[i][j] = pseudoData[i][j] / sampleMedian[j];
-            }
-        }
-
-        return normalizedData;
+        double[][] pseudoData = this.getPseudoData(data);
+        double[] sampleMedian = this.getSampleMedian(pseudoData);
+        return NormalizationUtilities.getDivideByColumn(pseudoData, sampleMedian);
     }
 
-    private double getGeometricMean (double[] data) {
-        int n =  data.length;
-        double geometricMeanLog = 0.0;
-        for (double d : data) {
-            geometricMeanLog += Math.log(d);
-        }
-        return Math.exp(geometricMeanLog / n);
+    public double[] getSampleMedian(double[][] data) {
+        int n = data.length;
+
+        double[] geometricMean = this.getGeometricMeanPerRow(data);
+
+        double[][] geometricRatio = NormalizationUtilities.getDivideByRow(data, geometricMean);
+        return NormalizationUtilities.getColumnMedian(geometricRatio);
     }
 
-    private double[] getGeometricRatioMedianPerSample(double[][] geometricRatio) {
-        int numberOfGenes =  geometricRatio.length;
-        int numberOfSamples = geometricRatio[0].length;
+    private double[][] getPseudoData(double[][] data) {
+        int n = data.length;
+        int m = data[0].length;
+        double[][] pseudoData = new double[n][m];
 
-        double[] sampleMedian = new  double[numberOfSamples];
-        for (int i = 0; i < numberOfSamples; i++) {
-            double[] sampleData  = new double[numberOfGenes];
-
-            for (int j=0; j<numberOfGenes; j++) {
-                sampleData[j] = geometricRatio[j][i];
-            }
-            Arrays.sort(sampleData);
-            sampleMedian[i] = this.getListMedian(sampleData);
+        for (int i=0; i<n; i++) {
+            pseudoData[i] = NormalizationUtilities.getPseudoData(data[i]);
         }
-        return sampleMedian;
+
+        return pseudoData;
     }
 
-    private double getListMedian(double[] sampleData) {
-        int n = sampleData.length;
-        return n%2 == 0 ? (sampleData[(n/2 - 1)] + sampleData[n/2]) / 2.0 : sampleData[n/2];
+    private double[] getGeometricMeanPerRow(double[][] data) {
+        int n = data.length;
+
+        double[]geometricMean = new double[n];
+        for (int i=0; i<n; i++) {
+            geometricMean[i] = NormalizationUtilities.getGeometricMean(data[i]);
+        }
+
+        return  geometricMean;
     }
 }

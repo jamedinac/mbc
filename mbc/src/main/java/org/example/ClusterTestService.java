@@ -33,7 +33,7 @@ public class ClusterTestService {
 
         /// TODO: Set number of clusters and iterations
         int numberOfClusters = 4;
-        int numberOfIterations = 100;
+        int numberOfIterations = 1000;
         double fuzziness = 2.0;
         double epsilon = 0.001;
 

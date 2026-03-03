@@ -25,14 +25,6 @@ public class AggregationUtilities {
         return res / n;
     }
 
-    public static double maxElement(double[] a) {
-        double res = a[0];
-        for (int i=0; i<a.length; i++) {
-            res = Math.max(res, a[i]);
-        }
-        return res;
-    }
-
     public static double maxAbsElement(double[] a) {
         double res = Math.abs(a[0]);
         for (int i = 1; i < a.length; i++) {

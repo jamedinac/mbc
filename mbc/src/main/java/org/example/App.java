@@ -87,8 +87,12 @@ public class App {
         
         GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFileName);
         GeneClusterData goldStandard = goldStandardLoader.readClusterData();
-        IClusterBenchmark benchmark = ClusterBenchmarkFactory.create(BenchmarkType.Jaccard, geneDistance, goldStandard);
+        
+        ClusterBenchmark.CompositeBenchmark compositeBenchmark = new ClusterBenchmark.CompositeBenchmark();
+        compositeBenchmark.addBenchmark(new ClusterBenchmark.Jaccard(goldStandard));
+        compositeBenchmark.addBenchmark(new ClusterBenchmark.Silhouette(geneDistance));
+        compositeBenchmark.addBenchmark(new ClusterBenchmark.Accuracy(goldStandard));
 
-        orchestrator.executePipeline(rawData, algorithm, benchmark, outputFilePrefix);
+        orchestrator.executePipeline(rawData, algorithm, compositeBenchmark, outputFilePrefix);
     }
 }

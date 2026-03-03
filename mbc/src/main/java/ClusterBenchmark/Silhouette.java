@@ -1,5 +1,6 @@
 package ClusterBenchmark;
 
+import BenchmarkResult.ClusterBenchmarkResult;
 import Common.*;
 import Interfaces.IClusterBenchmark;
 import Interfaces.IGeneDistance;

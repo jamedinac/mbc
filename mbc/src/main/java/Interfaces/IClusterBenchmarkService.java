@@ -1,6 +1,5 @@
 package Interfaces;
 
-import Common.ClusterBenchmarkResult;
 import Common.GeneExpressionData;
 
 public interface IClusterBenchmarkService {

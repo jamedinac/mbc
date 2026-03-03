@@ -4,8 +4,6 @@ import Enum.FileFormat;
 import Common.GeneClusterData;
 import Utilities.FileUtilities;
 
-import java.io.File;
-
 public class GeneClusterDataLoad {
 
     String filename;

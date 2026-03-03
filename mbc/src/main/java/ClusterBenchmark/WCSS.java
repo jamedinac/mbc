@@ -1,7 +1,7 @@
 package ClusterBenchmark;
 
 import Enum.BenchmarkType;
-import Common.ClusterBenchmarkResult;
+import BenchmarkResult.ClusterBenchmarkResult;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import Interfaces.IClusterBenchmark;

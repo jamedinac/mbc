@@ -1,6 +1,6 @@
 package ClusterBenchmark;
 
-import Common.ClusterBenchmarkResult;
+import BenchmarkResult.ClusterBenchmarkResult;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import Interfaces.IClusterBenchmark;

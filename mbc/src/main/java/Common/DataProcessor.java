@@ -1,5 +1,6 @@
 package Common;
 
+import Interfaces.IDataProcessor;
 import Interfaces.IDataNormalizer;
 import Interfaces.IGeneFilter;
 import Interfaces.ISampleFilter;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class DataProcessor {
+public class DataProcessor implements IDataProcessor {
     private final IGeneFilter geneFilter;
     private final ISampleFilter sampleFilter;
     private final IReplicateCompression compression;

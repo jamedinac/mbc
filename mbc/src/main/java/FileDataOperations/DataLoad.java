@@ -35,12 +35,12 @@ public class DataLoad implements IDataLoad {
 
     @Override
     public GeneExpressionData getGeneExpressionFormattedData() {
-        /// Read metadata
+        //1. Read metadata
         String[] geneMetadataFileLines = FileUtilities.getFileLines(this.metadataFileName);
         String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
         HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines);
 
-        /// Read gene expression
+        //2. Read gene expression data
         String[] geneExpressionFileLines = FileUtilities.getFileLines(this.geneExpressionFileName);
         String[] header = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
         

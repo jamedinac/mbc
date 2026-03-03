@@ -3,12 +3,14 @@ package org.example;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import FileDataOperations.GeneClusterDataWrite;
+import Interfaces.IClusterGenerationService;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IGeneClusterDataWrite;
 
-public class ClusterGenerationService {
+public class ClusterGenerationService implements IClusterGenerationService {
 
-    public static void RunClustering(GeneExpressionData geneExpressionData, IClusteringAlgorithm algorithm, String outputFilePrefix) {
+    @Override
+    public void runClustering(GeneExpressionData geneExpressionData, IClusteringAlgorithm algorithm, String outputFilePrefix) {
         GeneClusterData result = algorithm.clusterGenes(geneExpressionData);
 
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();

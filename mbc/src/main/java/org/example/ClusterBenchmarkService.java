@@ -5,18 +5,16 @@ import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import FileDataOperations.GeneClusterDataLoad;
 import Interfaces.IClusterBenchmark;
+import Interfaces.IClusterBenchmarkService;
 
-public class ClusterBenchmarkService {
+public class ClusterBenchmarkService implements IClusterBenchmarkService {
 
-    public static void RunBenchmark(GeneExpressionData geneExpressionData, IClusterBenchmark clusterBenchmark, String outputFilePrefix) {
-        ClusterBenchmarkResult clusterBenchmarkResult = getClusterBenchmarkResult(geneExpressionData, clusterBenchmark, outputFilePrefix);
-        clusterBenchmarkResult.writeClusterBenchmarkToFile(outputFilePrefix);
-    }
-
-    public static ClusterBenchmarkResult getClusterBenchmarkResult(GeneExpressionData geneExpressionData, IClusterBenchmark benchmark, String outputFilePrefix) {
+    @Override
+    public void runBenchmark(GeneExpressionData geneExpressionData, IClusterBenchmark clusterBenchmark, String outputFilePrefix) {
         GeneClusterDataLoad geneClusterDataLoad = new GeneClusterDataLoad(outputFilePrefix);
         GeneClusterData clusterData = geneClusterDataLoad.readClusterData();
 
-        return benchmark.evaluate(geneExpressionData, clusterData);
+        ClusterBenchmarkResult clusterBenchmarkResult = clusterBenchmark.evaluate(geneExpressionData, clusterData);
+        clusterBenchmarkResult.writeClusterBenchmarkToFile(outputFilePrefix);
     }
 }

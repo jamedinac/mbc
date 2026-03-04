@@ -18,10 +18,7 @@ public class DataLoad implements IDataLoad {
     private final int numberOfReplicates;
     private final int numberOfTimeSeries;
 
-    private final FileFormat geneFileFormat;
-    private final FileFormat metadataFileFormat;
-
-    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfReplicates, int numberOfTimeSeries, FileFormat geneFileFormat, FileFormat metadataFileFormat) {
+    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfReplicates, int numberOfTimeSeries) {
         this.geneExpressionFileName = geneExpressionFileName;
         this.metadataFileName = metadataFileName;
         this.replicateColumn = replicateColumn;
@@ -29,20 +26,22 @@ public class DataLoad implements IDataLoad {
         this.sampleIdColumn = sampleIdColumn;
         this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
-        this.geneFileFormat = geneFileFormat;
-        this.metadataFileFormat = metadataFileFormat;
     }
 
     @Override
     public GeneExpressionData getGeneExpressionFormattedData() {
+        //0. Detects file format
+        FileFormat metadataFileFormat = FileUtilities.detectFormat(this.metadataFileName);
+        FileFormat geneFileFormat = FileUtilities.detectFormat(this.geneExpressionFileName);
+
         //1. Read metadata
         String[] geneMetadataFileLines = FileUtilities.getFileLines(this.metadataFileName);
         String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
-        HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines);
+        HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines, metadataFileFormat);
 
-        //2. Read gene expression data
+        //2. Read gene expression
         String[] geneExpressionFileLines = FileUtilities.getFileLines(this.geneExpressionFileName);
-        String[] header = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], this.geneFileFormat.getDelimiter());
+        String[] header = FileUtilities.getSplitDataRow(geneExpressionFileLines[0], geneFileFormat.getDelimiter());
         
         int numberOfSamples = header.length - 1;
         String[] sampleIds = new String[numberOfSamples];
@@ -53,7 +52,7 @@ public class DataLoad implements IDataLoad {
         double[][] expressionData = new double[numberOfGenes][numberOfSamples];
 
         for (int i = 0; i < numberOfGenes; i++) {
-            String[] row = FileUtilities.getSplitDataRow(geneExpressionFileLines[i + 1], this.geneFileFormat.getDelimiter());
+            String[] row = FileUtilities.getSplitDataRow(geneExpressionFileLines[i + 1], geneFileFormat.getDelimiter());
             geneIds[i] = row[0];
             for (int j = 0; j < numberOfSamples; j++) {
                 expressionData[i][j] = Double.parseDouble(row[j + 1]);
@@ -63,7 +62,7 @@ public class DataLoad implements IDataLoad {
         return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, metadata, numberOfReplicates, numberOfTimeSeries);
     }
 
-    private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines) {
+    private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines, FileFormat metadataFileFormat) {
         HashMap<String, SampleMetadata> metadata = new HashMap<>();
 
         int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);

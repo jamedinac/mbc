@@ -1,12 +1,8 @@
 package org.example;
 
-import ClusterBenchmark.ClusterBenchmarkFactory;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
 import Common.*;
-import Enum.BenchmarkType;
-import Enum.FileFormat;
 import Enum.ReplicateCompressionType;
-import Enum.ClusteringAlgorithmType;
 import FileDataOperations.DataLoad;
 import FileDataOperations.GeneClusterDataLoad;
 import Filter.CompositeFilter;
@@ -15,23 +11,19 @@ import Filter.GeneFilterByVariance;
 import Filter.SampleFilter;
 import Filter.ZeroFilter;
 import GeneDistance.CorrelationDistance;
-import GeneDistance.JensenShannonDistance;
 import Interfaces.*;
-import LinkageCriteria.AverageLinkage;
 import Normalizers.CompositeNormalizer;
 import Normalizers.IRLS;
 import Normalizers.ZScoreNormalizer;
 import ReplicateCompression.ReplicateCompressionFactory;
 
 public class App {
+
     // 1. Hardcoded Configuration (To be moved to args/properties later)
     private static final String outputFilePrefix = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\output";
     private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.tsv";
     private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.tsv";
     private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
-
-    private static final FileFormat geneExpressionFileFormat = FileFormat.TSV;
-    private static final FileFormat metadataFileFormat = FileFormat.TSV;
 
     private static final String replicateColumn = "Replicate";
     private static final String timeSeriesColumn = "Time";
@@ -54,9 +46,7 @@ public class App {
                 timeSeriesColumn, 
                 sampleColumn, 
                 numberOfReplicates, 
-                numberOfTimeSeries, 
-                geneExpressionFileFormat, 
-                metadataFileFormat
+                numberOfTimeSeries
         );
 
         // Domain Rules
@@ -66,6 +56,9 @@ public class App {
         geneFilter.addfilter(new GeneFilterByVariance(1));
 
         ISampleFilter sampleFilter = new SampleFilter();
+        // sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
+        // sampleFilter.addValidSampleTrait("Condition", "Drought");
+
         
         CompositeNormalizer normalizer = new CompositeNormalizer();
         normalizer.add(new IRLS(numberOfReplicates, numberOfTimeSeries));

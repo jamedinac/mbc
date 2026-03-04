@@ -17,7 +17,6 @@ public class IRLS implements IDataNormalizer {
     private static final double PIVOT_TOL = 1e-12;
     private static final double ALPHA_FLOOR = 1e-9;
     private static final double SOLVE_TOL = 1e-6;
-    private int numberOfIterations = 100;
 
     private final MedianRatiosNormalization normalizer = new MedianRatiosNormalization();
     private final IReplicateCompression meanCompression = new MeanReplicateCompression();
@@ -129,7 +128,8 @@ public class IRLS implements IDataNormalizer {
             logScaleFactor[i] = Math.log(scaleFactor[i]);
         }
 
-        for (int it = 0;  it < numberOfIterations; it++) {
+        int numberOfIterations = 100;
+        for (int it = 0; it < numberOfIterations; it++) {
             double[] logMu = new double[numberOfSamples];
             for (int i = 0; i < numberOfSamples; ++i) {
                 for (int j = 0; j < numberOfTimeSeries; ++j) {

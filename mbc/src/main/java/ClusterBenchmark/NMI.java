@@ -9,11 +9,11 @@ import Utilities.ClusterDataUtilities;
 
 import java.util.HashMap;
 
-public class NormalizedMutualInformation implements IClusterBenchmark {
+public class NMI implements IClusterBenchmark {
 
     GeneClusterData goldStandard;
 
-    public NormalizedMutualInformation(GeneClusterData goldStandard) {
+    public NMI(GeneClusterData goldStandard) {
         this.goldStandard = goldStandard;
     }
 

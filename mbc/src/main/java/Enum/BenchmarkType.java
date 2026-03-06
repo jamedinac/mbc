@@ -6,5 +6,6 @@ public enum BenchmarkType {
     Silhouette,
     WCSS,
     Accuracy,
-    NMI
+    NMI,
+    AdjustedRandIndex
 }

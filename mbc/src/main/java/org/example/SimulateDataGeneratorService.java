@@ -24,16 +24,20 @@ public class SimulateDataGeneratorService {
     static double trajectoryNoiseSd = 0.3;
     static int maxDeltaVariation = 1;
     static int verticalOffsetRange = 10;
+    
+    static double highNoiseMultiplier = 3.0;
+    static double highNoiseProbability = 0.2;
+    static int minExpressionValue = 1;
 
     public static void main() {
         int numberOfComponents = numberOfReplicates * numberOfTimeSeries;
 
         double[][] expressionData = new double[numberOfGenes][numberOfComponents];
 
-        generateData(0, 4, expressionData,numberOfTimeSeries - 1);
-        generateData(5, 9, expressionData, 0);
-        generateData(10, 14, expressionData, numberOfTimeSeries / 2);
-        generateData(15, 99, expressionData, -1);
+        generateData(0, 4, expressionData, 1);
+        generateData(5, 9, expressionData, -1);
+        generateData(10, 14, expressionData, 1);
+        generateData(15, 99, expressionData, 0);
 
         String[] geneIds = generateGeneIds();
         String[] columns = generateColumns();
@@ -46,31 +50,42 @@ public class SimulateDataGeneratorService {
 
     }
 
-    private static void generateData(int startGene, int endGene, double[][] expressionData, int pivot) {
-        int baseDelta = pivot == -1 ? 0 : 1;
+    private static void generateData(int startGene, int endGene, double[][] expressionData, int baseTrend) {
+        double[] baseTrajectory = new double[numberOfTimeSeries];
+        double currentBaseValue = RandomGenerator.uniformRandomIntInRange(20, 50);
+        int currentDelta = baseTrend == 0 ? 0 : RandomGenerator.uniformRandomIntInRange(baseTrend, baseTrend + maxDeltaVariation);
+
+        for (int t = 0; t < numberOfTimeSeries; t++) {
+            baseTrajectory[t] = currentBaseValue;
+
+            if (RandomGenerator.uniformRandomDouble(1.0) < 0.3) {
+                currentDelta += RandomGenerator.uniformRandomIntInRange(-1, 1);
+            }
+
+            int trajectoryNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, trajectoryNoiseSd));
+            currentBaseValue += currentDelta + trajectoryNoise;
+            currentBaseValue = Math.max(minExpressionValue, currentBaseValue);
+        }
+
+        boolean[] highNoisePoints = new boolean[numberOfTimeSeries];
+        for (int t = 0; t < numberOfTimeSeries; t++) {
+            highNoisePoints[t] = RandomGenerator.uniformRandomDouble(1.0) < highNoiseProbability;
+        }
 
         for (int gene = startGene; gene <= endGene; gene++) {
-            int currentExpression = RandomGenerator.uniformRandomIntInRange(20, 50);
-
             int verticalOffset = RandomGenerator.uniformRandomIntInRange(-verticalOffsetRange, verticalOffsetRange);
-            currentExpression += verticalOffset;
-            currentExpression = Math.max(1, currentExpression);
-
-            int delta = baseDelta == 0 ? 0 : RandomGenerator.uniformRandomIntInRange(baseDelta, baseDelta + maxDeltaVariation);
 
             for (int t = 0; t < numberOfTimeSeries; t++) {
+                double geneBaseExpression = baseTrajectory[t] + verticalOffset;
+                geneBaseExpression = Math.max(minExpressionValue, geneBaseExpression);
+
+                double currentReplicateNoiseSd = highNoisePoints[t] ? replicateNoiseSd * highNoiseMultiplier : replicateNoiseSd;
+
                 for (int r = 0; r < numberOfReplicates; r++) {
-                    int replicateNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, replicateNoiseSd));
-                    expressionData[gene][t * numberOfReplicates + r] = Math.max(0, currentExpression + replicateNoise);
+                    int replicateNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, currentReplicateNoiseSd));
+                    double finalExpression = geneBaseExpression + replicateNoise;
+                    expressionData[gene][t * numberOfReplicates + r] = Math.max(minExpressionValue, finalExpression);
                 }
-
-                if (t == pivot) {
-                    delta *= -1;
-                }
-
-                int trajectoryNoise = (int) Math.round(RandomGenerator.gaussianRandom(0, trajectoryNoiseSd));
-                currentExpression += delta + trajectoryNoise;
-                currentExpression = Math.max(0, currentExpression);
             }
         }
     }

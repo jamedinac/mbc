@@ -56,8 +56,8 @@ public class App {
         geneFilter.addfilter(new GeneFilterByVariance(1));
 
         ISampleFilter sampleFilter = new SampleFilter();
-        // sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
-        // sampleFilter.addValidSampleTrait("Condition", "Drought");
+        //sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
+        //sampleFilter.addValidSampleTrait("Condition", "Drought");
 
         
         CompositeNormalizer normalizer = new CompositeNormalizer();
@@ -85,6 +85,9 @@ public class App {
         compositeBenchmark.addBenchmark(new ClusterBenchmark.Jaccard(goldStandard));
         compositeBenchmark.addBenchmark(new ClusterBenchmark.Silhouette(geneDistance));
         compositeBenchmark.addBenchmark(new ClusterBenchmark.Accuracy(goldStandard));
+        compositeBenchmark.addBenchmark(new ClusterBenchmark.AdjustedRandIndex(goldStandard));
+        compositeBenchmark.addBenchmark(new ClusterBenchmark.NMI(goldStandard));
+
 
         orchestrator.executePipeline(rawData, algorithm, compositeBenchmark, outputFilePrefix);
     }

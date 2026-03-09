@@ -30,7 +30,7 @@ public class DataProcessor implements IDataProcessor {
         HashMap<String, SampleMetadata> metadataMap = rawData.getMetadata();
         int numberOfTimeSeries = rawData.getNumberOfTimeSeries();
 
-        // 1. Identify Valid Samples and Compute Dynamic Offsets (Phase 2)
+        // 1. Identify Valid Samples and Compute Dynamic Offsets
         List<Integer> validSampleIndices = new ArrayList<>();
         int[] filteredReplicatesPerTime = new int[numberOfTimeSeries];
         
@@ -89,25 +89,44 @@ public class DataProcessor implements IDataProcessor {
             filteredGeneIds[i] = rawGeneIds[originalIndex];
         }
 
-        // 4. Compress
-        // Note: For Phase 2, we pass a placeholder for numberOfReplicates to maintain compilation.
-        // This will be corrected in Phase 3 when signatures are updated.
-        int placeholderReplicates = filteredReplicatesPerTime.length > 0 ? filteredReplicatesPerTime[0] : 0;
-        double[][] compressedData = compression.compress(filteredMatrix, placeholderReplicates, numberOfTimeSeries);
+        // 4. Normalize
+        // Normalize happens before compression in IRLS logic (if IRLS is used)
+        // or uses the uncompressed data structure.
+        double[][] normalizedData = normalizer.normalize(filteredMatrix, filteredReplicatesPerTime, sampleTimeMap, numberOfTimeSeries);
 
-        // 5. Normalize
-        double[][] normalizedData = normalizer.normalize(compressedData);
+        // 5. Compress (if needed, e.g. MeanCompression after normalization)
+        // Note: If normalizer was IRLS, it might have already returned [numGenes][numTimes].
+        // We must check dimensions.
+        double[][] resultData;
+        int[] resultReplicatesPerTime;
+        int[] resultSampleTimeMap;
+
+        if (normalizedData[0].length == numberOfTimeSeries) {
+            // Normalizer already compressed the data (like IRLS)
+            resultData = normalizedData;
+            resultReplicatesPerTime = new int[numberOfTimeSeries];
+            resultSampleTimeMap = new int[numberOfTimeSeries];
+            for (int t = 0; t < numberOfTimeSeries; t++) {
+                resultReplicatesPerTime[t] = 1;
+                resultSampleTimeMap[t] = t;
+            }
+        } else {
+            // Standard normalizer, still need to compress replicates
+            resultData = compression.compress(normalizedData, filteredReplicatesPerTime, numberOfTimeSeries);
+            resultReplicatesPerTime = new int[numberOfTimeSeries];
+            resultSampleTimeMap = new int[numberOfTimeSeries];
+            for (int t = 0; t < numberOfTimeSeries; t++) {
+                resultReplicatesPerTime[t] = 1;
+                resultSampleTimeMap[t] = t;
+            }
+        }
 
         // 6. Return Result
         String[] timeLabels = new String[numberOfTimeSeries];
-        int[] outReplicatesPerTime = new int[numberOfTimeSeries];
-        int[] outSampleTimeMap = new int[numberOfTimeSeries];
         for (int t = 0; t < numberOfTimeSeries; t++) {
             timeLabels[t] = "Time " + t;
-            outReplicatesPerTime[t] = 1;
-            outSampleTimeMap[t] = t;
         }
 
-        return new GeneExpressionData(numValidGenes, normalizedData, filteredGeneIds, timeLabels, metadataMap, outReplicatesPerTime, outSampleTimeMap, numberOfTimeSeries);
+        return new GeneExpressionData(numValidGenes, resultData, filteredGeneIds, timeLabels, metadataMap, resultReplicatesPerTime, resultSampleTimeMap, numberOfTimeSeries);
     }
 }

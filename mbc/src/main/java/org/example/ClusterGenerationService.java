@@ -66,7 +66,7 @@ public class ClusterGenerationService {
         //sampleFilter.addValidSampleTrait("Condition", "Drought");
 
         CompositeNormalizer normalizer = new CompositeNormalizer();
-        normalizer.add(new IRLS(numberOfReplicates, numberOfTimeSeries));
+        normalizer.add(new IRLS());
         //normalizer.add(new MedianRatiosNormalization());
         //normalizer.add(new ZScoreNormalizer());
 

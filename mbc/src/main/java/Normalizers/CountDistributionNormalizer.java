@@ -5,19 +5,16 @@ import Interfaces.IReplicateCompression;
 import ReplicateCompression.MeanReplicateCompression;
 
 public class CountDistributionNormalizer implements IDataNormalizer {
-    private final int numberOfTimeSeries;
-    private final int numberOfReplicates;
+    private final IReplicateCompression replicateCompression = new MeanReplicateCompression();
 
-    IReplicateCompression replicateCompression = new MeanReplicateCompression();
-
-    public CountDistributionNormalizer(int numberOfReplicates, int numberOfTimeSeries) {
-        this.numberOfTimeSeries = numberOfTimeSeries;
-        this.numberOfReplicates = numberOfReplicates;
+    public CountDistributionNormalizer() {
     }
 
     @Override
-    public double[][] normalize(double[][] data) {
-        double[][] estimatedMean = replicateCompression.compress(data, numberOfReplicates, numberOfTimeSeries);
+    public double[][] normalize(double[][] data, int[] replicatesPerTime, int[] sampleTimeMap, int numberOfTimeSeries) {
+        // If data is already compressed (e.g., passed from DataProcessor after a compression step), 
+        // replicatesPerTime should ideally reflect that (all 1s).
+        double[][] estimatedMean = replicateCompression.compress(data, replicatesPerTime, numberOfTimeSeries);
         return this.getProbabilityVector(estimatedMean);
     }
 
@@ -31,8 +28,10 @@ public class CountDistributionNormalizer implements IDataNormalizer {
                 sum += data[i][j];
             }
 
-            for (int j = 0; j < data[i].length; j++) {
-                probabilityVector[i][j] = data[i][j] / sum;
+            if (sum > 0) {
+                for (int j = 0; j < data[i].length; j++) {
+                    probabilityVector[i][j] = data[i][j] / sum;
+                }
             }
         }
 

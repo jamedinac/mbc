@@ -3,16 +3,19 @@ package Normalizers;
 import Interfaces.IDataNormalizer;
 
 public class PseudologarithmNormalizer implements IDataNormalizer {
-    @Override
-    public double[][] normalize(double[][] data) {
-        double[][] normalizedData = new double[data.length][data[0].length];
 
-        for (int r=0; r<data.length; r++) {
-            for (int c=0; c<data[r].length; c++) {
-                normalizedData[r][c] = Math.log(data[r][c] + 1);
+    @Override
+    public double[][] normalize(double[][] data, int[] replicatesPerTime, int[] sampleTimeMap, int numberOfTimeSeries) {
+        int numberOfGenes = data.length;
+        int numberOfSamples = data[0].length;
+        double[][] logData = new double[numberOfGenes][numberOfSamples];
+
+        for (int i = 0; i < numberOfGenes; i++) {
+            for (int j = 0; j < numberOfSamples; j++) {
+                logData[i][j] = Math.log(data[i][j] + 1);
             }
         }
 
-        return normalizedData;
+        return logData;
     }
 }

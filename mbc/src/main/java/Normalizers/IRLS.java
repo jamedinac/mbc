@@ -9,10 +9,6 @@ import Utilities.NormalizationUtilities;
 
 public class IRLS implements IDataNormalizer {
 
-    private final int numberOfTimeSeries;
-    private final int numberOfReplicates;
-    private final int numberOfSamples;
-
     private static final double CONVERGENCE_TOL = 1e-7;
     private static final double PIVOT_TOL = 1e-12;
     private static final double ALPHA_FLOOR = 1e-9;
@@ -22,17 +18,15 @@ public class IRLS implements IDataNormalizer {
     private final IReplicateCompression meanCompression = new MeanReplicateCompression();
     private final IReplicateCompression varianceCompression = new VarianceReplicateCompression();
 
-
-
-    public IRLS(int numberOfReplicates, int numberOfTimeSeries) {
-        this.numberOfReplicates = numberOfReplicates;
-        this.numberOfTimeSeries = numberOfTimeSeries;
-        this.numberOfSamples = numberOfReplicates * numberOfTimeSeries;
+    public IRLS() {
+        // Dynamic constructor
     }
 
     @Override
-    public double[][] normalize(double[][] data) {
-        double[][] pseudoData = new double[data.length][data[0].length];
+    public double[][] normalize(double[][] data, int[] replicatesPerTime, int[] sampleTimeMap, int numberOfTimeSeries) {
+        int numberOfSamples = data[0].length;
+        
+        double[][] pseudoData = new double[data.length][numberOfSamples];
         for (int i = 0; i < data.length; i++) {
             pseudoData[i] = NormalizationUtilities.getPseudoData(data[i]);
         }
@@ -40,30 +34,30 @@ public class IRLS implements IDataNormalizer {
         double[] scaleFactor = normalizer.getSampleMedian(pseudoData);
         double[][] normalizedData = NormalizationUtilities.getDivideByColumn(pseudoData, scaleFactor);
 
-        double[][] estimatedMean = meanCompression.compress(normalizedData, numberOfReplicates, numberOfTimeSeries);
-        double[][] estimatedVariance = varianceCompression.compress(normalizedData, numberOfReplicates, numberOfTimeSeries);
+        double[][] estimatedMean = meanCompression.compress(normalizedData, replicatesPerTime, numberOfTimeSeries);
+        double[][] estimatedVariance = varianceCompression.compress(normalizedData, replicatesPerTime, numberOfTimeSeries);
         double[] alphas = this.getEstimatedAlphas(estimatedMean, estimatedVariance);
 
-        double[][] x = this.getDesignMatrix();
+        double[][] x = this.getDesignMatrix(sampleTimeMap, numberOfSamples, numberOfTimeSeries);
 
         // Pass 1: MLE estimation (no prior)
         double[][] mleBetas = new double[data.length][numberOfTimeSeries];
         for (int g = 0; g < data.length; g++) {
-            mleBetas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, null);
+            mleBetas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, null, numberOfSamples, numberOfTimeSeries);
         }
 
         // Estimate prior variance from cross-gene MLE distribution (DESeq2-style)
-        double[] priorVariance = this.estimatePriorVariance(mleBetas);
+        double[] priorVariance = this.estimatePriorVariance(mleBetas, numberOfTimeSeries);
 
         // Pass 2: MAP estimation with empirical Bayes prior
         double[][] betas = new double[data.length][numberOfTimeSeries];
         for (int g = 0; g < data.length; g++) {
-            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, priorVariance);
+            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, priorVariance, numberOfSamples, numberOfTimeSeries);
         }
         return betas;
     }
 
-    private double[] estimatePriorVariance(double[][] mleBetas) {
+    private double[] estimatePriorVariance(double[][] mleBetas, int numberOfTimeSeries) {
         int nGenes = mleBetas.length;
         double[] priorVariance = new double[numberOfTimeSeries];
 
@@ -83,13 +77,13 @@ public class IRLS implements IDataNormalizer {
     }
 
     private double[] getEstimatedAlphas(double[][] estimatedMean, double[][] estimatedVariance) {
-        double[] alphas = new  double[estimatedMean.length];
+        double[] alphas = new double[estimatedMean.length];
 
-        for (int i=0; i<estimatedMean.length; i++) {
+        for (int i = 0; i < estimatedMean.length; i++) {
             double avgMean = 0.0;
             double avgVariance = 0.0;
 
-            for (int j=0; j<estimatedMean[i].length; j++) {
+            for (int j = 0; j < estimatedMean[i].length; j++) {
                 avgMean += estimatedMean[i][j];
                 avgVariance += estimatedVariance[i][j];
             }
@@ -104,16 +98,17 @@ public class IRLS implements IDataNormalizer {
         return alphas;
     }
 
-    private double[][] getDesignMatrix() {
+    private double[][] getDesignMatrix(int[] sampleTimeMap, int numberOfSamples, int numberOfTimeSeries) {
         double[][] designMatrix = new double[numberOfSamples][numberOfTimeSeries];
 
-        for (int i=0; i<numberOfSamples; i++) {
-            designMatrix[i][0] = designMatrix[i][i/numberOfReplicates] = 1;
+        for (int i = 0; i < numberOfSamples; i++) {
+            designMatrix[i][0] = 1; // Intercept
+            designMatrix[i][sampleTimeMap[i]] = 1; // Time effect
         }
         return designMatrix;
     }
 
-    private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x, double[] priorVariance){
+    private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x, double[] priorVariance, int numberOfSamples, int numberOfTimeSeries) {
         double[] betas = new double[numberOfTimeSeries];
         double meanData = 0;
         double meanScale = 0;

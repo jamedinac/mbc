@@ -3,29 +3,35 @@ package Normalizers;
 import Interfaces.IDataNormalizer;
 
 public class ZScoreNormalizer implements IDataNormalizer {
+
     @Override
-    public double[][] normalize(double[][] data) {
-        double[][] normalizedData = new double[data.length][data[0].length];
+    public double[][] normalize(double[][] data, int[] replicatesPerTime, int[] sampleTimeMap, int numberOfTimeSeries) {
+        int numberOfGenes = data.length;
+        int numberOfSamples = data[0].length;
+        double[][] zScoreData = new double[numberOfGenes][numberOfSamples];
 
-        for (int r=0; r<data.length; r++) {
-            double mean = 0;
-            double standardDeviation = 0;
+        for (int i = 0; i < numberOfGenes; i++) {
+            double mean = 0.0;
+            double variance = 0.0;
 
-            for (int c=0; c<data[r].length; c++) {
-                mean += data[r][c];
+            for (int j = 0; j < numberOfSamples; j++) {
+                mean += data[i][j];
             }
-            mean /= data[r].length;
+            mean /= numberOfSamples;
 
-            for (int c=0; c<data[r].length; c++) {
-                standardDeviation += (mean - data[r][c]) * (mean - data[r][c]);
+            for (int j = 0; j < numberOfSamples; j++) {
+                double difference = data[i][j] - mean;
+                variance += difference * difference;
             }
-            standardDeviation = Math.sqrt(standardDeviation / data[r].length);
+            variance /= numberOfSamples - 1;
 
-            for (int c=0; c<data[r].length; c++) {
-                normalizedData[r][c] = (data[r][c] - mean) / standardDeviation;
+            double standardDeviation = Math.sqrt(variance);
+
+            for (int j = 0; j < numberOfSamples; j++) {
+                zScoreData[i][j] = (data[i][j] - mean) / standardDeviation;
             }
         }
 
-        return normalizedData;
+        return zScoreData;
     }
 }

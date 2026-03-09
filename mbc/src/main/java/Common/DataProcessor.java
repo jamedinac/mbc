@@ -90,13 +90,9 @@ public class DataProcessor implements IDataProcessor {
         }
 
         // 4. Normalize
-        // Normalize happens before compression in IRLS logic (if IRLS is used)
-        // or uses the uncompressed data structure.
         double[][] normalizedData = normalizer.normalize(filteredMatrix, filteredReplicatesPerTime, sampleTimeMap, numberOfTimeSeries);
 
-        // 5. Compress (if needed, e.g. MeanCompression after normalization)
-        // Note: If normalizer was IRLS, it might have already returned [numGenes][numTimes].
-        // We must check dimensions.
+        // 5. Compress
         double[][] resultData;
         int[] resultReplicatesPerTime;
         int[] resultSampleTimeMap;
@@ -121,12 +117,8 @@ public class DataProcessor implements IDataProcessor {
             }
         }
 
-        // 6. Return Result
-        String[] timeLabels = new String[numberOfTimeSeries];
-        for (int t = 0; t < numberOfTimeSeries; t++) {
-            timeLabels[t] = "Time " + t;
-        }
-
-        return new GeneExpressionData(numValidGenes, resultData, filteredGeneIds, timeLabels, metadataMap, resultReplicatesPerTime, resultSampleTimeMap, numberOfTimeSeries);
+        // 6. Return Result - using the actual time labels from raw data as sample names for compressed data
+        String[] timeLabels = rawData.getTimeLabels();
+        return new GeneExpressionData(numValidGenes, resultData, filteredGeneIds, timeLabels, metadataMap, resultReplicatesPerTime, resultSampleTimeMap, timeLabels);
     }
 }

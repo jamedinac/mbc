@@ -31,16 +31,14 @@ public class ClusterGenerationService {
 
     private static final String outputFilePrefix = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\output";
     private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.tsv";
-    private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.csv";
+    private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.tsv";
     private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
 
     private static final String replicateColumn = "Replicate";
     private static final String timeSeriesColumn = "Time";
     private static final String sampleColumn = "Sample";
 
-    private static final int numberOfReplicates = 3;
-    private static final int numberOfTimeSeries = 13;
-    private static final int numberOfClusters = 10;
+    private static final int numberOfClusters = 4;
     private static final int numberOfIterations = 1000;
 
     public static void main(String[] args) {
@@ -52,8 +50,7 @@ public class ClusterGenerationService {
                 metadataFileName,
                 replicateColumn,
                 timeSeriesColumn,
-                sampleColumn,
-                numberOfTimeSeries
+                sampleColumn
         );
         // Domain Rules
         CompositeFilter geneFilter = new CompositeFilter();

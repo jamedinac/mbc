@@ -27,12 +27,12 @@ import java.util.Set;
 
 public class ClusterBenchmarkService {
 
-    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
-    private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
-    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
+    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\output.txt";
+    private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
+    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
 
     public static void main(String[] args) {
-        IGeneDistance geneDistance = new EuclideanDistance();
+        IGeneDistance geneDistance = new CorrelationDistance();
 
         GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFileName);
         GeneClusterData goldStandard = goldStandardLoader.readClusterData();
@@ -93,7 +93,7 @@ public class ClusterBenchmarkService {
                 processedData.getMetadata(),
                 processedData.getReplicatesPerTime(),
                 processedData.getSampleTimeMap(),
-                processedData.getNumberOfTimeSeries()
+                processedData.getTimeLabels()
         );
     }
 }

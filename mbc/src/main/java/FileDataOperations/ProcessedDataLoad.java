@@ -32,7 +32,8 @@ public class ProcessedDataLoad {
             }
         }
 
-        // Return with empty metadata as normalization is already done
-        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, new HashMap<>(), new int[0], new int[0], 0);
+        // Return with empty metadata as normalization is already done. 
+        // For processed data, we assume sampleIds represent the time points.
+        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, new HashMap<>(), new int[0], new int[0], sampleIds);
     }
 }

@@ -6,7 +6,13 @@ import Common.SampleMetadata;
 import Interfaces.IDataLoad;
 import Utilities.FileUtilities;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DataLoad implements IDataLoad {
 
@@ -15,15 +21,15 @@ public class DataLoad implements IDataLoad {
     private final String replicateColumn;
     private final String timeSeriesColumn;
     private final String sampleIdColumn;
-    private final int numberOfTimeSeries;
+    private String[] timeLabels;
+    private int numberOfTimeSeries;
 
-    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfTimeSeries) {
+    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn) {
         this.geneExpressionFileName = geneExpressionFileName;
         this.metadataFileName = metadataFileName;
         this.replicateColumn = replicateColumn;
         this.timeSeriesColumn = timeSeriesColumn;
         this.sampleIdColumn = sampleIdColumn;
-        this.numberOfTimeSeries = numberOfTimeSeries;
     }
 
     @Override
@@ -32,7 +38,7 @@ public class DataLoad implements IDataLoad {
         FileFormat metadataFileFormat = FileUtilities.detectFormat(this.metadataFileName);
         FileFormat geneFileFormat = FileUtilities.detectFormat(this.geneExpressionFileName);
 
-        //1. Read metadata
+        //1. Read metadata (populates this.numberOfTimeSeries and this.timeLabels)
         String[] geneMetadataFileLines = FileUtilities.getFileLines(this.metadataFileName);
         String[] metadataColumnNames = FileUtilities.getSplitDataRow(geneMetadataFileLines[0], metadataFileFormat.getDelimiter());
         HashMap<String, SampleMetadata> metadata = this.getMetadata(metadataColumnNames, geneMetadataFileLines, metadataFileFormat);
@@ -51,9 +57,9 @@ public class DataLoad implements IDataLoad {
         for (int i = 0; i < numberOfSamples; i++) {
             SampleMetadata sm = metadata.get(sampleIds[i]);
             if (sm != null) {
-                int time = sm.getTime();
-                replicatesPerTime[time]++;
-                sampleTimeMap[i] = time;
+                int denseTimeIndex = sm.getTime();
+                replicatesPerTime[denseTimeIndex]++;
+                sampleTimeMap[i] = denseTimeIndex;
             }
         }
 
@@ -69,24 +75,49 @@ public class DataLoad implements IDataLoad {
             }
         }
 
-        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, metadata, replicatesPerTime, sampleTimeMap, numberOfTimeSeries);
+        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, metadata, replicatesPerTime, sampleTimeMap, this.timeLabels);
     }
 
     private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines, FileFormat metadataFileFormat) {
-        HashMap<String, SampleMetadata> metadata = new HashMap<>();
-
         int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);
         int replicateColumnIndex = this.getColumnIndex(replicateColumn, metadataColumnNames);
         int timeSeriesColumnIndex = this.getColumnIndex(timeSeriesColumn, metadataColumnNames);
 
+        // Pass 1: Discover unique time points from metadata
+        Set<Double> uniqueTimesSet = new HashSet<>();
+        for (int row = 1; row < geneMetadataFileLines.length; row++) {
+            String[] dataRow = FileUtilities.getSplitDataRow(geneMetadataFileLines[row], metadataFileFormat.getDelimiter());
+            String rawTime = dataRow[timeSeriesColumnIndex];
+            uniqueTimesSet.add(Double.parseDouble(rawTime)); // O(1) insertion
+        }
+        
+        // Sort to maintain chronological order and build dense index map
+        List<Double> sortedTimes = new ArrayList<>(uniqueTimesSet);
+        Collections.sort(sortedTimes); // O(N log N) sorting only once
+        
+        this.numberOfTimeSeries = sortedTimes.size();
+        this.timeLabels = new String[this.numberOfTimeSeries];
+        Map<Double, Integer> timePointToIndex = new HashMap<>(); // O(1) lookups
+        
+        for (int i = 0; i < this.numberOfTimeSeries; i++) {
+            Double t = sortedTimes.get(i);
+            timePointToIndex.put(t, i);
+            this.timeLabels[i] = String.valueOf(t);
+        }
+
+        // Pass 2: Assign metadata using the dense index
+        HashMap<String, SampleMetadata> metadata = new HashMap<>();
         for (int row = 1; row < geneMetadataFileLines.length; row++) {
             String[] dataRow = FileUtilities.getSplitDataRow(geneMetadataFileLines[row], metadataFileFormat.getDelimiter());
             String sampleId = dataRow[sampleIdColumnIndex];
 
             int replicate = Integer.parseInt(dataRow[replicateColumnIndex]);
-            int time = Integer.parseInt(dataRow[timeSeriesColumnIndex]);
+            
+            // Map the raw biological time to our dense, isolated index (e.g., 10 -> 2)
+            double rawBiologicalTime = Double.parseDouble(dataRow[timeSeriesColumnIndex]);
+            int denseTimeIndex = timePointToIndex.get(rawBiologicalTime);
 
-            SampleMetadata sampleMetadata = new SampleMetadata(sampleId, replicate, time);
+            SampleMetadata sampleMetadata = new SampleMetadata(sampleId, replicate, denseTimeIndex);
             for (int c = 0; c < dataRow.length; c++) {
                 sampleMetadata.addMetadataKey(metadataColumnNames[c], dataRow[c]);
             }

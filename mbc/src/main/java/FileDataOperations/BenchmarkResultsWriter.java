@@ -12,9 +12,8 @@ import java.util.List;
 
 public class BenchmarkResultsWriter {
 
-    public void write(CompositeBenchmarkResult compositeResult, String outputFilePrefix) {
+    public void write(CompositeBenchmarkResult compositeResult, String fileName) {
         try {
-            String fileName = getFileName(outputFilePrefix) + "_benchmarks.txt";
             StringBuilder fileContent = new StringBuilder();
 
             List<ClusterBenchmarkResult> results = compositeResult.getResults();

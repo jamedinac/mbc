@@ -38,4 +38,18 @@ public class FileUtilities {
             default -> throw new IllegalArgumentException("Unsupported file format: " + extension + ". Supported formats are .csv, .tsv, and .txt.");
         };
     }
+
+    /**
+     * Appends a suffix to the file name before the extension.
+     * Example: output.txt + _benchmarks -> output_benchmarks.txt
+     */
+    public static String appendSuffixToFileName(String fileName, String suffix) {
+        if (fileName == null || !fileName.contains(".")) {
+            return fileName + suffix;
+        }
+        int lastDotIndex = fileName.lastIndexOf('.');
+        String baseName = fileName.substring(0, lastDotIndex);
+        String extension = fileName.substring(lastDotIndex);
+        return baseName + suffix + extension;
+    }
 }

@@ -41,7 +41,7 @@ public class SimulateDataGeneratorService {
 
         String[] geneIds = generateGeneIds();
         String[] columns = generateColumns();
-        String[] metadataColumns = {"Sample", "Replicate", "Time"};
+        String[] metadataColumns = {"Sample", "Time"};
         String[][] metadata = generateMetadata(columns);
 
         writeExpressionData(directoryPath, geneIds, columns, expressionData);
@@ -112,12 +112,11 @@ public class SimulateDataGeneratorService {
     }
 
     private static String[][] generateMetadata(String[] columns) {
-        String[][] metadata = new String[numberOfTimeSeries*numberOfReplicates][3];
+        String[][] metadata = new String[numberOfTimeSeries*numberOfReplicates][2];
 
         for (int t = 1; t <= numberOfTimeSeries*numberOfReplicates; t++) {
             metadata[t-1][0] = columns[t];
-            metadata[t-1][1] = Integer.toString((t-1) % numberOfReplicates + 1);
-            metadata[t-1][2] = Integer.toString((t-1) / numberOfReplicates);
+            metadata[t-1][1] = Integer.toString((t-1) / numberOfReplicates);
         }
 
         return metadata;

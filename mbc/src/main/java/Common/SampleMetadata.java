@@ -6,25 +6,18 @@ public class SampleMetadata {
 
     private final String id;
 
-    private final int replicate;
-
     private final int time;
 
     private final HashMap<String, String> metadata;
 
-    public SampleMetadata(String id, int replicate, int time) {
+    public SampleMetadata(String id, int time) {
         this.id = id;
-        this.replicate = replicate;
         this.time = time;
         metadata = new HashMap<>();
     }
 
     public String getId() {
         return id;
-    }
-
-    public int getReplicate() {
-        return replicate;
     }
 
     public int getTime() {

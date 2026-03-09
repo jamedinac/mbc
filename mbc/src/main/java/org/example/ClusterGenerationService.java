@@ -34,7 +34,6 @@ public class ClusterGenerationService {
     private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.tsv";
     private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
 
-    private static final String replicateColumn = "Replicate";
     private static final String timeSeriesColumn = "Time";
     private static final String sampleColumn = "Sample";
 
@@ -48,7 +47,6 @@ public class ClusterGenerationService {
         IDataLoad dataLoad = new DataLoad(
                 geneExpressionFileName,
                 metadataFileName,
-                replicateColumn,
                 timeSeriesColumn,
                 sampleColumn
         );

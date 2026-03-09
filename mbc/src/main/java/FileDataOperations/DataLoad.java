@@ -18,16 +18,14 @@ public class DataLoad implements IDataLoad {
 
     private final String geneExpressionFileName;
     private final String metadataFileName;
-    private final String replicateColumn;
     private final String timeSeriesColumn;
     private final String sampleIdColumn;
     private String[] timeLabels;
     private int numberOfTimeSeries;
 
-    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn) {
+    public DataLoad(String geneExpressionFileName, String metadataFileName, String timeSeriesColumn, String sampleIdColumn) {
         this.geneExpressionFileName = geneExpressionFileName;
         this.metadataFileName = metadataFileName;
-        this.replicateColumn = replicateColumn;
         this.timeSeriesColumn = timeSeriesColumn;
         this.sampleIdColumn = sampleIdColumn;
     }
@@ -80,7 +78,6 @@ public class DataLoad implements IDataLoad {
 
     private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines, FileFormat metadataFileFormat) {
         int sampleIdColumnIndex = this.getColumnIndex(sampleIdColumn, metadataColumnNames);
-        int replicateColumnIndex = this.getColumnIndex(replicateColumn, metadataColumnNames);
         int timeSeriesColumnIndex = this.getColumnIndex(timeSeriesColumn, metadataColumnNames);
 
         // Pass 1: Discover unique time points from metadata
@@ -111,13 +108,11 @@ public class DataLoad implements IDataLoad {
             String[] dataRow = FileUtilities.getSplitDataRow(geneMetadataFileLines[row], metadataFileFormat.getDelimiter());
             String sampleId = dataRow[sampleIdColumnIndex];
 
-            int replicate = Integer.parseInt(dataRow[replicateColumnIndex]);
-            
             // Map the raw biological time to our dense, isolated index (e.g., 10 -> 2)
             double rawBiologicalTime = Double.parseDouble(dataRow[timeSeriesColumnIndex]);
             int denseTimeIndex = timePointToIndex.get(rawBiologicalTime);
 
-            SampleMetadata sampleMetadata = new SampleMetadata(sampleId, replicate, denseTimeIndex);
+            SampleMetadata sampleMetadata = new SampleMetadata(sampleId, denseTimeIndex);
             for (int c = 0; c < dataRow.length; c++) {
                 sampleMetadata.addMetadataKey(metadataColumnNames[c], dataRow[c]);
             }

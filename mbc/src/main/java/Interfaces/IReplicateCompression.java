@@ -1,12 +1,17 @@
 package Interfaces;
 
+/**
+ * Interface for compressing biological replicates into a single representative value per time point.
+ */
 public interface IReplicateCompression {
+
     /**
-     * Compress the replicates into a single value
-     * @param data expression data
-     * @param numberOfReplicates the number of replicates per time series
-     * @param numberOfTimeSeries the number of time series
-     * @return expression data with the replicates compress to a single value per time
+     * Compresses the replicates into a single value.
+     * 
+     * @param data the gene expression data matrix containing replicates
+     * @param numberOfReplicates the number of biological replicates per time point
+     * @param numberOfTimeSeries the total number of distinct time points
+     * @return a new matrix where replicates are compressed to a single value per time point
      */
     double[][] compress(double[][] data, int numberOfReplicates, int numberOfTimeSeries);
 }

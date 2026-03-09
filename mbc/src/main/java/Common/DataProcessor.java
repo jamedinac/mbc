@@ -28,7 +28,7 @@ public class DataProcessor implements IDataProcessor {
         String[] rawGeneIds = rawData.getGeneIds();
         String[] rawSampleIds = rawData.getSampleIds();
         HashMap<String, SampleMetadata> metadataMap = rawData.getMetadata();
-        int numberOfReplicates = rawData.getNumberOfReplicates();
+        int numberOfReplicates = rawData.getReplicatesPerTime()[0]; // Temporarily assume balanced for Phase 1
         int numberOfTimeSeries = rawData.getNumberOfTimeSeries();
 
         // 1. Filter Samples and Identify Positions for Sorting
@@ -87,10 +87,14 @@ public class DataProcessor implements IDataProcessor {
         // 6. Return Result
         // For compressed data, sample labels could be "Time 0", "Time 1", etc.
         String[] timeLabels = new String[numberOfTimeSeries];
+        int[] outReplicatesPerTime = new int[numberOfTimeSeries];
+        int[] outSampleTimeMap = new int[numberOfTimeSeries];
         for (int t = 0; t < numberOfTimeSeries; t++) {
             timeLabels[t] = "Time " + t;
+            outReplicatesPerTime[t] = 1;
+            outSampleTimeMap[t] = t;
         }
 
-        return new GeneExpressionData(numValidGenes, normalizedData, filteredGeneIds, timeLabels, metadataMap, numberOfReplicates, numberOfTimeSeries);
+        return new GeneExpressionData(numValidGenes, normalizedData, filteredGeneIds, timeLabels, metadataMap, outReplicatesPerTime, outSampleTimeMap, numberOfTimeSeries);
     }
 }

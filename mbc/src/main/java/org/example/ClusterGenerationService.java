@@ -29,10 +29,10 @@ import ReplicateCompression.ReplicateCompressionFactory;
 
 public class ClusterGenerationService {
 
-    private static final String outputFilePrefix = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\output";
-    private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\data.tsv";
-    private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\metadata.csv";
-    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
+    private static final String outputFilePrefix = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\output";
+    private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.tsv";
+    private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.csv";
+    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
 
     private static final String replicateColumn = "Replicate";
     private static final String timeSeriesColumn = "Time";
@@ -48,15 +48,13 @@ public class ClusterGenerationService {
 
         // Data Access
         IDataLoad dataLoad = new DataLoad(
-                geneExpressionFileName, 
-                metadataFileName, 
-                replicateColumn, 
-                timeSeriesColumn, 
-                sampleColumn, 
-                numberOfReplicates, 
+                geneExpressionFileName,
+                metadataFileName,
+                replicateColumn,
+                timeSeriesColumn,
+                sampleColumn,
                 numberOfTimeSeries
         );
-
         // Domain Rules
         CompositeFilter geneFilter = new CompositeFilter();
         geneFilter.addfilter(new ZeroFilter());
@@ -64,12 +62,13 @@ public class ClusterGenerationService {
         geneFilter.addfilter(new GeneFilterByVariance(1));
 
         ISampleFilter sampleFilter = new SampleFilter();
-        sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
-        sampleFilter.addValidSampleTrait("Condition", "Drought");
+        //sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
+        //sampleFilter.addValidSampleTrait("Condition", "Drought");
 
         CompositeNormalizer normalizer = new CompositeNormalizer();
-        normalizer.add(new MedianRatiosNormalization());
-        normalizer.add(new ZScoreNormalizer());
+        normalizer.add(new IRLS(numberOfReplicates, numberOfTimeSeries));
+        //normalizer.add(new MedianRatiosNormalization());
+        //normalizer.add(new ZScoreNormalizer());
 
         IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(ReplicateCompressionType.Default);
 

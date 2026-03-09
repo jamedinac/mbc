@@ -33,6 +33,6 @@ public class ProcessedDataLoad {
         }
 
         // Return with empty metadata as normalization is already done
-        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, new HashMap<>(), 0, 0);
+        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, new HashMap<>(), new int[0], new int[0], 0);
     }
 }

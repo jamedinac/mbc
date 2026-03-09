@@ -9,16 +9,18 @@ public class GeneExpressionData {
     private final String[] geneId;
     private final String[] sampleIds;
     private final HashMap<String, SampleMetadata> metadata;
-    private final int numberOfReplicates;
+    private final int[] replicatesPerTime;
+    private final int[] sampleTimeMap;
     private final int numberOfTimeSeries;
 
-    public GeneExpressionData(int numberOfGenes, double[][] expressionData, String[] geneId, String[] sampleIds, HashMap<String, SampleMetadata> metadata, int numberOfReplicates, int numberOfTimeSeries) {
+    public GeneExpressionData(int numberOfGenes, double[][] expressionData, String[] geneId, String[] sampleIds, HashMap<String, SampleMetadata> metadata, int[] replicatesPerTime, int[] sampleTimeMap, int numberOfTimeSeries) {
         this.numberOfGenes = numberOfGenes;
         this.expressionData = expressionData;
         this.geneId = geneId;
         this.sampleIds = sampleIds;
         this.metadata = metadata;
-        this.numberOfReplicates = numberOfReplicates;
+        this.replicatesPerTime = replicatesPerTime;
+        this.sampleTimeMap = sampleTimeMap;
         this.numberOfTimeSeries = numberOfTimeSeries;
     }
 
@@ -52,8 +54,12 @@ public class GeneExpressionData {
         return metadata;
     }
 
-    public int getNumberOfReplicates() {
-        return numberOfReplicates;
+    public int[] getReplicatesPerTime() {
+        return replicatesPerTime;
+    }
+
+    public int[] getSampleTimeMap() {
+        return sampleTimeMap;
     }
 
     public int getNumberOfTimeSeries() {

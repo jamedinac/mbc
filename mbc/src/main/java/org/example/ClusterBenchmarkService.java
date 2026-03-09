@@ -91,7 +91,8 @@ public class ClusterBenchmarkService {
                 alignedGeneIds.toArray(new String[0]),
                 processedData.getSampleIds(),
                 processedData.getMetadata(),
-                processedData.getNumberOfReplicates(),
+                processedData.getReplicatesPerTime(),
+                processedData.getSampleTimeMap(),
                 processedData.getNumberOfTimeSeries()
         );
     }

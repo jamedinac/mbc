@@ -15,16 +15,14 @@ public class DataLoad implements IDataLoad {
     private final String replicateColumn;
     private final String timeSeriesColumn;
     private final String sampleIdColumn;
-    private final int numberOfReplicates;
     private final int numberOfTimeSeries;
 
-    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfReplicates, int numberOfTimeSeries) {
+    public DataLoad(String geneExpressionFileName, String metadataFileName, String replicateColumn, String timeSeriesColumn, String sampleIdColumn, int numberOfTimeSeries) {
         this.geneExpressionFileName = geneExpressionFileName;
         this.metadataFileName = metadataFileName;
         this.replicateColumn = replicateColumn;
         this.timeSeriesColumn = timeSeriesColumn;
         this.sampleIdColumn = sampleIdColumn;
-        this.numberOfReplicates = numberOfReplicates;
         this.numberOfTimeSeries = numberOfTimeSeries;
     }
 
@@ -47,6 +45,18 @@ public class DataLoad implements IDataLoad {
         String[] sampleIds = new String[numberOfSamples];
         System.arraycopy(header, 1, sampleIds, 0, numberOfSamples);
 
+        // Dynamically compute replicates per time point and the sample to time map
+        int[] replicatesPerTime = new int[this.numberOfTimeSeries];
+        int[] sampleTimeMap = new int[numberOfSamples];
+        for (int i = 0; i < numberOfSamples; i++) {
+            SampleMetadata sm = metadata.get(sampleIds[i]);
+            if (sm != null) {
+                int time = sm.getTime();
+                replicatesPerTime[time]++;
+                sampleTimeMap[i] = time;
+            }
+        }
+
         int numberOfGenes = geneExpressionFileLines.length - 1;
         String[] geneIds = new String[numberOfGenes];
         double[][] expressionData = new double[numberOfGenes][numberOfSamples];
@@ -59,7 +69,7 @@ public class DataLoad implements IDataLoad {
             }
         }
 
-        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, metadata, numberOfReplicates, numberOfTimeSeries);
+        return new GeneExpressionData(numberOfGenes, expressionData, geneIds, sampleIds, metadata, replicatesPerTime, sampleTimeMap, numberOfTimeSeries);
     }
 
     private HashMap<String, SampleMetadata> getMetadata(String[] metadataColumnNames, String[] geneMetadataFileLines, FileFormat metadataFileFormat) {

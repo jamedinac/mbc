@@ -28,31 +28,42 @@ public class DataProcessor implements IDataProcessor {
         String[] rawGeneIds = rawData.getGeneIds();
         String[] rawSampleIds = rawData.getSampleIds();
         HashMap<String, SampleMetadata> metadataMap = rawData.getMetadata();
-        int numberOfReplicates = rawData.getReplicatesPerTime()[0]; // Temporarily assume balanced for Phase 1
         int numberOfTimeSeries = rawData.getNumberOfTimeSeries();
 
-        // 1. Filter Samples and Identify Positions for Sorting
-        // Position formula: time * numberOfReplicates + replicate - 1
-        int sortedColumns = numberOfReplicates * numberOfTimeSeries;
-        double[][] sortedAndSampleFilteredMatrix = new double[rawMatrix.length][sortedColumns];
-        boolean[] validColumnsInSorted = new boolean[sortedColumns];
-
+        // 1. Identify Valid Samples and Compute Dynamic Offsets (Phase 2)
+        List<Integer> validSampleIndices = new ArrayList<>();
+        int[] filteredReplicatesPerTime = new int[numberOfTimeSeries];
+        
         for (int j = 0; j < rawSampleIds.length; j++) {
-            String sampleId = rawSampleIds[j];
-            SampleMetadata metadata = metadataMap.get(sampleId);
-
+            SampleMetadata metadata = metadataMap.get(rawSampleIds[j]);
             if (sampleFilter.isValidSample(metadata)) {
-                int replicate = metadata.getReplicate();
-                int time = metadata.getTime();
-                int targetIndex = time * numberOfReplicates + replicate - 1;
-
-                if (targetIndex >= 0 && targetIndex < sortedColumns) {
-                    for (int i = 0; i < rawMatrix.length; i++) {
-                        sortedAndSampleFilteredMatrix[i][targetIndex] = rawMatrix[i][j];
-                    }
-                    validColumnsInSorted[targetIndex] = true;
-                }
+                validSampleIndices.add(j);
+                filteredReplicatesPerTime[metadata.getTime()]++;
             }
+        }
+
+        int[] timeStartOffsets = new int[numberOfTimeSeries];
+        int totalSortedColumns = 0;
+        for (int t = 0; t < numberOfTimeSeries; t++) {
+            timeStartOffsets[t] = totalSortedColumns;
+            totalSortedColumns += filteredReplicatesPerTime[t];
+        }
+
+        // Populate Sorted and Sample Filtered Matrix using Cumulative Offsets
+        double[][] sortedAndSampleFilteredMatrix = new double[rawMatrix.length][totalSortedColumns];
+        int[] sampleTimeMap = new int[totalSortedColumns];
+        int[] currentReplicateIndexCounter = new int[numberOfTimeSeries];
+
+        for (int originalIdx : validSampleIndices) {
+            SampleMetadata metadata = metadataMap.get(rawSampleIds[originalIdx]);
+            int t = metadata.getTime();
+            int targetIndex = timeStartOffsets[t] + currentReplicateIndexCounter[t];
+            
+            for (int i = 0; i < rawMatrix.length; i++) {
+                sortedAndSampleFilteredMatrix[i][targetIndex] = rawMatrix[i][originalIdx];
+            }
+            sampleTimeMap[targetIndex] = t;
+            currentReplicateIndexCounter[t]++;
         }
 
         // 2. Filter Genes
@@ -69,7 +80,7 @@ public class DataProcessor implements IDataProcessor {
 
         // 3. Build Filtered Matrix and Gene IDs
         int numValidGenes = validGeneIndices.size();
-        double[][] filteredMatrix = new double[numValidGenes][sortedColumns];
+        double[][] filteredMatrix = new double[numValidGenes][totalSortedColumns];
         String[] filteredGeneIds = new String[numValidGenes];
 
         for (int i = 0; i < numValidGenes; i++) {
@@ -79,13 +90,15 @@ public class DataProcessor implements IDataProcessor {
         }
 
         // 4. Compress
-        double[][] compressedData = compression.compress(filteredMatrix, numberOfReplicates, numberOfTimeSeries);
+        // Note: For Phase 2, we pass a placeholder for numberOfReplicates to maintain compilation.
+        // This will be corrected in Phase 3 when signatures are updated.
+        int placeholderReplicates = filteredReplicatesPerTime.length > 0 ? filteredReplicatesPerTime[0] : 0;
+        double[][] compressedData = compression.compress(filteredMatrix, placeholderReplicates, numberOfTimeSeries);
 
         // 5. Normalize
         double[][] normalizedData = normalizer.normalize(compressedData);
 
         // 6. Return Result
-        // For compressed data, sample labels could be "Time 0", "Time 1", etc.
         String[] timeLabels = new String[numberOfTimeSeries];
         int[] outReplicatesPerTime = new int[numberOfTimeSeries];
         int[] outSampleTimeMap = new int[numberOfTimeSeries];

@@ -1,7 +1,5 @@
 package Interfaces;
 
-import Common.GeneExpressionData;
-
 public interface IClusterBenchmarkService {
-    void runBenchmark(GeneExpressionData geneExpressionData, IClusterBenchmark clusterBenchmark, String outputFilePrefix);
+    void runBenchmark(String processedDataFilePath, String clusterDataFilePath, IGeneDistance geneDistance, IClusterBenchmark clusterBenchmark, String outputFilePrefix);
 }

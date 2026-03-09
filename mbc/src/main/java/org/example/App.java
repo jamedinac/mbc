@@ -24,6 +24,7 @@ public class App {
     private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\data.tsv";
     private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\metadata.tsv";
     private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
+    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
 
     private static final String replicateColumn = "Replicate";
     private static final String timeSeriesColumn = "Time";
@@ -56,9 +57,6 @@ public class App {
         geneFilter.addfilter(new GeneFilterByVariance(1));
 
         ISampleFilter sampleFilter = new SampleFilter();
-        //sampleFilter.addValidSampleTrait("Drought_Group", "Severe");
-        //sampleFilter.addValidSampleTrait("Condition", "Drought");
-
         
         CompositeNormalizer normalizer = new CompositeNormalizer();
         normalizer.add(new IRLS(numberOfReplicates, numberOfTimeSeries));
@@ -77,7 +75,7 @@ public class App {
         // 3. Execute
         GeneExpressionData rawData = dataLoad.getGeneExpressionFormattedData();
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createKMeans(numberOfClusters, numberOfIterations, geneDistance);
-        
+
         GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFileName);
         GeneClusterData goldStandard = goldStandardLoader.readClusterData();
         
@@ -88,7 +86,6 @@ public class App {
         compositeBenchmark.addBenchmark(new ClusterBenchmark.AdjustedRandIndex(goldStandard));
         compositeBenchmark.addBenchmark(new ClusterBenchmark.NMI(goldStandard));
 
-
-        orchestrator.executePipeline(rawData, algorithm, compositeBenchmark, outputFilePrefix);
+        orchestrator.executePipeline(rawData, processedDataPath, algorithm, geneDistance, compositeBenchmark, outputFilePrefix);
     }
 }

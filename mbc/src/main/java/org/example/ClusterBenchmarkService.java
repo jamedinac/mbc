@@ -2,12 +2,7 @@ package org.example;
 
 import BenchmarkResult.ClusterBenchmarkResult;
 import BenchmarkResult.CompositeBenchmarkResult;
-import ClusterBenchmark.Accuracy;
-import ClusterBenchmark.AdjustedRandIndex;
-import ClusterBenchmark.CompositeBenchmark;
-import ClusterBenchmark.Jaccard;
-import ClusterBenchmark.NMI;
-import ClusterBenchmark.Silhouette;
+import ClusterBenchmark.*;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import FileDataOperations.BenchmarkResultsWriter;
@@ -27,9 +22,9 @@ import java.util.Set;
 
 public class ClusterBenchmarkService {
 
-    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\output.txt";
-    private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\ground_truth.txt";
-    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\Simulated\\processed_data.csv";
+    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\output.txt";
+    private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
+    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
 
     public static void main(String[] args) {
         IGeneDistance geneDistance = new CorrelationDistance();
@@ -43,6 +38,7 @@ public class ClusterBenchmarkService {
         compositeBenchmark.addBenchmark(new Accuracy(goldStandard));
         compositeBenchmark.addBenchmark(new AdjustedRandIndex(goldStandard));
         compositeBenchmark.addBenchmark(new NMI(goldStandard));
+        compositeBenchmark.addBenchmark(new WCSS(geneDistance));
 
         ClusterBenchmarkService benchmarkService = new ClusterBenchmarkService();
         benchmarkService.runBenchmark(processedDataPath, outputFileName, geneDistance, compositeBenchmark);

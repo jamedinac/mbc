@@ -11,6 +11,7 @@
         <version>3.5.1</version>
         <executions>
           <execution>
+            <id>cluster-generation</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -22,6 +23,21 @@
                 </transformer>
               </transformers>
               <finalName>ClusterGenerationService</finalName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>cluster-benchmark</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer>
+                  <mainClass>org.example.ClusterBenchmarkService</mainClass>
+                </transformer>
+              </transformers>
+              <finalName>ClusterBenchmarkService</finalName>
             </configuration>
           </execution>
         </executions>

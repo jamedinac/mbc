@@ -2,67 +2,106 @@ package org.example;
 
 import BenchmarkResult.ClusterBenchmarkResult;
 import BenchmarkResult.CompositeBenchmarkResult;
-import ClusterBenchmark.*;
+import ClusterBenchmark.ClusterBenchmarkFactory;
+import ClusterBenchmark.CompositeBenchmark;
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import FileDataOperations.BenchmarkResultsWriter;
 import FileDataOperations.GeneClusterDataLoad;
 import FileDataOperations.ProcessedDataLoad;
-import GeneDistance.CorrelationDistance;
-import GeneDistance.EuclideanDistance;
+import GeneDistance.DistanceFactory;
 import Interfaces.IClusterBenchmark;
 import Interfaces.IGeneDistance;
 import Utilities.FileUtilities;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-public class ClusterBenchmarkService {
+@Command(name = "ClusterBenchmarkService", mixinStandardHelpOptions = true, version = "1.0",
+        description = "Evaluates clustering results against a gold standard and optionally calculates internal metrics.")
+public class ClusterBenchmarkService implements Callable<Integer> {
 
-    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
-    private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
-    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
+    @Parameters(index = "0", description = "Path to the generated clustering results file.")
+    private File clusterDataFile;
+
+    @Parameters(index = "1", description = "Path to the gold standard (ground truth) cluster file.")
+    private File goldStandardFile;
+
+    @Option(names = {"-p", "--processed-data"}, description = "Path to the processed gene expression matrix (CSV). Required for internal metrics.")
+    private File processedDataFile;
+
+    @Option(names = {"-d", "--distance"}, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon). Default: correlation")
+    private String distanceStr;
 
     public static void main(String[] args) {
-        IGeneDistance geneDistance = new CorrelationDistance();
-        //IGeneDistance geneDistance = new EuclideanDistance();
-
-        GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFileName);
-        GeneClusterData goldStandard = goldStandardLoader.readClusterData();
-        
-        CompositeBenchmark compositeBenchmark = new CompositeBenchmark();
-        compositeBenchmark.addBenchmark(new Jaccard(goldStandard));
-        compositeBenchmark.addBenchmark(new Silhouette(geneDistance));
-        compositeBenchmark.addBenchmark(new Accuracy(goldStandard));
-        compositeBenchmark.addBenchmark(new AdjustedRandIndex(goldStandard));
-        compositeBenchmark.addBenchmark(new NMI(goldStandard));
-        compositeBenchmark.addBenchmark(new WCSS(geneDistance));
-
-        ClusterBenchmarkService benchmarkService = new ClusterBenchmarkService();
-        benchmarkService.runBenchmark(processedDataPath, outputFileName, geneDistance, compositeBenchmark);
+        int exitCode = new CommandLine(new ClusterBenchmarkService()).execute(args);
+        System.exit(exitCode);
     }
 
-    public void runBenchmark(String processedDataFilePath, String clusterDataFilePath, IGeneDistance geneDistance, IClusterBenchmark clusterBenchmark) {
-        // Load data from files
+    @Override
+    public Integer call() throws Exception {
+        System.out.println("Starting ClusterBenchmarkService...");
+
+        // Load Gold Standard
+        GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFile.getAbsolutePath());
+        GeneClusterData goldStandard = goldStandardLoader.readClusterData();
+
+        // Determine if internal metrics should be calculated
+        boolean includeInternalMetrics = (processedDataFile != null);
+        IGeneDistance geneDistance = null;
+        GeneExpressionData alignedData = null;
+
+        if (includeInternalMetrics) {
+            geneDistance = DistanceFactory.createDistance(distanceStr);
+            System.out.println("Including internal metrics using distance: " + distanceStr);
+        } else {
+            System.out.println("Processed data not provided. Calculating external metrics only.");
+        }
+
+        // Build Benchmark Suite using Factory
+        CompositeBenchmark compositeBenchmark = ClusterBenchmarkFactory.createCompositeBenchmark(goldStandard, geneDistance, includeInternalMetrics);
+
+        // Run Benchmark
+        runBenchmark(clusterDataFile.getAbsolutePath(), geneDistance, compositeBenchmark, includeInternalMetrics);
+
+        return 0;
+    }
+
+    private void runBenchmark(String clusterDataFilePath, IGeneDistance geneDistance, IClusterBenchmark clusterBenchmark, boolean includeInternalMetrics) {
+        // Load generated cluster data
         GeneClusterDataLoad clusterLoader = new GeneClusterDataLoad(clusterDataFilePath);
         GeneClusterData clusterData = clusterLoader.readClusterData();
 
-        ProcessedDataLoad dataLoader = new ProcessedDataLoad();
-        GeneExpressionData processedData = dataLoader.readProcessedData(processedDataFilePath);
+        GeneExpressionData alignedData = null;
 
-        // Align processed data to only include genes present in the cluster data
-        GeneExpressionData alignedData = alignProcessedData(processedData, clusterData);
+        if (includeInternalMetrics && processedDataFile != null) {
+            ProcessedDataLoad dataLoader = new ProcessedDataLoad();
+            GeneExpressionData processedData = dataLoader.readProcessedData(processedDataFile.getAbsolutePath());
+            alignedData = alignProcessedData(processedData, clusterData);
+        } else {
+             // Create a dummy GeneExpressionData or handle null inside evaluate if required by the interface contract.
+             // Based on current implementation, some external metrics don't use it, but the interface requires it.
+             // Passing null here assuming external metrics ignore it.
+        }
 
-        // Evaluate (injecting distance if needed is handled by the benchmark implementation or passed here)
+        // Evaluate
+        System.out.println("Evaluating metrics...");
         ClusterBenchmarkResult result = clusterBenchmark.evaluate(alignedData, clusterData);
 
-        // Write results with _benchmarks suffix
+        // Write results
         String benchmarkOutputPath = FileUtilities.appendSuffixToFileName(clusterDataFilePath, "_benchmarks");
         BenchmarkResultsWriter writer = new BenchmarkResultsWriter();
         writer.write((CompositeBenchmarkResult) result, benchmarkOutputPath);
+        System.out.println("Benchmarking completed successfully. Results saved to: " + benchmarkOutputPath);
     }
 
     private GeneExpressionData alignProcessedData(GeneExpressionData processedData, GeneClusterData clusterData) {

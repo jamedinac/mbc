@@ -22,4 +22,23 @@ public class ClusterBenchmarkFactory {
 
         return clusterBenchmark;
     }
+
+    public static CompositeBenchmark createCompositeBenchmark(GeneClusterData goldStandard, IGeneDistance geneDistance, boolean includeInternalMetrics) {
+        CompositeBenchmark compositeBenchmark = new CompositeBenchmark();
+        
+        // External validation metrics (always added)
+        compositeBenchmark.addBenchmark(new Jaccard(goldStandard));
+        compositeBenchmark.addBenchmark(new Accuracy(goldStandard));
+        compositeBenchmark.addBenchmark(new AdjustedRandIndex(goldStandard));
+        compositeBenchmark.addBenchmark(new NMI(goldStandard));
+        
+        // Internal validation metrics (require distance metric and processed data)
+        if (includeInternalMetrics && geneDistance != null) {
+            compositeBenchmark.addBenchmark(new Silhouette(geneDistance));
+            compositeBenchmark.addBenchmark(new WCSS(geneDistance));
+        }
+        
+        return compositeBenchmark;
+    }
 }
+

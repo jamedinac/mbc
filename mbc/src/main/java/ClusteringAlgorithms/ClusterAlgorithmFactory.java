@@ -21,4 +21,14 @@ public class ClusterAlgorithmFactory {
     public static IClusteringAlgorithm createFuzzyCMeans(int k, double m, int maxIterations, double epsilon, IGeneDistance geneDistance) {
         return new FuzzyCMeansAlgorithm(k, m, maxIterations, epsilon, geneDistance);
     }
+
+    public static IClusteringAlgorithm createAlgorithm(String type, int k, IGeneDistance dist, ILinkageCriterion linkage) {
+        return switch (type.toLowerCase()) {
+            case "kmeans" -> createKMeans(k, 1000, dist);
+            case "dbscan" -> createDBSCAN(0.5, 5, dist);
+            case "fcm" -> createFuzzyCMeans(k, 2.0, 1000, 1e-4, dist);
+            case "hierarchical" -> createHierarchical(k, dist, linkage);
+            default -> throw new IllegalArgumentException("Unknown algorithm: " + type);
+        };
+    }
 }

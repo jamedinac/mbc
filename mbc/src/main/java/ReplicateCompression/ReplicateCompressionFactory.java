@@ -15,4 +15,12 @@ public class ReplicateCompressionFactory {
 
         return  replicateCompression;
     }
+
+    public static IReplicateCompression createReplicateCompression(String type) {
+        return switch (type.toLowerCase()) {
+            case "mean" -> createReplicateCompression(ReplicateCompressionType.Mean);
+            case "variance" -> createReplicateCompression(ReplicateCompressionType.Variance);
+            default -> createReplicateCompression(ReplicateCompressionType.Default);
+        };
+    }
 }

@@ -22,12 +22,13 @@ import java.util.Set;
 
 public class ClusterBenchmarkService {
 
-    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\output.txt";
+    private static final String outputFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
     private static final String goldStandardFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\ground_truth.txt";
     private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
 
     public static void main(String[] args) {
         IGeneDistance geneDistance = new CorrelationDistance();
+        //IGeneDistance geneDistance = new EuclideanDistance();
 
         GeneClusterDataLoad goldStandardLoader = new GeneClusterDataLoad(goldStandardFileName);
         GeneClusterData goldStandard = goldStandardLoader.readClusterData();

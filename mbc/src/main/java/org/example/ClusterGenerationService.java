@@ -5,79 +5,116 @@ import ClusterWorkflow.StandardClusterWorkflow;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
 import Common.DataProcessor;
 import Common.WorkflowResult;
-import Enum.ReplicateCompressionType;
 import FileDataOperations.DataLoad;
 import FileDataOperations.GeneClusterDataWrite;
 import FileDataOperations.GeneExpressionDataWrite;
-import Filter.CompositeFilter;
-import Filter.GeneFilterByTotalExpression;
-import Filter.GeneFilterByVariance;
-import Filter.SampleFilter;
-import Filter.ZeroFilter;
-import GeneDistance.CorrelationDistance;
+import Filter.FilterFactory;
+import Filter.SampleFilterFactory;
+import GeneDistance.DistanceFactory;
 import Interfaces.ClusterWorkflow;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataLoad;
 import Interfaces.IDataProcessor;
 import Interfaces.IGeneClusterDataWrite;
 import Interfaces.IGeneDistance;
-import Interfaces.IReplicateCompression;
-import Interfaces.ISampleFilter;
-import Normalizers.CompositeNormalizer;
-import Normalizers.IRLS;
+import LinkageCriteria.LinkageFactory;
+import Normalizers.NormalizerFactory;
 import ReplicateCompression.ReplicateCompressionFactory;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-public class ClusterGenerationService {
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.Callable;
 
-    private static final String outputFilePrefix = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\output";
-    private static final String geneExpressionFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\complete_data.tsv";
-    private static final String metadataFileName = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\metadata.csv";
-    private static final String processedDataPath = "C:\\Users\\jhers\\OneDrive - Universidad de los Andes\\Materias\\Proyecto\\data\\IR64\\processed_data.csv";
+@Command(name = "ClusterGenerationService", mixinStandardHelpOptions = true, version = "1.0",
+        description = "Gene Expression Trajectory Clustering Engine based on GLM Betas.")
+public class ClusterGenerationService implements Callable<Integer> {
 
-    private static final String timeSeriesColumn = "Time";
-    private static final String sampleColumn = "Sample";
+    @Parameters(index = "0", description = "Path to the count matrix file (e.g., counts.csv).")
+    private File data;
 
-    private static final int numberOfClusters = 4;
-    private static final int numberOfIterations = 1000;
+    @Parameters(index = "1", description = "Path to the experimental design file (e.g., design.csv).")
+    private File metadata;
+
+    @Parameters(index = "2", description = "Destination path for the clustering results.")
+    private String output;
+
+    @Option(names = {"-a", "--algorithm"}, defaultValue = "hierarchical", description = "Clustering method (kmeans, hierarchical, dbscan, fcm). Default: hierarchical")
+    private String algorithmStr;
+
+    @Option(names = {"-k", "--clusters"}, defaultValue = "10", description = "Number of clusters (k). Default: 10")
+    private Integer clusters;
+
+    @Option(names = {"-n", "--norm"}, split = " ", description = "Normalization methods to apply in order (irls, zscore, median, pseudolog, countdist). Default: irls")
+    private List<String> norm;
+
+    @Option(names = {"-f", "--filter"}, split = " ", description = "List of filters to apply (e.g., --filter non-zero variance 1.0 total-expression 1.0)")
+    private List<String> filters;
+
+    @Option(names = {"-fs", "--filter-samples"}, split = " ", description = "List of sample traits to include (e.g., --filter-samples Condition Treatment Tissue Liver)")
+    private List<String> filterSamples;
+
+    @Option(names = {"-c", "--compress"}, defaultValue = "mean", description = "Replicate compression method (mean, variance, default).")
+    private String compress;
+
+    @Option(names = {"-d", "--distance"}, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon).")
+    private String distance;
+
+    @Option(names = {"-l", "--linkage"}, defaultValue = "average", description = "Linkage criterion (average, complete, single).")
+    private String linkage;
+
+    @Option(names = {"-p", "--profile"}, description = "Enable profiling to record execution time and memory usage.")
+    private boolean profile;
 
     public static void main(String[] args) {
-        // 1. Dependency Configuration
-        IGeneDistance geneDistance = new CorrelationDistance();
+        int exitCode = new CommandLine(new ClusterGenerationService()).execute(args);
+        System.exit(exitCode);
+    }
 
-        IDataLoad dataLoad = new DataLoad(
-                geneExpressionFileName,
-                metadataFileName,
-                timeSeriesColumn,
-                sampleColumn
+    @Override
+    public Integer call() throws Exception {
+        // Build data processor using factories
+        IDataProcessor dataProcessor = new DataProcessor(
+                FilterFactory.createCompositeFilter(filters),
+                SampleFilterFactory.createSampleFilter(filterSamples),
+                ReplicateCompressionFactory.createReplicateCompression(compress),
+                NormalizerFactory.createCompositeNormalizer(norm)
         );
 
-        CompositeFilter geneFilter = new CompositeFilter();
-        geneFilter.addfilter(new ZeroFilter());
-        geneFilter.addfilter(new GeneFilterByTotalExpression(1));
-        geneFilter.addfilter(new GeneFilterByVariance(1));
+        // Data Load
+        IDataLoad dataLoad = new DataLoad(data.getAbsolutePath(), metadata.getAbsolutePath(), "Time", "Sample");
 
-        ISampleFilter sampleFilter = new SampleFilter();
+        // Distance & Algorithm using factories
+        IGeneDistance geneDistance = DistanceFactory.createDistance(distance);
+        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createAlgorithm(
+                algorithmStr,
+                clusters,
+                geneDistance,
+                LinkageFactory.createLinkage(linkage)
+        );
 
-        CompositeNormalizer normalizer = new CompositeNormalizer();
-        normalizer.add(new IRLS());
+        // Workflow Assembly
+        ClusterWorkflow workflow = new StandardClusterWorkflow(dataLoad, dataProcessor, algorithm);
+        if (profile) {
+            workflow = new ProfileClusterWorkflowDecorator(workflow);
+            System.out.println("Profiling enabled. Metrics will be saved to profile_metrics.txt");
+        }
 
-        IReplicateCompression compression = ReplicateCompressionFactory.createReplicateCompression(ReplicateCompressionType.Default);
+        // Execution
+        System.out.println("Starting ClusterGenerationService workflow...");
+        WorkflowResult result = workflow.execute();
 
-        IDataProcessor dataProcessor = new DataProcessor(geneFilter, sampleFilter, compression, normalizer);
-        
-        IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createKMeans(numberOfClusters, numberOfIterations, geneDistance);
-
-        // 2. Workflow Assembly
-        ClusterWorkflow baseWorkflow = new StandardClusterWorkflow(dataLoad, dataProcessor, algorithm);
-        ClusterWorkflow profiledWorkflow = new ProfileClusterWorkflowDecorator(baseWorkflow);
-
-        // 3. Execution (Time and Peak Memory tracked within the decorator)
-        WorkflowResult result = profiledWorkflow.execute();
-
-        // 4. Final I/O (Excluded from performance metrics)
+        // Output results
+        String processedDataPath = output + "_processed.csv";
         new GeneExpressionDataWrite().writeGeneExpressionDataToFile(result.getProcessedData(), processedDataPath);
 
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();
-        geneExpressionDataWrite.writeClusteringDataToFile(result.getClusterData(), outputFilePrefix);
+        geneExpressionDataWrite.writeClusteringDataToFile(result.getClusterData(), output);
+
+        System.out.println("Clustering completed successfully.");
+        return 0;
     }
 }

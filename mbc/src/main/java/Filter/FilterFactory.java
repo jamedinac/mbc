@@ -15,7 +15,13 @@ public class FilterFactory {
 
     public static CompositeFilter createCompositeFilter(List<String> filterArgs) {
         CompositeFilter compositeFilter = new CompositeFilter();
-        if (filterArgs == null) return compositeFilter;
+        
+        // Apply default filters if no filters are provided
+        if (filterArgs == null || filterArgs.isEmpty()) {
+            compositeFilter.addfilter(new ZeroFilter());
+            compositeFilter.addfilter(new GeneFilterByVariance(1));
+            return compositeFilter;
+        }
 
         for (int i = 0; i < filterArgs.size(); i++) {
             String filterType = filterArgs.get(i).toLowerCase();

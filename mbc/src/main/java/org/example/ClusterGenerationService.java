@@ -17,6 +17,7 @@ import Interfaces.IDataLoad;
 import Interfaces.IDataProcessor;
 import Interfaces.IGeneClusterDataWrite;
 import Interfaces.IGeneDistance;
+import Interfaces.IGeneFilter;
 import LinkageCriteria.LinkageFactory;
 import Normalizers.NormalizerFactory;
 import ReplicateCompression.ReplicateCompressionFactory;
@@ -48,16 +49,16 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"-k", "--clusters"}, defaultValue = "10", description = "Number of clusters (k). Default: 10")
     private Integer clusters;
 
-    @Option(names = {"-n", "--norm"}, split = " ", description = "Normalization methods to apply in order (irls, zscore, median, pseudolog, countdist). Default: irls")
+    @Option(names = {"-n", "--norm"}, split = ",", description = "Normalization methods to apply in order (irls,zscore,median,pseudolog,countdist). Default: irls")
     private List<String> norm;
 
-    @Option(names = {"-f", "--filter"}, split = " ", description = "List of filters to apply (e.g., --filter non-zero variance 1.0 total-expression 1.0)")
+    @Option(names = {"-f", "--filter"}, split = ",", description = "List of filters to apply (e.g., --filter non-zero,variance,1.0,total-expression,1.0)")
     private List<String> filters;
 
-    @Option(names = {"-fs", "--filter-samples"}, split = " ", description = "List of sample traits to include (e.g., --filter-samples Condition Treatment Tissue Liver)")
+    @Option(names = {"-fs", "--filter-samples"}, split = ",", description = "List of sample traits to include (e.g., --filter-samples Condition,Treatment,Tissue,Liver)")
     private List<String> filterSamples;
 
-    @Option(names = {"-c", "--compress"}, defaultValue = "mean", description = "Replicate compression method (mean, variance, default).")
+    @Option(names = {"-c", "--compress"}, defaultValue = "default", description = "Replicate compression method (mean, variance, default).")
     private String compress;
 
     @Option(names = {"-d", "--distance"}, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon).")
@@ -69,6 +70,9 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"-p", "--profile"}, description = "Enable profiling to record execution time and memory usage.")
     private boolean profile;
 
+    @Option(names = {"-nf", "--no-filter"}, description = "Disable all gene filtering. This overrides the default filters and the --filter flag.")
+    private boolean noFilter;
+
     public static void main(String[] args) {
         int exitCode = new CommandLine(new ClusterGenerationService()).execute(args);
         System.exit(exitCode);
@@ -76,9 +80,14 @@ public class ClusterGenerationService implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
+        // Build gene filter
+        IGeneFilter geneFilter = noFilter
+                ? new Filter.CompositeFilter()
+                : FilterFactory.createCompositeFilter(filters);
+
         // Build data processor using factories
         IDataProcessor dataProcessor = new DataProcessor(
-                FilterFactory.createCompositeFilter(filters),
+                geneFilter,
                 SampleFilterFactory.createSampleFilter(filterSamples),
                 ReplicateCompressionFactory.createReplicateCompression(compress),
                 NormalizerFactory.createCompositeNormalizer(norm)

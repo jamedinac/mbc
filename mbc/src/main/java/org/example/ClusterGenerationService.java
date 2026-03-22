@@ -49,6 +49,12 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"-k", "--clusters"}, defaultValue = "10", description = "Number of clusters (k). Default: 10")
     private Integer clusters;
 
+    @Option(names = {"--eps"}, defaultValue = "0.5", description = "Epsilon parameter for DBSCAN. Default: 0.5")
+    private Double eps;
+
+    @Option(names = {"--minPts"}, defaultValue = "5", description = "Minimum points parameter for DBSCAN. Default: 5")
+    private Integer minPts;
+
     @Option(names = {"-n", "--norm"}, split = ",", description = "Normalization methods to apply in order (irls,zscore,median,pseudolog,countdist). Default: irls")
     private List<String> norm;
 
@@ -101,6 +107,8 @@ public class ClusterGenerationService implements Callable<Integer> {
         IClusteringAlgorithm algorithm = ClusterAlgorithmFactory.createAlgorithm(
                 algorithmStr,
                 clusters,
+                eps,
+                minPts,
                 geneDistance,
                 LinkageFactory.createLinkage(linkage)
         );

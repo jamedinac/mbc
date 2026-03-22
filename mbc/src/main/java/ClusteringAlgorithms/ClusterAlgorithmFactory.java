@@ -22,10 +22,10 @@ public class ClusterAlgorithmFactory {
         return new FuzzyCMeansAlgorithm(k, m, maxIterations, epsilon, geneDistance);
     }
 
-    public static IClusteringAlgorithm createAlgorithm(String type, int k, IGeneDistance dist, ILinkageCriterion linkage) {
+    public static IClusteringAlgorithm createAlgorithm(String type, int k, double eps, int minPts, IGeneDistance dist, ILinkageCriterion linkage) {
         return switch (type.toLowerCase()) {
             case "kmeans" -> createKMeans(k, 1000, dist);
-            case "dbscan" -> createDBSCAN(0.5, 5, dist);
+            case "dbscan" -> createDBSCAN(eps, minPts, dist);
             case "fcm" -> createFuzzyCMeans(k, 2.0, 1000, 1e-4, dist);
             case "hierarchical" -> createHierarchical(k, dist, linkage);
             default -> throw new IllegalArgumentException("Unknown algorithm: " + type);

@@ -23,7 +23,7 @@ public class HierachicalClusteringAlgorithm implements IClusteringAlgorithm {
 
     @Override
     public GeneClusterData clusterGenes(GeneExpressionData geneExpressionData) {
-        int numberOfGenes = geneExpressionData.getNumberOfGenes();
+            int numberOfGenes = geneExpressionData.getNumberOfGenes();
 
         if (k < 1 || k > numberOfGenes) {
             throw new IllegalArgumentException(

@@ -1,4 +1,4 @@
-# MBC: Modular Biological Clustering Framework
+﻿# MBC: Modular Biological Clustering Framework
 
 MBC is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
 
@@ -46,9 +46,9 @@ java -jar ClusterGenerationService.jar <data_file> <metadata_file> <output_prefi
 ### Options
 - `-a, --algorithm`: `kmeans`, `hierarchical`, `dbscan`, `fcm`. (Default: `hierarchical`)
 - `-k, --clusters`: Number of clusters. (Default: `10`)
-- `-n, --norm`: List of normalization methods (e.g., `-n medianratios zscore`).
-- `-f, --filter`: List of gene filters (e.g., `-f non-zero variance 1.0 total-expression 1.0`).
-- `-fs, --filter-samples`: List of sample trait/value pairs (e.g., `-fs Condition Treatment`).
+- `-n, --norm`: List of normalization methods (e.g., `-n medianratios,zscore`).
+- `-f, --filter`: List of gene filters (e.g., `-f non-zero,variance,1.0,total-expression,1.0`).
+- `-fs, --filter-samples`: List of sample trait/value pairs (e.g., `-fs Condition,Treatment`).
 - `-d, --distance`: `correlation`, `euclidean`, `jensenshannon`.
 - `-p, --profile`: Enable performance profiling (time and memory).
 
@@ -56,8 +56,8 @@ java -jar ClusterGenerationService.jar <data_file> <metadata_file> <output_prefi
 ```bash
 java -jar ClusterGenerationService.jar data.tsv metadata.csv my_results \
   --algorithm kmeans -k 12 \
-  --norm medianratios zscore \
-  --filter non-zero variance 1.5 \
+  --norm medianratios,zscore \
+  --filter non-zero,variance,1.5 \
   --profile
 ```
 

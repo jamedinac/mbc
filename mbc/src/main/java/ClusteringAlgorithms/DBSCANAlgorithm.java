@@ -27,6 +27,7 @@ public class DBSCANAlgorithm implements IClusteringAlgorithm {
 
     @Override
     public GeneClusterData clusterGenes(GeneExpressionData geneExpressionData) {
+        System.out.println("Starting DBSCAN Clustering...");
         if (eps <= 0) {
             throw new IllegalArgumentException("eps must be positive, got " + eps);
         }
@@ -57,6 +58,7 @@ public class DBSCANAlgorithm implements IClusteringAlgorithm {
             }
         }
 
+        System.out.println("Finished DBSCAN Clustering.");
         return buildClusterData(geneExpressionData, labels, currentCluster);
     }
 

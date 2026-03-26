@@ -30,6 +30,7 @@ public class HierachicalClusteringAlgorithm implements IClusteringAlgorithm {
                     "k must be between 1 and the number of genes (" + numberOfGenes + "), got " + k);
         }
 
+        System.out.println("Starting Hierarchical Clustering...");
         List<List<Integer>> clusters = initializeClusters(numberOfGenes);
 
         while (clusters.size() > k) {
@@ -40,6 +41,7 @@ public class HierachicalClusteringAlgorithm implements IClusteringAlgorithm {
         int[] clusterAssignment = buildClusterAssignment(clusters, numberOfGenes);
         double[][] clusteringData = buildClusteringData(clusterAssignment, numberOfGenes);
 
+        System.out.println("Finished Hierarchical Clustering.");
         return new GeneClusterData(numberOfGenes, k, geneExpressionData.getGeneIds(), clusteringData);
     }
 

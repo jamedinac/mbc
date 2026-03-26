@@ -23,6 +23,7 @@ public class FuzzyCMeansAlgorithm implements IClusteringAlgorithm {
 
     @Override
     public GeneClusterData clusterGenes(GeneExpressionData data) {
+        System.out.println("Starting Fuzzy C-Means Clustering...");
         int n = data.getNumberOfGenes();
         int d = data.getNumberOfComponents();
         double[][] u = initializeMembershipMatrix(n);
@@ -43,6 +44,7 @@ public class FuzzyCMeansAlgorithm implements IClusteringAlgorithm {
             if (calculateMatrixDiff(u, uOld) < epsilon) break;
         }
 
+        System.out.println("Finished Fuzzy C-Means Clustering.");
         return new GeneClusterData(n, k, data.getGeneIds(), u);
     }
 

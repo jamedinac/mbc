@@ -57,10 +57,10 @@ public class AdjustedRandIndex implements IClusterBenchmark {
         }
 
         // 4. Compute sums of combinations n choose 2 avoiding Overflow
-        long sumCombNij = 0; // Sum of comb(n_ij, 2)
+        long truePositives = 0; // Sum of comb(n_ij, 2)
         for (int i = 0; i < nPred; i++) {
             for (int j = 0; j < nRef; j++) {
-                sumCombNij += choose2(contingency[i][j]);
+                truePositives += choose2(contingency[i][j]);
             }
         }
 
@@ -82,7 +82,7 @@ public class AdjustedRandIndex implements IClusterBenchmark {
         }
         
         double maxIndex = 0.5 * (sumCombAi + sumCombBj);
-        double index = sumCombNij;
+        double index = truePositives;
 
         double denominator = maxIndex - expectedIndex;
 

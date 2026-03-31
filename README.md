@@ -107,12 +107,12 @@ java -jar target/ClusterBenchmarkService.jar results/clusters_out.csv data/gold_
 `ClusterGenerationService` requires two main files: a count matrix and a metadata file.
 
 **Count Matrix (`counts.csv`)**
-A CSV file where the first column contains Gene IDs and subsequent columns contain expression values for each sample.
+A CSV file where the first column contains Gene IDs and subsequent columns contain expression values (typically raw counts) for each sample.
 ```csv
 Gene,Sample1,Sample2,Sample3,Sample4
-G1,10.5,20.1,15.2,25.4
-G2,5.0,6.2,5.8,7.1
-G3,100.1,110.5,105.3,120.2
+G1,10,20,15,25
+G2,5,6,5,7
+G3,100,110,105,120
 ```
 
 **Metadata (`metadata.csv`)**

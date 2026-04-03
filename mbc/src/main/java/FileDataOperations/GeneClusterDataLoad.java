@@ -24,9 +24,16 @@ public class GeneClusterDataLoad {
         for (int g=0; g<numberOfGenes;g++){
             String[] dataRow = FileUtilities.getSplitDataRow(fileLines[g], FileFormat.TSV.getDelimiter());
             geneIds[g] = dataRow[0];
+            double sum = 0.0;
 
             for (int c = 1; c < dataRow.length; c++){
-                clusterData[g][c-1] = Double.parseDouble(dataRow[c]);
+                double value = Double.parseDouble(dataRow[c]);
+                clusterData[g][c-1] = value;
+                sum += value;
+            }
+
+            if (Math.abs(sum - 1.0) > 1e-6) {
+                throw new IllegalArgumentException("Gene " + geneIds[g] + " has an invalid cluster assignment. The sum of cluster values must be 1.0, but was " + sum);
             }
         }
 

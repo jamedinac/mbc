@@ -15,22 +15,20 @@ GLMCRNATSE is a Java-based framework designed for benchmarking and simulating cl
 
 ## Prerequisites
 
-- **Java Development Kit (JDK) 24**
-- **Apache Maven 3.9+**
+- **Java Runtime Environment (JRE) 25** or higher to run the executable JAR files.
 
 ---
 
-## Building the Project
+## Installation
 
-To compile and generate the executable JAR files, run the following command from the project root:
+You do not need to build the project from source to use it. Simply download the latest executable JAR files from the GitHub Releases page:
 
-```bash
-mvn clean package
-```
+1. Navigate to the **Releases** section on the right side of the GitHub repository page.
+2. Download the two required JAR files:
+   - `ClusterGenerationService.jar`
+   - `ClusterBenchmarkService.jar`
 
-This generates two shaded Fat JARs in the `target/` directory:
-- `ClusterGenerationService.jar`
-- `ClusterBenchmarkService.jar`
+*(Note: If you wish to build the project from source, you will need **JDK 25** and Apache Maven 3.9+. Run `mvn clean package` in the project root to generate the Fat JARs).*
 
 ---
 

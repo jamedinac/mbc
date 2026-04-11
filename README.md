@@ -38,7 +38,7 @@ Use `ClusterGenerationService` to normalize, filter, and cluster your gene expre
 
 ### Basic Syntax
 ```bash
-java -jar target/ClusterGenerationService.jar <data_file> <metadata_file> <output_prefix> [OPTIONS]
+java -jar ClusterGenerationService.jar <data_file> <metadata_file> <output_prefix> [OPTIONS]
 ```
 
 ### Positional Parameters
@@ -62,7 +62,7 @@ java -jar target/ClusterGenerationService.jar <data_file> <metadata_file> <outpu
 
 ### Example
 ```bash
-java -jar target/ClusterGenerationService.jar data/counts.csv data/metadata.csv results/clusters_out \
+java -jar ClusterGenerationService.jar data/counts.csv data/metadata.csv results/clusters_out \
   -a kmeans -k 5 \
   -n pseudolog,zscore \
   -d euclidean \
@@ -78,7 +78,7 @@ Use `ClusterBenchmarkService` to evaluate your clustering results against a gold
 
 ### Basic Syntax
 ```bash
-java -jar target/ClusterBenchmarkService.jar <cluster_file> <gold_standard_file> [OPTIONS]
+java -jar ClusterBenchmarkService.jar <cluster_file> <gold_standard_file> [OPTIONS]
 ```
 
 ### Positional Parameters
@@ -91,7 +91,7 @@ java -jar target/ClusterBenchmarkService.jar <cluster_file> <gold_standard_file>
 
 ### Example
 ```bash
-java -jar target/ClusterBenchmarkService.jar results/clusters_out.csv data/gold_standard.csv \
+java -jar ClusterBenchmarkService.jar results/clusters_out.csv data/gold_standard.csv \
   -p results/clusters_out_processed.csv \
   -d correlation
 ```

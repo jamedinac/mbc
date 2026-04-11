@@ -1,6 +1,6 @@
-﻿# MBC: Modular Biological Clustering Framework
+﻿# Generalized linear models for clustering of RNA-seq time series experiments 
 
-MBC is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
+GLMCRNATSE is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
 
 ## Key Features
 
@@ -101,6 +101,8 @@ java -jar target/ClusterBenchmarkService.jar results/clusters_out.csv data/gold_
 ---
 
 ## Input & Output Formats
+
+>**Note**: Simulated sample data, metadata description, and ground truth clustering can be found at `./data` directory
 
 ### 1. Data Input (CSV/TSV)
 

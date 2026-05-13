@@ -1,6 +1,8 @@
-﻿# Generalized linear models for clustering of RNA-seq time series experiments 
+<img width="2157" height="1397" alt="trac-glm_logo" src="https://github.com/user-attachments/assets/094fba29-cdaa-484d-b4c4-2d2f8bcd845f" />
 
-GLMCRNATSE is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
+ # Generalized linear models for clustering of RNA-seq time series experiments 
+
+TRaC-GLM is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
 
 ## Key Features
 

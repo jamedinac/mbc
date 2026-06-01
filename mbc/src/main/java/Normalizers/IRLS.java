@@ -108,7 +108,7 @@ public class IRLS implements IDataNormalizer {
         return designMatrix;
     }
 
-    private double[] newtonRaphson(double[] data, double alpha, double[] scaleFactor, double[][] x, double[] priorVariance, int numberOfSamples, int numberOfTimeSeries) {
+    private double[] iterativelyReweightedLeastSquares(double[] data, double alpha, double[] scaleFactor, double[][] x, double[] priorVariance, int numberOfSamples, int numberOfTimeSeries) {
         double[] betas = new double[numberOfTimeSeries];
         double meanData = 0;
         double meanScale = 0;

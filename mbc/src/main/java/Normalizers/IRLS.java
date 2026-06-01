@@ -43,7 +43,7 @@ public class IRLS implements IDataNormalizer {
         // Pass 1: MLE estimation (no prior)
         double[][] mleBetas = new double[data.length][numberOfTimeSeries];
         for (int g = 0; g < data.length; g++) {
-            mleBetas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, null, numberOfSamples, numberOfTimeSeries);
+            mleBetas[g] = this.iterativelyReweightedLeastSquares(pseudoData[g], alphas[g], scaleFactor, x, null, numberOfSamples, numberOfTimeSeries);
         }
 
         // Estimate prior variance from cross-gene MLE distribution (DESeq2-style)
@@ -52,7 +52,7 @@ public class IRLS implements IDataNormalizer {
         // Pass 2: MAP estimation with empirical Bayes prior
         double[][] betas = new double[data.length][numberOfTimeSeries];
         for (int g = 0; g < data.length; g++) {
-            betas[g] = this.newtonRaphson(pseudoData[g], alphas[g], scaleFactor, x, priorVariance, numberOfSamples, numberOfTimeSeries);
+            betas[g] = this.iterativelyReweightedLeastSquares(pseudoData[g], alphas[g], scaleFactor, x, priorVariance, numberOfSamples, numberOfTimeSeries);
         }
         return betas;
     }

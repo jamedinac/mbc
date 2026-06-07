@@ -1,10 +1,9 @@
 package org.example;
 
-import ClusterWorkflow.ProfileClusterWorkflowDecorator;
-import ClusterWorkflow.StandardClusterWorkflow;
+import ClusterWorkflow.ClusterWorkflowFactory;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
-import Common.DataProcessor;
 import Common.WorkflowResult;
+import Enum.WorkflowType;
 import FileDataOperations.DataLoad;
 import FileDataOperations.GeneClusterDataWrite;
 import FileDataOperations.GeneExpressionDataWrite;
@@ -91,14 +90,6 @@ public class ClusterGenerationService implements Callable<Integer> {
                 ? new Filter.CompositeFilter()
                 : FilterFactory.createCompositeFilter(filters);
 
-        // Build data processor using factories
-        IDataProcessor dataProcessor = new DataProcessor(
-                geneFilter,
-                SampleFilterFactory.createSampleFilter(filterSamples),
-                ReplicateCompressionFactory.createReplicateCompression(compress),
-                NormalizerFactory.createCompositeNormalizer(norm)
-        );
-
         // Data Load
         IDataLoad dataLoad = new DataLoad(data.getAbsolutePath(), metadata.getAbsolutePath(), "Time", "Sample");
 
@@ -114,11 +105,18 @@ public class ClusterGenerationService implements Callable<Integer> {
         );
 
         // Workflow Assembly
-        ClusterWorkflow workflow = new StandardClusterWorkflow(dataLoad, dataProcessor, algorithm);
-        if (profile) {
-            workflow = new ProfileClusterWorkflowDecorator(workflow);
-            System.out.println("Profiling enabled. Metrics will be saved to profile_metrics.txt");
-        }
+        WorkflowType type = WorkflowType.determineFromConfig(norm);
+        
+        ClusterWorkflow workflow = ClusterWorkflowFactory.createWorkflow(
+                type,
+                profile,
+                dataLoad,
+                geneFilter,
+                SampleFilterFactory.createSampleFilter(filterSamples),
+                algorithm,
+                norm,
+                compress
+        );
 
         // Execution
         System.out.println("Starting ClusterGenerationService workflow...");

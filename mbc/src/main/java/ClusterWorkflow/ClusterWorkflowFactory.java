@@ -12,21 +12,23 @@ public class ClusterWorkflowFactory {
     /**
      * Creates a ClusterWorkflow based on the provided configuration.
      *
-     * @param type              The type of workflow to instantiate.
-     * @param enableProfiling   Whether to wrap the workflow in a profiling decorator.
-     * @param dataLoad          The data loading mechanism.
-     * @param geneFilter        The gene filtering mechanism.
-     * @param sampleFilter      The sample filtering mechanism.
-     * @param algorithm         The clustering algorithm to apply.
-     * @param normMethods       The list of normalization methods (used for Standard workflow).
-     * @param compressionMethod The replicate compression method (used for Standard workflow).
+     * @param type                     The type of workflow to instantiate.
+     * @param enableProfiling          Whether to wrap the workflow in a profiling decorator.
+     * @param dataLoad                 The data loading mechanism.
+     * @param preNormalizationFilter   Filter applied to raw/normalized expression data.
+     * @param postNormalizationFilter  Filter applied to statistical outputs (e.g., significance).
+     * @param sampleFilter             The sample filtering mechanism.
+     * @param algorithm                The clustering algorithm to apply.
+     * @param normMethods              The list of normalization methods (used for Standard workflow).
+     * @param compressionMethod        The replicate compression method (used for Standard workflow).
      * @return An instantiated and optionally decorated ClusterWorkflow.
      */
     public static ClusterWorkflow createWorkflow(
             WorkflowType type,
             boolean enableProfiling,
             IDataLoad dataLoad,
-            IGeneFilter geneFilter,
+            IGeneFilter preNormalizationFilter,
+            IGeneFilter postNormalizationFilter,
             ISampleFilter sampleFilter,
             IClusteringAlgorithm algorithm,
             List<String> normMethods,
@@ -40,7 +42,8 @@ public class ClusterWorkflowFactory {
 
                 yield new TracGLMWorkflow(
                         dataLoad,
-                        geneFilter,
+                        preNormalizationFilter,
+                        postNormalizationFilter,
                         sampleFilter,
                         new Normalizers.MedianRatiosNormalization(),
                         new ModelFitters.GLMProcessor(),
@@ -51,7 +54,7 @@ public class ClusterWorkflowFactory {
             }
             case STANDARD -> {
                 IDataProcessor dataProcessor = new Common.DataProcessor(
-                        geneFilter,
+                        preNormalizationFilter,
                         sampleFilter,
                         ReplicateCompression.ReplicateCompressionFactory.createReplicateCompression(compressionMethod),
                         Normalizers.NormalizerFactory.createCompositeNormalizer(normMethods)

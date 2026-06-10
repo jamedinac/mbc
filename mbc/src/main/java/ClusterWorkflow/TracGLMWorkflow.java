@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Significance-driven clustering workflow utilizing Generalized Linear Models (GLM).
+ */
 public class TracGLMWorkflow implements ClusterWorkflow {
 
-    private static final double SIGNIFICANCE_THRESHOLD = 0.05;
-
     private final IDataLoad dataLoad;
-    private final IGeneFilter independentFilter;
+    private final IGeneFilter preNormalizationFilter;
+    private final IGeneFilter postNormalizationFilter;
     private final ISampleFilter sampleFilter;
     private final IDataNormalizer baseNormalizer;
     private final IModelFitter glmProcessor;
@@ -24,7 +26,8 @@ public class TracGLMWorkflow implements ClusterWorkflow {
     private final IClusteringAlgorithm clusterAlgo;
 
     public TracGLMWorkflow(IDataLoad dataLoad,
-                           IGeneFilter independentFilter,
+                           IGeneFilter preNormalizationFilter,
+                           IGeneFilter postNormalizationFilter,
                            ISampleFilter sampleFilter,
                            IDataNormalizer baseNormalizer,
                            IModelFitter glmProcessor,
@@ -32,7 +35,8 @@ public class TracGLMWorkflow implements ClusterWorkflow {
                            IMultipleTestingCorrection fdrAdjuster,
                            IClusteringAlgorithm clusterAlgo) {
         this.dataLoad = dataLoad;
-        this.independentFilter = independentFilter;
+        this.preNormalizationFilter = preNormalizationFilter;
+        this.postNormalizationFilter = postNormalizationFilter;
         this.sampleFilter = sampleFilter;
         this.baseNormalizer = baseNormalizer;
         this.glmProcessor = glmProcessor;
@@ -45,35 +49,53 @@ public class TracGLMWorkflow implements ClusterWorkflow {
     public WorkflowResult execute() {
         GeneExpressionData rawData = dataLoad.getGeneExpressionFormattedData();
 
+        // 1. Prepare Data (Sample Filtering & Sorting by Time)
         PreparedData prep = prepareData(rawData);
 
-        FilteredData filtered = applyIndependentFilter(prep, rawData.getGeneIds());
+        // 2. Pre-Normalization Filtering (e.g., Variance, Non-Zero)
+        FilteredData preFiltered = applyPreNormalizationFilter(prep, rawData.getGeneIds());
 
+        // 3. Base Normalization
         double[][] normalizedData = baseNormalizer.normalize(
-                filtered.matrix, prep.replicatesPerTime, prep.sampleTimeMap, rawData.getNumberOfTimeSeries());
+                preFiltered.matrix, prep.replicatesPerTime, prep.sampleTimeMap, rawData.getNumberOfTimeSeries());
 
+        // 4. Model Fitting (GLM)
         Common.GLMFitResult glmResult = glmProcessor.fitModel(
                 normalizedData, prep.replicatesPerTime, prep.sampleTimeMap, rawData.getNumberOfTimeSeries());
 
+        // 5. Extract Statistical Significance (Wald Test)
         double[][] rawPValues = waldTester.calculateRawPValues(glmResult);
 
+        // 6. Global Multiple Testing Correction (FDR)
         double[][] adjPValues = fdrAdjuster.adjustPValues(rawPValues);
 
-        double[][] significantBetas = filterBetasBySignificance(glmResult.betas(), adjPValues, SIGNIFICANCE_THRESHOLD);
-        String[] significantGeneIds = filterGeneIdsBySignificance(filtered.geneIds, adjPValues, SIGNIFICANCE_THRESHOLD);
+        // 7. Post-Normalization Filtering (e.g., Significance)
+        // We reuse the IGeneFilter interface to evaluate the p-value trajectories
+        List<double[]> sigBetas = new ArrayList<>();
+        List<String> sigGeneIds = new ArrayList<>();
 
-        if (significantBetas.length == 0) {
-            throw new RuntimeException("No genes passed the significance threshold (FDR < " + SIGNIFICANCE_THRESHOLD + ").");
+        for (int i = 0; i < glmResult.betas().length; i++) {
+            if (postNormalizationFilter.filterGene(adjPValues[i])) {
+                sigBetas.add(glmResult.betas()[i]);
+                sigGeneIds.add(preFiltered.geneIds[i]);
+            }
         }
 
-        // Strip the intercept (index 0) from the significant betas
+        if (sigBetas.isEmpty()) {
+            throw new RuntimeException("No genes passed the post-normalization filtering threshold.");
+        }
+
+        double[][] finalBetasMatrix = sigBetas.toArray(new double[0][]);
+        String[] finalGeneIds = sigGeneIds.toArray(new String[0]);
+
+        // 8. Intercept Removal (Clustering on Dynamic Fold Changes only)
         int dynamicTimePoints = rawData.getNumberOfTimeSeries() - 1;
-        double[][] dynamicBetas = new double[significantBetas.length][dynamicTimePoints];
-        for (int i = 0; i < significantBetas.length; i++) {
-            System.arraycopy(significantBetas[i], 1, dynamicBetas[i], 0, dynamicTimePoints);
+        double[][] dynamicBetas = new double[finalBetasMatrix.length][dynamicTimePoints];
+        for (int i = 0; i < finalBetasMatrix.length; i++) {
+            System.arraycopy(finalBetasMatrix[i], 1, dynamicBetas[i], 0, dynamicTimePoints);
         }
 
-        // Shift time labels and maps to match the stripped intercept
+        // 9. Label Shifting
         String[] originalTimeLabels = rawData.getTimeLabels();
         String[] shiftedTimeLabels = new String[dynamicTimePoints];
         System.arraycopy(originalTimeLabels, 1, shiftedTimeLabels, 0, dynamicTimePoints);
@@ -88,7 +110,7 @@ public class TracGLMWorkflow implements ClusterWorkflow {
         GeneExpressionData finalDataForClustering = new GeneExpressionData(
                 dynamicBetas.length,
                 dynamicBetas,
-                significantGeneIds,
+                finalGeneIds,
                 shiftedTimeLabels,
                 rawData.getMetadata(),
                 resultReplicatesPerTime,
@@ -96,6 +118,7 @@ public class TracGLMWorkflow implements ClusterWorkflow {
                 shiftedTimeLabels
         );
 
+        // 10. Clustering
         GeneClusterData clusters = clusterAlgo.clusterGenes(finalDataForClustering);
 
         return new WorkflowResult(finalDataForClustering, clusters);
@@ -144,16 +167,16 @@ public class TracGLMWorkflow implements ClusterWorkflow {
         return new PreparedData(sortedMatrix, filteredReplicatesPerTime, sampleTimeMap);
     }
 
-    private FilteredData applyIndependentFilter(PreparedData prep, String[] rawGeneIds) {
+    private FilteredData applyPreNormalizationFilter(PreparedData prep, String[] rawGeneIds) {
         List<Integer> validGeneIndices = new ArrayList<>();
         for (int i = 0; i < prep.matrix.length; i++) {
-            if (independentFilter.filterGene(prep.matrix[i])) {
+            if (preNormalizationFilter.filterGene(prep.matrix[i])) {
                 validGeneIndices.add(i);
             }
         }
 
         if (validGeneIndices.isEmpty()) {
-            throw new RuntimeException("No gene passed the independent filter");
+            throw new RuntimeException("No gene passed the pre-normalization filter");
         }
 
         int numValidGenes = validGeneIndices.size();
@@ -167,35 +190,6 @@ public class TracGLMWorkflow implements ClusterWorkflow {
         }
 
         return new FilteredData(filteredMatrix, filteredGeneIds);
-    }
-
-    private double[][] filterBetasBySignificance(double[][] betas, double[][] adjPValues, double threshold) {
-        List<double[]> sigBetas = new ArrayList<>();
-        for (int i = 0; i < betas.length; i++) {
-            if (isSignificant(adjPValues[i], threshold)) {
-                sigBetas.add(betas[i]);
-            }
-        }
-        return sigBetas.toArray(new double[0][]);
-    }
-
-    private String[] filterGeneIdsBySignificance(String[] geneIds, double[][] adjPValues, double threshold) {
-        List<String> sigIds = new ArrayList<>();
-        for (int i = 0; i < geneIds.length; i++) {
-            if (isSignificant(adjPValues[i], threshold)) {
-                sigIds.add(geneIds[i]);
-            }
-        }
-        return sigIds.toArray(new String[0]);
-    }
-
-    private boolean isSignificant(double[] pValues, double threshold) {
-        for (double p : pValues) {
-            if (p < threshold) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private record PreparedData(double[][] matrix, int[] replicatesPerTime, int[] sampleTimeMap) {}

@@ -2,18 +2,29 @@
 
  # Generalized linear models for clustering of RNA-seq time series experiments 
 
-TRaC-GLM is a Java-based framework designed for benchmarking and simulating clustering algorithms applied to biological data, specifically gene expression time-series data with replicates. It provides a modular architecture for data normalization, filtering, distance calculation, clustering, and performance evaluation.
+TRaC-GLM provides a rigorous statistical framework for RNA-seq time-series clustering. Unlike standard clustering on raw or simply normalized counts, the Trac-GLM workflow ensures that clustered trajectories represent true biological signals rather than random noise.
+
+### 1. Generalized Linear Modeling (GLM)
+The framework models gene expression using a **Negative Binomial distribution**, which accurately captures the overdispersion common in RNA-seq data. It uses an **Iteratively Reweighted Least Squares (IRLS)** engine with **Ridge Regularization** (Normal prior) to estimate stable log2 fold change ($\beta$) coefficients.
+
+### 2. Wald Significance Test
+For each gene's trajectory, the framework performs a **Wald Test** to evaluate the statistical significance of the estimated coefficients. It utilizes a **Sandwich Covariance Estimator** to robustly calculate standard errors under the penalized likelihood framework.
+
+### 3. Multiple Testing Correction (FDR)
+To handle the high-throughput nature of genomics (testing thousands of genes simultaneously), the framework applies the **Benjamini-Hochberg (FDR)** procedure. The correction is specifically optimized to ignore the intercept term, maximizing statistical power to detect dynamic temporal changes.
+
+### 4. Intercept Removal for Dynamic Clustering
+Biologically, clustering should be driven by how genes change over time, not their absolute starting expression levels. The pipeline automatically drops the intercept ($\beta_0$) before clustering, ensuring that the distance metrics operate strictly on the **dynamic temporal trajectories** ($\beta_1, \beta_2, \dots, \beta_n$).
 
 ## Key Features
 
 - **Clustering Algorithms**: KMeans, DBSCAN, Fuzzy C-Means (FCM), and Hierarchical Clustering.
 - **Normalization**: IRLS (Iteratively Reweighted Least Squares), Z-Score, Median Ratios, and Pseudologarithm.
-- **Filtering**: Gene filtering by variance, total expression, and zero counts; sample-based filtering.
+- **Filtering**: Gene filtering by variance, total expression, zero counts, and **statistical significance**.
 - **Distance Metrics**: Correlation, Euclidean, and Jensen-Shannon distance.
 - **Benchmarking**: Support for both external (Jaccard, Accuracy, ARI, NMI) and internal (Silhouette, WCSS) metrics.
 - **Modular Design**: Extensible architecture using Factory and Decorator patterns.
 
----
 
 ## Prerequisites
 
@@ -54,21 +65,21 @@ java -jar ClusterGenerationService.jar <data_file> <metadata_file> <output_prefi
 - `--eps`: Epsilon parameter for DBSCAN. **Default**: `0.5`
 - `--minPts`: Minimum points parameter for DBSCAN. **Default**: `5`
 - `-n`, `--norm`: Normalization methods to apply in order, comma-separated (`irls`, `zscore`, `median`, `pseudolog`, `countdist`). **Default**: `irls`
-- `-f`, `--filter`: List of filters to apply, comma-separated (e.g., `--filter non-zero,variance,1.0,total-expression,1.0`). 
+- `-f`, `--filter`: List of filters to apply, comma-separated. Supported: `non-zero`, `variance`, `total-expression`, `significance` (e.g., `--filter non-zero,variance,0.5,significance,0.05`). 
 - `-fs`, `--filter-samples`: List of sample traits to include, comma-separated (e.g., `--filter-samples Condition,Treatment,Tissue,Liver`). 
 - `-c`, `--compress`: Replicate compression method (`mean`, `variance`, `default`). **Default**: `default`
 - `-d`, `--distance`: Distance metric (`correlation`, `euclidean`, `jensenshannon`). **Default**: `correlation`
 - `-l`, `--linkage`: Linkage criterion for hierarchical clustering (`average`, `complete`, `single`). **Default**: `average`
 - `-p`, `--profile`: Flag to enable profiling to record execution time and memory usage.
-- `-nf`, `--no-filter`: Flag to disable all gene filtering. This overrides the default filters and the `--filter` flag.
+- `-nf`, `--no-filter`: Flag to disable all gene filtering. This overrides the default filters and the --filter flag.
 
 ### Example
 ```bash
 java -jar ClusterGenerationService.jar data/counts.csv data/metadata.csv results/clusters_out \
   -a kmeans -k 5 \
-  -n pseudolog,zscore \
-  -d euclidean \
-  --filter non-zero,variance,0.5 \
+  -n irls \
+  -d correlation \
+  --filter non-zero,variance,1.0,significance,0.05 \
   --profile
 ```
 

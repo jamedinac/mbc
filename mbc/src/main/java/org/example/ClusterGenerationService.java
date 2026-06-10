@@ -57,7 +57,7 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"-n", "--norm"}, split = ",", description = "Normalization methods to apply in order (irls,zscore,median,pseudolog,countdist). Default: irls")
     private List<String> norm;
 
-    @Option(names = {"-f", "--filter"}, split = ",", description = "List of filters to apply (e.g., --filter non-zero,variance,1.0,total-expression,1.0)")
+    @Option(names = {"-f", "--filter"}, split = ",", description = "List of filters to apply (e.g., --filter non-zero,variance,1.0,total-expression,1.0,significance,0.05)")
     private List<String> filters;
 
     @Option(names = {"-fs", "--filter-samples"}, split = ",", description = "List of sample traits to include (e.g., --filter-samples Condition,Treatment,Tissue,Liver)")
@@ -85,10 +85,10 @@ public class ClusterGenerationService implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        // Build gene filter
-        IGeneFilter geneFilter = noFilter
-                ? new Filter.CompositeFilter()
-                : FilterFactory.createCompositeFilter(filters);
+        // Build gene filters (Pre and Post Normalization)
+        FilterFactory.FilterSetup filterSetup = noFilter
+                ? new FilterFactory.FilterSetup(new Filter.CompositeFilter(), new Filter.CompositeFilter())
+                : FilterFactory.createFilterSetup(filters);
 
         // Data Load
         IDataLoad dataLoad = new DataLoad(data.getAbsolutePath(), metadata.getAbsolutePath(), "Time", "Sample");
@@ -111,7 +111,8 @@ public class ClusterGenerationService implements Callable<Integer> {
                 type,
                 profile,
                 dataLoad,
-                geneFilter,
+                filterSetup.preNormalization(),
+                filterSetup.postNormalization(),
                 SampleFilterFactory.createSampleFilter(filterSamples),
                 algorithm,
                 norm,

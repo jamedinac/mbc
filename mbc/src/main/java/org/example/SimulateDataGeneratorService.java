@@ -98,10 +98,10 @@ public class SimulateDataGeneratorService {
         double[] geneNoiseFactors = generateGeneNoiseFactors();
 
         // Generate trajectories for each cluster
-        generateData(0, 99, expressionData, 1, sampleNoiseFactors, geneNoiseFactors);    // Cluster 0: upward
-        generateData(100, 199, expressionData, -1, sampleNoiseFactors, geneNoiseFactors); // Cluster 1: downward (FIXED initialization)
-        generateData(200, 299, expressionData, 1, sampleNoiseFactors, geneNoiseFactors);  // Cluster 2: upward
-        generateBasalData(300, 999, expressionData, sampleNoiseFactors, geneNoiseFactors); // Cluster 3: basal
+        generateEarlyResponseData(0, 99, expressionData, sampleNoiseFactors, geneNoiseFactors);    // Cluster 0: upward (steep, early-response)
+        generateDescendingData(100, 199, expressionData, sampleNoiseFactors, geneNoiseFactors);   // Cluster 1: downward (linear)
+        generateSigmoidalData(200, 299, expressionData, sampleNoiseFactors, geneNoiseFactors);     // Cluster 2: upward (delayed, sigmoidal-response)
+        generateBasalData(300, 999, expressionData, sampleNoiseFactors, geneNoiseFactors);         // Cluster 3: basal
 
         // Generate metadata
         String[] geneIds = generateGeneIds();
@@ -204,50 +204,84 @@ public class SimulateDataGeneratorService {
      * @param sampleNoiseFactors per-sample technical noise SDs
      * @param geneNoiseFactors per-gene biological noise CVs
      */
-    private static void generateData(int startGene, int endGene, double[][] expressionData,
-                                     int baseTrend, double[] sampleNoiseFactors,
-                                     double[] geneNoiseFactors) {
-        // Generate shared base trajectory for this cluster
+    /**
+     * Generates expression trajectories for Cluster 0 (steep, early-response upward trend).
+     */
+    private static void generateEarlyResponseData(int startGene, int endGene, double[][] expressionData,
+                                                  double[] sampleNoiseFactors, double[] geneNoiseFactors) {
         double[] baseTrajectory = new double[numberOfTimeSeries];
-        double currentBaseValue = rng.nextInt(31) + 20; // [20, 50]
-
-        // FIXED: Ensure initial delta has correct sign and magnitude for clear trend
-        int currentDelta;
-        if (baseTrend > 0) {
-            currentDelta = rng.nextInt(maxDeltaVariation + 1) + 1; // [1, maxDeltaVariation+1]
-        } else {
-            currentDelta = -rng.nextInt(maxDeltaVariation + 1) - 1; // [-(maxDeltaVariation+1), -1]
-        }
+        double vStart = 20.0;
+        double vEnd = 80.0;
+        double k = 0.45;
 
         for (int t = 0; t < numberOfTimeSeries; t++) {
-            baseTrajectory[t] = currentBaseValue;
-
-            // Occasional drift, but constrained to not reverse trend direction
-            if (rng.nextDouble() < driftProbability) {
-                int drift = rng.nextInt(3) - 1; // {-1, 0, 1}
-                // Prevent drift from reversing the sign of currentDelta
-                if (baseTrend > 0 && currentDelta + drift <= 0) {
-                    drift = Math.max(0, drift); // Don't allow negative drift if trending up
-                } else if (baseTrend < 0 && currentDelta + drift >= 0) {
-                    drift = Math.min(0, drift); // Don't allow positive drift if trending down
-                }
-                currentDelta += drift;
-            }
-
-            // Add small trajectory-level noise (smoothness)
+            double val = vStart + (vEnd - vStart) * (1.0 - Math.exp(-k * t));
             double trajectoryNoise = rng.nextGaussian() * trajectoryNoiseSd;
-            currentBaseValue += currentDelta + trajectoryNoise;
-            currentBaseValue = Math.max(minExpressionValue, currentBaseValue);
+            baseTrajectory[t] = Math.max(minExpressionValue, val + trajectoryNoise);
         }
 
-        // Generate individual genes in this cluster
         for (int gene = startGene; gene <= endGene; gene++) {
             double scaleFactor = sampleLogUniformScaleFactor();
-
             for (int t = 0; t < numberOfTimeSeries; t++) {
-                double trueExpression = Math.max(minExpressionValue,
-                        baseTrajectory[t] * scaleFactor);
+                double trueExpression = Math.max(minExpressionValue, baseTrajectory[t] * scaleFactor);
+                for (int r = 0; r < numberOfReplicates; r++) {
+                    int sampleIndex = t * numberOfReplicates + r;
+                    expressionData[gene][sampleIndex] = applyRealisticNoise(
+                            trueExpression, gene, sampleIndex, sampleNoiseFactors, geneNoiseFactors);
+                }
+            }
+        }
+    }
 
+    /**
+     * Generates expression trajectories for Cluster 2 (delayed sigmoidal-response upward trend).
+     */
+    private static void generateSigmoidalData(int startGene, int endGene, double[][] expressionData,
+                                              double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+        double[] baseTrajectory = new double[numberOfTimeSeries];
+        double vStart = 20.0;
+        double vEnd = 80.0;
+        double t0 = 6.0;
+        double k = 0.8;
+
+        for (int t = 0; t < numberOfTimeSeries; t++) {
+            double val = vStart + (vEnd - vStart) / (1.0 + Math.exp(-k * (t - t0)));
+            double trajectoryNoise = rng.nextGaussian() * trajectoryNoiseSd;
+            baseTrajectory[t] = Math.max(minExpressionValue, val + trajectoryNoise);
+        }
+
+        for (int gene = startGene; gene <= endGene; gene++) {
+            double scaleFactor = sampleLogUniformScaleFactor();
+            for (int t = 0; t < numberOfTimeSeries; t++) {
+                double trueExpression = Math.max(minExpressionValue, baseTrajectory[t] * scaleFactor);
+                for (int r = 0; r < numberOfReplicates; r++) {
+                    int sampleIndex = t * numberOfReplicates + r;
+                    expressionData[gene][sampleIndex] = applyRealisticNoise(
+                            trueExpression, gene, sampleIndex, sampleNoiseFactors, geneNoiseFactors);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generates expression trajectories for Cluster 1 (clear linear downward trend).
+     */
+    private static void generateDescendingData(int startGene, int endGene, double[][] expressionData,
+                                               double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+        double[] baseTrajectory = new double[numberOfTimeSeries];
+        double vStart = 20.0;
+        double vEnd = 80.0;
+
+        for (int t = 0; t < numberOfTimeSeries; t++) {
+            double val = vEnd - (vEnd - vStart) * t / (numberOfTimeSeries - 1);
+            double trajectoryNoise = rng.nextGaussian() * trajectoryNoiseSd;
+            baseTrajectory[t] = Math.max(minExpressionValue, val + trajectoryNoise);
+        }
+
+        for (int gene = startGene; gene <= endGene; gene++) {
+            double scaleFactor = sampleLogUniformScaleFactor();
+            for (int t = 0; t < numberOfTimeSeries; t++) {
+                double trueExpression = Math.max(minExpressionValue, baseTrajectory[t] * scaleFactor);
                 for (int r = 0; r < numberOfReplicates; r++) {
                     int sampleIndex = t * numberOfReplicates + r;
                     expressionData[gene][sampleIndex] = applyRealisticNoise(

@@ -39,10 +39,8 @@ public class FilterFactory {
         CompositeFilter pre = new CompositeFilter();
         CompositeFilter post = new CompositeFilter();
 
-        // Apply default pre-normalization filters if no filters are provided
+        // If no filters are provided, return empty composite filters (no filtering)
         if (filterArgs == null || filterArgs.isEmpty()) {
-            pre.addfilter(new ZeroFilter());
-            pre.addfilter(new GeneFilterByVariance(1.0));
             return new FilterSetup(pre, post);
         }
 

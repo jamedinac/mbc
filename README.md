@@ -111,6 +111,109 @@ java -jar ClusterBenchmarkService.jar results/clusters_out.csv data/gold_standar
 
 ---
 
+## Filtering
+
+TRaC-GLM applies filters in a **two-stage pipeline** that is tightly coupled with the statistical modeling workflow. Filters are partitioned based on *when* they execute relative to normalization and model fitting:
+
+```
+Raw Counts ──▶ [Pre-Normalization Filters] ──▶ GLM / Normalization ──▶ [Post-Normalization Filters] ──▶ Clustering
+```
+
+### Two-Stage Pipeline
+
+| Stage | Filters | Operates on | Purpose |
+|---|---|---|---|
+| **Pre-normalization** | `non-zero`, `variance`, `total-expression` | Raw expression counts | Remove low-quality or uninformative genes **before** statistical modeling |
+| **Post-normalization** | `significance` | FDR-adjusted p-values | Retain only genes with statistically significant temporal changes **after** GLM fitting |
+
+Pre-normalization filters reduce the gene set early, improving computational efficiency and preventing noisy genes from affecting the GLM estimates. The post-normalization `significance` filter acts as a statistical gatekeeper, ensuring only biologically meaningful trajectories enter the clustering step.
+
+### Gene Filters
+
+All gene filters are specified via the `--filter` (`-f`) flag as a comma-separated list. Filters that require a threshold take it as the next value in the list.
+
+#### `non-zero`
+Removes any gene that contains **at least one zero count** across all samples. No parameter required.
+
+- **Use case**: Eliminates genes with dropout events (common in RNA-seq) that can distort model fitting and distance calculations.
+- **Stage**: Pre-normalization.
+- **Example**: `--filter non-zero`
+
+#### `variance <threshold>`
+Computes the **sample variance** of a gene's expression across all samples and removes genes whose variance is **at or below** the threshold.
+
+- **Use case**: Filters out flat or near-constant genes that carry no dynamic temporal information — these genes would add noise to clustering without contributing meaningful signal.
+- **Stage**: Pre-normalization.
+- **Example**: `--filter variance,1.0` — removes genes with variance ≤ 1.0.
+
+#### `total-expression <threshold>`
+Sums all expression values for a gene across every sample and removes genes whose total is **at or below** the threshold.
+
+- **Use case**: Removes very lowly expressed genes that are likely biological noise or artifacts of sequencing depth.
+- **Stage**: Pre-normalization.
+- **Example**: `--filter total-expression,10` — removes genes with total counts ≤ 10.
+
+#### `significance <threshold>`
+Applied **after** GLM fitting, Wald testing, and Benjamini-Hochberg FDR correction. Retains genes where **at least one** adjusted p-value across time-point coefficients is below the threshold.
+
+- **Use case**: Ensures only genes with statistically significant temporal trajectories (i.e., genes that truly change over time) enter the clustering step. This is the core statistical filter of the TRaC-GLM pipeline.
+- **Stage**: Post-normalization.
+- **Example**: `--filter significance,0.05` — retains genes with at least one FDR-adjusted p-value < 0.05.
+
+### Combining Multiple Filters
+
+Filters can be **chained** in a single `--filter` flag. They are applied conjunctively (a gene must pass **all** filters to be retained):
+
+```bash
+--filter non-zero,variance,1.0,total-expression,10,significance,0.05
+```
+
+This applies, in order:
+1. `non-zero` — remove genes with any zero count *(pre-normalization)*
+2. `variance > 1.0` — remove low-variance genes *(pre-normalization)*
+3. `total-expression > 10` — remove lowly expressed genes *(pre-normalization)*
+4. `significance < 0.05` — remove non-significant genes *(post-normalization)*
+
+### Sample Filters
+
+The `--filter-samples` (`-fs`) flag filters **samples** (columns) by metadata traits before any gene filtering or normalization. It takes comma-separated trait-value pairs:
+
+```bash
+--filter-samples Condition,Treatment,Tissue,Liver
+```
+
+This keeps only samples where `Condition = Treatment` **AND** `Tissue = Liver`. All specified trait constraints must be satisfied for a sample to be included.
+
+### Default Behavior & `--no-filter`
+
+- **When `--filter` is omitted**, no gene filters are applied — all genes proceed through the full pipeline.
+- **`--no-filter` (`-nf`)** explicitly disables all gene filtering. This flag **overrides** any `--filter` values, ensuring no genes are removed regardless of other arguments.
+
+### Examples
+
+**Strict filtering** — remove zeros, low-variance genes, and keep only statistically significant trajectories:
+```bash
+java -jar ClusterGenerationService.jar counts.csv metadata.csv results/out \
+  --filter non-zero,variance,1.0,significance,0.05 \
+  -a kmeans -k 5
+```
+
+**Significance-only filtering** — rely solely on the statistical test with a relaxed threshold:
+```bash
+java -jar ClusterGenerationService.jar counts.csv metadata.csv results/out \
+  --filter significance,0.1
+```
+
+**Combined sample and gene filtering** — subset to a specific condition and filter genes:
+```bash
+java -jar ClusterGenerationService.jar counts.csv metadata.csv results/out \
+  --filter-samples Condition,Treatment \
+  --filter non-zero,significance,0.05 \
+  -a hierarchical -k 8
+```
+
+---
+
 ## Input & Output Formats
 
 >**Note**: Simulated sample data, metadata description, and ground truth clustering can be found at `./data` directory

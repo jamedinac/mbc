@@ -2,6 +2,7 @@ package ClusterWorkflow;
 
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
+import Common.InputSummary;
 import Common.SampleMetadata;
 import Common.WorkflowResult;
 import Interfaces.*;
@@ -48,6 +49,7 @@ public class TracGLMWorkflow implements ClusterWorkflow {
     @Override
     public WorkflowResult execute() {
         GeneExpressionData rawData = dataLoad.getGeneExpressionFormattedData();
+        InputSummary inputSummary = new InputSummary(rawData.getNumberOfGenes(), rawData.getSampleIds().length);
 
         // 1. Prepare Data (Sample Filtering & Sorting by Time)
         PreparedData prep = prepareData(rawData);
@@ -121,7 +123,7 @@ public class TracGLMWorkflow implements ClusterWorkflow {
         // 10. Clustering
         GeneClusterData clusters = clusterAlgo.clusterGenes(finalDataForClustering);
 
-        return new WorkflowResult(finalDataForClustering, clusters);
+        return new WorkflowResult(inputSummary, finalDataForClustering, clusters);
     }
 
     private PreparedData prepareData(GeneExpressionData rawData) {

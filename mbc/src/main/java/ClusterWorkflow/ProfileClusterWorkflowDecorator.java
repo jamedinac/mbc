@@ -1,5 +1,7 @@
 package ClusterWorkflow;
 
+import Common.GeneExpressionData;
+import Common.InputSummary;
 import Common.WorkflowResult;
 import Interfaces.ClusterWorkflow;
 import java.lang.management.ManagementFactory;
@@ -34,10 +36,12 @@ public class ProfileClusterWorkflowDecorator implements ClusterWorkflow {
         long endTime = System.nanoTime();
         long durationNanos = endTime - startTime;
         double peakMemoryMB = this.getPeakHeapMemoryMB();
-        int geneCount = result.getProcessedData().getNumberOfGenes();
+
+        InputSummary inputSummary = result.getInputSummary();
+        GeneExpressionData processedData = result.getProcessedData();
 
         // Persist metrics (Overwrites the file)
-        this.writeMetrics(durationNanos, peakMemoryMB, geneCount);
+        this.writeMetrics(durationNanos, peakMemoryMB, inputSummary, processedData);
 
         return result;
     }
@@ -58,16 +62,31 @@ public class ProfileClusterWorkflowDecorator implements ClusterWorkflow {
         return peakMemoryBytes / (1024.0 * 1024.0);
     }
 
-    private void writeMetrics(long durationNanos, double peakMemoryMB, int geneCount) {
+    private void writeMetrics(long durationNanos, double peakMemoryMB, InputSummary inputSummary, GeneExpressionData processedData) {
         double durationSeconds = durationNanos / 1_000_000_000.0;
-        String metricsReport = String.format(
-                "--- Profiling Results ---\nGenes Processed: %d\nExecution Time: %.4f seconds\nPeak Heap Memory Usage: %.2f MB\n-------------------------\n",
-                geneCount, durationSeconds, peakMemoryMB
-        );
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- Profiling Results ---\n");
+        sb.append(String.format("Input Genes: %d\n", inputSummary.getGeneCount()));
+        sb.append(String.format("Input Samples: %d\n", inputSummary.getSampleCount()));
+        sb.append(String.format("Clustered Genes: %d\n", processedData.getNumberOfGenes()));
+        sb.append(String.format("Clustered Samples: %d\n", processedData.getSampleIds().length));
+        sb.append(String.format("Execution Time: %.4f seconds\n", durationSeconds));
+        sb.append(String.format("Peak Heap Memory Usage: %.2f MB\n", peakMemoryMB));
+        sb.append("-------------------------\n");
+
+        sb.append("\n--- Retained Genes ---\n");
+        for (String geneId : processedData.getGeneIds()) {
+            sb.append(geneId).append("\n");
+        }
+
+        sb.append("\n--- Retained Samples ---\n");
+        for (String sampleId : processedData.getSampleIds()) {
+            sb.append(sampleId).append("\n");
+        }
 
         try {
-            // StandardOpenOption.TRUNCATE_EXISTING ensures the file is rewritten
-            Files.writeString(Paths.get(METRICS_FILE_NAME), metricsReport, 
+            Files.writeString(Paths.get(METRICS_FILE_NAME), sb.toString(),
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (Exception e) {
             System.err.println("Failed to write profiling metrics to file: " + e.getMessage());

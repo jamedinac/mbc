@@ -2,6 +2,7 @@ package ClusterWorkflow;
 
 import Common.GeneClusterData;
 import Common.GeneExpressionData;
+import Common.InputSummary;
 import Common.WorkflowResult;
 import Interfaces.ClusterWorkflow;
 import Interfaces.IClusteringAlgorithm;
@@ -26,9 +27,10 @@ public class StandardClusterWorkflow implements ClusterWorkflow {
     @Override
     public WorkflowResult execute() {
         GeneExpressionData rawData = dataLoad.getGeneExpressionFormattedData();
+        InputSummary inputSummary = new InputSummary(rawData.getNumberOfGenes(), rawData.getSampleIds().length);
         GeneExpressionData processedData = dataProcessor.processData(rawData);
         GeneClusterData result = algorithm.clusterGenes(processedData);
         
-        return new WorkflowResult(processedData, result);
+        return new WorkflowResult(inputSummary, processedData, result);
     }
 }

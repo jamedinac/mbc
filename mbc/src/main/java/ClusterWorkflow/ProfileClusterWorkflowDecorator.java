@@ -70,7 +70,7 @@ public class ProfileClusterWorkflowDecorator implements ClusterWorkflow {
         sb.append(String.format("Input Genes: %d\n", inputSummary.getGeneCount()));
         sb.append(String.format("Input Samples: %d\n", inputSummary.getSampleCount()));
         sb.append(String.format("Clustered Genes: %d\n", processedData.getNumberOfGenes()));
-        sb.append(String.format("Clustered Samples: %d\n", processedData.getSampleIds().length));
+        sb.append(String.format("Time Series: %d\n", processedData.getSampleIds().length));
         sb.append(String.format("Execution Time: %.4f seconds\n", durationSeconds));
         sb.append(String.format("Peak Heap Memory Usage: %.2f MB\n", peakMemoryMB));
         sb.append("-------------------------\n");
@@ -80,10 +80,6 @@ public class ProfileClusterWorkflowDecorator implements ClusterWorkflow {
             sb.append(geneId).append("\n");
         }
 
-        sb.append("\n--- Retained Samples ---\n");
-        for (String sampleId : processedData.getSampleIds()) {
-            sb.append(sampleId).append("\n");
-        }
 
         try {
             Files.writeString(Paths.get(METRICS_FILE_NAME), sb.toString(),

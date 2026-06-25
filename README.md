@@ -65,13 +65,13 @@ java -jar ClusterGenerationService.jar <data_file> <metadata_file> <output_prefi
 - `--eps`: Epsilon parameter for DBSCAN. **Default**: `0.5`
 - `--minPts`: Minimum points parameter for DBSCAN. **Default**: `5`
 - `-n`, `--norm`: Normalization methods to apply in order, comma-separated (`irls`, `zscore`, `median`, `pseudolog`, `countdist`). **Default**: `irls`
-- `-f`, `--filter`: List of filters to apply, comma-separated. Supported: `non-zero`, `variance`, `total-expression`, `significance` (e.g., `--filter non-zero,variance,0.5,significance,0.05`). 
+- `-f`, `--filter`: List of pre-normalization filters to apply, comma-separated. Supported: `non-zero`, `variance`, `total-expression`. You can also override the default significance threshold (e.g., `--filter non-zero,variance,0.5,significance,0.1`). 
 - `-fs`, `--filter-samples`: List of sample traits to include, comma-separated (e.g., `--filter-samples Condition,Treatment,Tissue,Liver`). 
 - `-c`, `--compress`: Replicate compression method (`mean`, `variance`, `default`). **Default**: `default`
 - `-d`, `--distance`: Distance metric (`correlation`, `euclidean`, `jensenshannon`). **Default**: `correlation`
 - `-l`, `--linkage`: Linkage criterion for hierarchical clustering (`average`, `complete`, `single`). **Default**: `average`
 - `-p`, `--profile`: Flag to enable profiling. Records execution time, peak memory usage, input vs. clustered gene/sample counts, and lists all retained gene and sample IDs in `profile_metrics.txt`.
-- `-nf`, `--no-filter`: Flag to disable all gene filtering. This overrides the default filters and the --filter flag.
+
 
 ### Example
 ```bash
@@ -158,7 +158,8 @@ Applied **after** GLM fitting, Wald testing, and Benjamini-Hochberg FDR correcti
 
 - **Use case**: Ensures only genes with statistically significant temporal trajectories (i.e., genes that truly change over time) enter the clustering step. This is the core statistical filter of the TRaC-GLM pipeline.
 - **Stage**: Post-normalization.
-- **Example**: `--filter significance,0.05` — retains genes with at least one FDR-adjusted p-value < 0.05.
+- **Default**: Always applied with alpha = **0.05**. If you pass `--filter significance,<value>`, your threshold replaces the default.
+- **Example**: `--filter significance,0.1` — uses a relaxed threshold of 0.1 instead of the default 0.05.
 
 ### Combining Multiple Filters
 
@@ -184,10 +185,10 @@ The `--filter-samples` (`-fs`) flag filters **samples** (columns) by metadata tr
 
 This keeps only samples where `Condition = Treatment` **AND** `Tissue = Liver`. All specified trait constraints must be satisfied for a sample to be included.
 
-### Default Behavior & `--no-filter`
+### Default Behavior
 
-- **When `--filter` is omitted**, no gene filters are applied — all genes proceed through the full pipeline.
-- **`--no-filter` (`-nf`)** explicitly disables all gene filtering. This flag **overrides** any `--filter` values, ensuring no genes are removed regardless of other arguments.
+- The **significance filter** (alpha = 0.05) is **always applied** after GLM fitting and FDR correction, even when `--filter` is omitted. To use a different threshold, pass `--filter significance,<value>`.
+- **When `--filter` is omitted**, no pre-normalization gene filters are applied — all genes proceed to the GLM step, but only statistically significant ones enter clustering.
 
 ### Examples
 

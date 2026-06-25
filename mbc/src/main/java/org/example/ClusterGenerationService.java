@@ -75,8 +75,7 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"-p", "--profile"}, description = "Enable profiling to record execution time and memory usage.")
     private boolean profile;
 
-    @Option(names = {"-nf", "--no-filter"}, description = "Disable all gene filtering. This overrides the default filters and the --filter flag.")
-    private boolean noFilter;
+
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new ClusterGenerationService()).execute(args);
@@ -86,9 +85,7 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         // Build gene filters (Pre and Post Normalization)
-        FilterFactory.FilterSetup filterSetup = noFilter
-                ? new FilterFactory.FilterSetup(new Filter.CompositeFilter(), new Filter.CompositeFilter())
-                : FilterFactory.createFilterSetup(filters);
+        FilterFactory.FilterSetup filterSetup = FilterFactory.createFilterSetup(filters);
 
         // Data Load
         IDataLoad dataLoad = new DataLoad(data.getAbsolutePath(), metadata.getAbsolutePath(), "Time", "Sample");

@@ -8,6 +8,8 @@ import java.util.List;
  */
 public class FilterFactory {
 
+    private static final double DEFAULT_SIGNIFICANCE_THRESHOLD = 0.05;
+
     /**
      * Record to hold the partitioned filter groups.
      *
@@ -31,6 +33,8 @@ public class FilterFactory {
 
     /**
      * Parses the CLI filter arguments and partitions them into pre and post normalization stages.
+     * A significance filter is always applied: if the user does not explicitly provide one,
+     * a default threshold of 0.05 is used.
      *
      * @param filterArgs List of filter names and their parameters from the CLI.
      * @return A FilterSetup containing the partitioned composite filters.
@@ -38,30 +42,35 @@ public class FilterFactory {
     public static FilterSetup createFilterSetup(List<String> filterArgs) {
         CompositeFilter pre = new CompositeFilter();
         CompositeFilter post = new CompositeFilter();
+        boolean significanceProvided = false;
 
-        // If no filters are provided, return empty composite filters (no filtering)
-        if (filterArgs == null || filterArgs.isEmpty()) {
-            return new FilterSetup(pre, post);
-        }
-
-        for (int i = 0; i < filterArgs.size(); i++) {
-            String filterType = filterArgs.get(i).toLowerCase();
-            switch (filterType) {
-                case "non-zero" -> pre.addfilter(new ZeroFilter());
-                case "variance", "total-expression" -> {
-                    if (i + 1 < filterArgs.size()) {
-                        String param = filterArgs.get(++i);
-                        pre.addfilter(createFilter(filterType, List.of(param)));
+        if (filterArgs != null && !filterArgs.isEmpty()) {
+            for (int i = 0; i < filterArgs.size(); i++) {
+                String filterType = filterArgs.get(i).toLowerCase();
+                switch (filterType) {
+                    case "non-zero" -> pre.addfilter(new ZeroFilter());
+                    case "variance", "total-expression" -> {
+                        if (i + 1 < filterArgs.size()) {
+                            String param = filterArgs.get(++i);
+                            pre.addfilter(createFilter(filterType, List.of(param)));
+                        }
                     }
-                }
-                case "significance" -> {
-                    if (i + 1 < filterArgs.size()) {
-                        String param = filterArgs.get(++i);
-                        post.addfilter(new SignificanceFilter(Double.parseDouble(param)));
+                    case "significance" -> {
+                        if (i + 1 < filterArgs.size()) {
+                            String param = filterArgs.get(++i);
+                            post.addfilter(new SignificanceFilter(Double.parseDouble(param)));
+                            significanceProvided = true;
+                        }
                     }
                 }
             }
         }
+
+        // Always apply significance filter: use default alpha if not explicitly provided
+        if (!significanceProvided) {
+            post.addfilter(new SignificanceFilter(DEFAULT_SIGNIFICANCE_THRESHOLD));
+        }
+
         return new FilterSetup(pre, post);
     }
 }

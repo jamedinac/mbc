@@ -3,7 +3,7 @@ package ClusterWorkflow;
 import Common.GeneExpressionData;
 import Common.InputSummary;
 import Common.WorkflowResult;
-import Interfaces.ClusterWorkflow;
+import Interfaces.IClusterWorkflow;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
@@ -15,11 +15,11 @@ import java.nio.file.StandardOpenOption;
  * Decorator class for ClusterWorkflow that records the total computational
  * time, peak heap memory usage, and the number of genes processed.
  */
-public class ProfileClusterWorkflowDecorator implements ClusterWorkflow {
-    private final ClusterWorkflow wrappedWorkflow;
+public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
+    private final IClusterWorkflow wrappedWorkflow;
     private static final String METRICS_FILE_NAME = "profile_metrics.txt";
 
-    public ProfileClusterWorkflowDecorator(ClusterWorkflow wrappedWorkflow) {
+    public ProfileIClusterWorkflowDecorator(IClusterWorkflow wrappedWorkflow) {
         this.wrappedWorkflow = wrappedWorkflow;
     }
 

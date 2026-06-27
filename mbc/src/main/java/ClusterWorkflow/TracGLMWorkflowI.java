@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Significance-driven clustering workflow utilizing Generalized Linear Models (GLM).
  */
-public class TracGLMWorkflow implements ClusterWorkflow {
+public class TracGLMWorkflowI implements IClusterWorkflow {
 
     private final IDataLoad dataLoad;
     private final IGeneFilter preNormalizationFilter;
@@ -26,15 +26,15 @@ public class TracGLMWorkflow implements ClusterWorkflow {
     private final IMultipleTestingCorrection fdrAdjuster;
     private final IClusteringAlgorithm clusterAlgo;
 
-    public TracGLMWorkflow(IDataLoad dataLoad,
-                           IGeneFilter preNormalizationFilter,
-                           IGeneFilter postNormalizationFilter,
-                           ISampleFilter sampleFilter,
-                           IDataNormalizer baseNormalizer,
-                           IModelFitter glmProcessor,
-                           ISignificanceTester waldTester,
-                           IMultipleTestingCorrection fdrAdjuster,
-                           IClusteringAlgorithm clusterAlgo) {
+    public TracGLMWorkflowI(IDataLoad dataLoad,
+                            IGeneFilter preNormalizationFilter,
+                            IGeneFilter postNormalizationFilter,
+                            ISampleFilter sampleFilter,
+                            IDataNormalizer baseNormalizer,
+                            IModelFitter glmProcessor,
+                            ISignificanceTester waldTester,
+                            IMultipleTestingCorrection fdrAdjuster,
+                            IClusteringAlgorithm clusterAlgo) {
         this.dataLoad = dataLoad;
         this.preNormalizationFilter = preNormalizationFilter;
         this.postNormalizationFilter = postNormalizationFilter;

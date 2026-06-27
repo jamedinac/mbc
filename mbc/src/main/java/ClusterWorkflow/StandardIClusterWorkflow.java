@@ -4,7 +4,7 @@ import Common.GeneClusterData;
 import Common.GeneExpressionData;
 import Common.InputSummary;
 import Common.WorkflowResult;
-import Interfaces.ClusterWorkflow;
+import Interfaces.IClusterWorkflow;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataLoad;
 import Interfaces.IDataProcessor;
@@ -13,12 +13,12 @@ import Interfaces.IDataProcessor;
  * Standard implementation of the clustering workflow that encapsulates
  * the core data loading, processing, and clustering logic.
  */
-public class StandardClusterWorkflow implements ClusterWorkflow {
+public class StandardIClusterWorkflow implements IClusterWorkflow {
     private final IDataLoad dataLoad;
     private final IDataProcessor dataProcessor;
     private final IClusteringAlgorithm algorithm;
 
-    public StandardClusterWorkflow(IDataLoad dataLoad, IDataProcessor dataProcessor, IClusteringAlgorithm algorithm) {
+    public StandardIClusterWorkflow(IDataLoad dataLoad, IDataProcessor dataProcessor, IClusteringAlgorithm algorithm) {
         this.dataLoad = dataLoad;
         this.dataProcessor = dataProcessor;
         this.algorithm = algorithm;

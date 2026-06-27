@@ -5,7 +5,7 @@ import Common.WorkflowResult;
 /**
  * Interface that defines the standard execution contract for a clustering workflow.
  */
-public interface ClusterWorkflow {
+public interface IClusterWorkflow {
     /**
      * Executes the clustering workflow.
      * 

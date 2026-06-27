@@ -23,7 +23,7 @@ public class ClusterWorkflowFactory {
      * @param compressionMethod        The replicate compression method (used for Standard workflow).
      * @return An instantiated and optionally decorated ClusterWorkflow.
      */
-    public static ClusterWorkflow createWorkflow(
+    public static IClusterWorkflow createWorkflow(
             WorkflowType type,
             boolean enableProfiling,
             IDataLoad dataLoad,
@@ -34,13 +34,13 @@ public class ClusterWorkflowFactory {
             List<String> normMethods,
             String compressionMethod) {
 
-        ClusterWorkflow baseWorkflow = switch (type) {
+        IClusterWorkflow baseWorkflow = switch (type) {
             case TRAC_GLM -> {
                 System.out.println("Using TracGLMWorkflow with Wald Test and FDR correction...");
                 ILinearAlgebra mathAdapter = new MathAdapters.CommonsMathLinearAlgebra();
                 IProbabilityProvider probAdapter = new MathAdapters.CommonsMathProbability();
 
-                yield new TracGLMWorkflow(
+                yield new TracGLMWorkflowI(
                         dataLoad,
                         preNormalizationFilter,
                         postNormalizationFilter,
@@ -60,13 +60,13 @@ public class ClusterWorkflowFactory {
                         Normalizers.NormalizerFactory.createCompositeNormalizer(normMethods)
                 );
 
-                yield new StandardClusterWorkflow(dataLoad, dataProcessor, algorithm);
+                yield new StandardIClusterWorkflow(dataLoad, dataProcessor, algorithm);
             }
         };
 
         if (enableProfiling) {
             System.out.println("Profiling enabled. Metrics will be saved to profile_metrics.txt");
-            return new ProfileClusterWorkflowDecorator(baseWorkflow);
+            return new ProfileIClusterWorkflowDecorator(baseWorkflow);
         }
 
         return baseWorkflow;

@@ -10,16 +10,12 @@ import FileDataOperations.GeneExpressionDataWrite;
 import Filter.FilterFactory;
 import Filter.SampleFilterFactory;
 import GeneDistance.DistanceFactory;
-import Interfaces.ClusterWorkflow;
+import Interfaces.IClusterWorkflow;
 import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataLoad;
-import Interfaces.IDataProcessor;
 import Interfaces.IGeneClusterDataWrite;
 import Interfaces.IGeneDistance;
-import Interfaces.IGeneFilter;
 import LinkageCriteria.LinkageFactory;
-import Normalizers.NormalizerFactory;
-import ReplicateCompression.ReplicateCompressionFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -104,7 +100,7 @@ public class ClusterGenerationService implements Callable<Integer> {
         // Workflow Assembly
         WorkflowType type = WorkflowType.determineFromConfig(norm);
         
-        ClusterWorkflow workflow = ClusterWorkflowFactory.createWorkflow(
+        IClusterWorkflow workflow = ClusterWorkflowFactory.createWorkflow(
                 type,
                 profile,
                 dataLoad,

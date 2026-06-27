@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-@Command(name = "ClusterBenchmarkService", mixinStandardHelpOptions = true, version = "1.0",
-        description = "Evaluates clustering results against a gold standard and optionally calculates internal metrics.")
+@Command(name = "ClusterBenchmarkService", mixinStandardHelpOptions = true, version = "1.0", description = "Evaluates clustering results against a gold standard and optionally calculates internal metrics.")
 public class ClusterBenchmarkService implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Path to the generated clustering results file.")
@@ -36,10 +35,12 @@ public class ClusterBenchmarkService implements Callable<Integer> {
     @Parameters(index = "1", description = "Path to the gold standard (ground truth) cluster file.")
     private File goldStandardFile;
 
-    @Option(names = {"-p", "--processed-data"}, description = "Path to the processed gene expression matrix (CSV). Required for internal metrics.")
+    @Option(names = { "-p",
+            "--processed-data" }, description = "Path to the processed gene expression matrix (CSV). Required for internal metrics.")
     private File processedDataFile;
 
-    @Option(names = {"-d", "--distance"}, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon). Default: correlation")
+    @Option(names = { "-d",
+            "--distance" }, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon). Default: correlation")
     private String distanceStr;
 
     public static void main(String[] args) {
@@ -58,7 +59,6 @@ public class ClusterBenchmarkService implements Callable<Integer> {
         // Determine if internal metrics should be calculated
         boolean includeInternalMetrics = (processedDataFile != null);
         IGeneDistance geneDistance = null;
-        GeneExpressionData alignedData = null;
 
         if (includeInternalMetrics) {
             geneDistance = DistanceFactory.createDistance(distanceStr);
@@ -68,7 +68,8 @@ public class ClusterBenchmarkService implements Callable<Integer> {
         }
 
         // Build Benchmark Suite using Factory
-        CompositeBenchmark compositeBenchmark = ClusterBenchmarkFactory.createCompositeBenchmark(goldStandard, geneDistance, includeInternalMetrics);
+        CompositeBenchmark compositeBenchmark = ClusterBenchmarkFactory.createCompositeBenchmark(goldStandard,
+                geneDistance, includeInternalMetrics);
 
         // Run Benchmark
         runBenchmark(clusterDataFile.getAbsolutePath(), geneDistance, compositeBenchmark, includeInternalMetrics);
@@ -76,7 +77,8 @@ public class ClusterBenchmarkService implements Callable<Integer> {
         return 0;
     }
 
-    private void runBenchmark(String clusterDataFilePath, IGeneDistance geneDistance, IClusterBenchmark clusterBenchmark, boolean includeInternalMetrics) {
+    private void runBenchmark(String clusterDataFilePath, IGeneDistance geneDistance,
+            IClusterBenchmark clusterBenchmark, boolean includeInternalMetrics) {
         // Load generated cluster data
         GeneClusterDataLoad clusterLoader = new GeneClusterDataLoad(clusterDataFilePath);
         GeneClusterData clusterData = clusterLoader.readClusterData();
@@ -88,9 +90,11 @@ public class ClusterBenchmarkService implements Callable<Integer> {
             GeneExpressionData processedData = dataLoader.readProcessedData(processedDataFile.getAbsolutePath());
             alignedData = alignProcessedData(processedData, clusterData);
         } else {
-             // Create a dummy GeneExpressionData or handle null inside evaluate if required by the interface contract.
-             // Based on current implementation, some external metrics don't use it, but the interface requires it.
-             // Passing null here assuming external metrics ignore it.
+            // Create a dummy GeneExpressionData or handle null inside evaluate if required
+            // by the interface contract.
+            // Based on current implementation, some external metrics don't use it, but the
+            // interface requires it.
+            // Passing null here assuming external metrics ignore it.
         }
 
         // Evaluate
@@ -106,7 +110,7 @@ public class ClusterBenchmarkService implements Callable<Integer> {
 
     private GeneExpressionData alignProcessedData(GeneExpressionData processedData, GeneClusterData clusterData) {
         Set<String> validGenes = new HashSet<>(Arrays.asList(clusterData.getGeneIds()));
-        
+
         List<double[]> alignedExpressionList = new ArrayList<>();
         List<String> alignedGeneIds = new ArrayList<>();
 
@@ -129,7 +133,6 @@ public class ClusterBenchmarkService implements Callable<Integer> {
                 processedData.getMetadata(),
                 processedData.getReplicatesPerTime(),
                 processedData.getSampleTimeMap(),
-                processedData.getTimeLabels()
-        );
+                processedData.getTimeLabels());
     }
 }

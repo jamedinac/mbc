@@ -1,10 +1,9 @@
 package ReplicateCompression;
 
-import Interfaces.IReplicateCompression;
 
 import java.util.ArrayList;
 
-public class MeanReplicateCompression extends AReplicateCompression implements IReplicateCompression{
+public class MeanReplicateCompression extends AReplicateCompression {
     protected double calculate(ArrayList<Double> replicates){
         double mean = 0.0;
         for (Double replicate : replicates){

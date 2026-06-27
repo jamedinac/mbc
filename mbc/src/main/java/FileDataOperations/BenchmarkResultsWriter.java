@@ -21,7 +21,8 @@ public class BenchmarkResultsWriter {
             // 1. Summary Section
             fileContent.append("=== BENCHMARK SUMMARY ===\n");
             for (ClusterBenchmarkResult result : results) {
-                fileContent.append(result.getBenchmarkType()).append(":\t").append(result.getBenchmarkValue()).append("\n");
+                fileContent.append(result.getBenchmarkType()).append(":\t").append(result.getBenchmarkValue())
+                        .append("\n");
             }
             fileContent.append("\n");
 
@@ -34,14 +35,15 @@ public class BenchmarkResultsWriter {
                     fileContent.append("\nGene ID\tSilhouette Value\n");
                     GeneClusterData clusterData = result.getGeneClusterData();
                     double[] geneValues = result.getBenchmarkGeneValue();
-                    
+
                     if (clusterData != null && geneValues != null) {
                         for (int g = 0; g < clusterData.getNumberOfGenes(); g++) {
-                            fileContent.append(clusterData.getGeneId(g)).append("\t").append(geneValues[g]).append("\n");
+                            fileContent.append(clusterData.getGeneId(g)).append("\t").append(geneValues[g])
+                                    .append("\n");
                         }
                     }
                 }
-                
+
                 fileContent.append("\n");
             }
 
@@ -49,13 +51,5 @@ public class BenchmarkResultsWriter {
         } catch (IOException e) {
             System.out.println("Error writing benchmark file: " + e.getMessage());
         }
-    }
-
-    private String getFileName(String fileName) {
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0) {
-            return fileName.substring(0, dotIndex);
-        }
-        return fileName;
     }
 }

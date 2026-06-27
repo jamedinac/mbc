@@ -1,7 +1,6 @@
 package org.example;
 
 import Common.GeneClusterData;
-import DataGenerators.RandomGenerator;
 import Enum.FileFormat;
 import FileDataOperations.GeneClusterDataWrite;
 
@@ -13,12 +12,14 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Simulates time-series RNA-seq expression data for 1000 genes across 4 clusters:
+ * Simulates time-series RNA-seq expression data for 1000 genes across 4
+ * clusters:
  * - Clusters 0, 2: Upward trending trajectories
  * - Cluster 1: Downward trending trajectories
  * - Cluster 3: Basal (flat) expression with noise
  *
- * Output: TSV files for expression data, metadata, and ground-truth cluster assignments.
+ * Output: TSV files for expression data, metadata, and ground-truth cluster
+ * assignments.
  */
 public class SimulateDataGeneratorService {
 
@@ -36,7 +37,7 @@ public class SimulateDataGeneratorService {
 
     // Trajectory parameters
     static double trajectoryNoiseSd = 0.3;
-    static int maxDeltaVariation = 2;  // Increased from 1 for stronger signal
+    static int maxDeltaVariation = 2; // Increased from 1 for stronger signal
     static int minExpressionValue = 1;
 
     // Per-gene multiplicative scaling within a cluster (log-uniform)
@@ -48,13 +49,13 @@ public class SimulateDataGeneratorService {
     static int basalLevelMax = 80;
 
     // Sample-level technical noise (batch effect)
-    static double sampleNoiseSdBase = 0.10;  // Reduced from 0.15
+    static double sampleNoiseSdBase = 0.10; // Reduced from 0.15
     static double sampleNoiseSdHigh = 0.40;
     static double badSampleProbability = 0.15;
 
     // Gene-specific biological noise
     static double geneNoiseFactorMin = 0.05;
-    static double geneNoiseFactorMax = 0.15;  // Reduced from 0.25
+    static double geneNoiseFactorMax = 0.15; // Reduced from 0.25
 
     // Technical outliers
     static double outlierProbability = 0.01;
@@ -66,16 +67,19 @@ public class SimulateDataGeneratorService {
     static Random rng = new Random(simulationSeed);
 
     // Drift control: reduced probability to preserve trend direction
-    static double driftProbability = 0.10;  // Reduced from 0.30
+    static double driftProbability = 0.10; // Reduced from 0.30
 
     // ========== ENTRY POINT ==========
 
     /**
      * Main entry point for simulation.
-     * @param args optional: [0] = output directory path (overrides hardcoded default)
+     * 
+     * @param args optional: [0] = output directory path (overrides hardcoded
+     *             default)
      */
     public static void main(String[] args) {
-        // Allow command-line override of output path while keeping default for convenience
+        // Allow command-line override of output path while keeping default for
+        // convenience
         if (args.length > 0 && !args[0].isEmpty()) {
             directoryPath = args[0];
         }
@@ -98,15 +102,20 @@ public class SimulateDataGeneratorService {
         double[] geneNoiseFactors = generateGeneNoiseFactors();
 
         // Generate trajectories for each cluster
-        generateEarlyResponseData(0, 99, expressionData, sampleNoiseFactors, geneNoiseFactors);    // Cluster 0: upward (steep, early-response)
-        generateDescendingData(100, 199, expressionData, sampleNoiseFactors, geneNoiseFactors);   // Cluster 1: downward (linear)
-        generateSigmoidalData(200, 299, expressionData, sampleNoiseFactors, geneNoiseFactors);     // Cluster 2: upward (delayed, sigmoidal-response)
-        generateBasalData(300, 999, expressionData, sampleNoiseFactors, geneNoiseFactors);         // Cluster 3: basal
+        generateEarlyResponseData(0, 99, expressionData, sampleNoiseFactors, geneNoiseFactors); // Cluster 0: upward
+                                                                                                // (steep,
+                                                                                                // early-response)
+        generateDescendingData(100, 199, expressionData, sampleNoiseFactors, geneNoiseFactors); // Cluster 1: downward
+                                                                                                // (linear)
+        generateSigmoidalData(200, 299, expressionData, sampleNoiseFactors, geneNoiseFactors); // Cluster 2: upward
+                                                                                               // (delayed,
+                                                                                               // sigmoidal-response)
+        generateBasalData(300, 999, expressionData, sampleNoiseFactors, geneNoiseFactors); // Cluster 3: basal
 
         // Generate metadata
         String[] geneIds = generateGeneIds();
         String[] columns = generateColumns();
-        String[] metadataColumns = {"Sample", "Time"};
+        String[] metadataColumns = { "Sample", "Time" };
         String[][] metadata = generateMetadata(columns);
 
         // Write outputs
@@ -152,16 +161,17 @@ public class SimulateDataGeneratorService {
 
     /**
      * Applies realistic noise to a true expression value.
-     * Uses log-normal noise (multiplicative) to better reflect RNA-seq count properties.
+     * Uses log-normal noise (multiplicative) to better reflect RNA-seq count
+     * properties.
      * Outliers compound with noise rather than replacing it.
      */
     private static double applyRealisticNoise(double trueExpression, int gene, int sampleIndex,
-                                              double[] sampleNoiseFactors, double[] geneNoiseFactors) {
-        // Combine noise sources in quadrature (CV adds in quadrature for independent log-normal errors)
+            double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+        // Combine noise sources in quadrature (CV adds in quadrature for independent
+        // log-normal errors)
         double combinedCV = Math.sqrt(
                 Math.pow(sampleNoiseFactors[sampleIndex], 2) +
-                        Math.pow(geneNoiseFactors[gene], 2)
-        );
+                        Math.pow(geneNoiseFactors[gene], 2));
 
         // Log-normal noise: multiplicative on original scale, additive on log scale
         double logNoise = rng.nextGaussian() * combinedCV;
@@ -172,9 +182,9 @@ public class SimulateDataGeneratorService {
             double multiplier = outlierMultiplierMin +
                     rng.nextDouble() * (outlierMultiplierMax - outlierMultiplierMin);
             if (rng.nextDouble() < 0.5) {
-                observed *= multiplier;      // Upward outlier
+                observed *= multiplier; // Upward outlier
             } else {
-                observed /= multiplier;      // Downward outlier
+                observed /= multiplier; // Downward outlier
             }
         }
 
@@ -197,18 +207,19 @@ public class SimulateDataGeneratorService {
     /**
      * Generates expression trajectories for genes with monotonic trends.
      *
-     * @param startGene inclusive start index
-     * @param endGene inclusive end index
-     * @param expressionData output array [gene][sample]
-     * @param baseTrend direction of trajectory: +1 (up), -1 (down)
+     * @param startGene          inclusive start index
+     * @param endGene            inclusive end index
+     * @param expressionData     output array [gene][sample]
+     * @param baseTrend          direction of trajectory: +1 (up), -1 (down)
      * @param sampleNoiseFactors per-sample technical noise SDs
-     * @param geneNoiseFactors per-gene biological noise CVs
+     * @param geneNoiseFactors   per-gene biological noise CVs
      */
     /**
-     * Generates expression trajectories for Cluster 0 (steep, early-response upward trend).
+     * Generates expression trajectories for Cluster 0 (steep, early-response upward
+     * trend).
      */
     private static void generateEarlyResponseData(int startGene, int endGene, double[][] expressionData,
-                                                  double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+            double[] sampleNoiseFactors, double[] geneNoiseFactors) {
         double[] baseTrajectory = new double[numberOfTimeSeries];
         double vStart = 20.0;
         double vEnd = 80.0;
@@ -234,10 +245,11 @@ public class SimulateDataGeneratorService {
     }
 
     /**
-     * Generates expression trajectories for Cluster 2 (delayed sigmoidal-response upward trend).
+     * Generates expression trajectories for Cluster 2 (delayed sigmoidal-response
+     * upward trend).
      */
     private static void generateSigmoidalData(int startGene, int endGene, double[][] expressionData,
-                                              double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+            double[] sampleNoiseFactors, double[] geneNoiseFactors) {
         double[] baseTrajectory = new double[numberOfTimeSeries];
         double vStart = 20.0;
         double vEnd = 80.0;
@@ -264,10 +276,11 @@ public class SimulateDataGeneratorService {
     }
 
     /**
-     * Generates expression trajectories for Cluster 1 (clear linear downward trend).
+     * Generates expression trajectories for Cluster 1 (clear linear downward
+     * trend).
      */
     private static void generateDescendingData(int startGene, int endGene, double[][] expressionData,
-                                               double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+            double[] sampleNoiseFactors, double[] geneNoiseFactors) {
         double[] baseTrajectory = new double[numberOfTimeSeries];
         double vStart = 20.0;
         double vEnd = 80.0;
@@ -295,7 +308,7 @@ public class SimulateDataGeneratorService {
      * Generates flat (basal) expression for non-differentially expressed genes.
      */
     private static void generateBasalData(int startGene, int endGene, double[][] expressionData,
-                                          double[] sampleNoiseFactors, double[] geneNoiseFactors) {
+            double[] sampleNoiseFactors, double[] geneNoiseFactors) {
         for (int gene = startGene; gene <= endGene; gene++) {
             double basalLevel = basalLevelMin + rng.nextInt(basalLevelMax - basalLevelMin + 1);
 
@@ -341,7 +354,8 @@ public class SimulateDataGeneratorService {
 
     // ========== FILE I/O ==========
 
-    private static void writeExpressionData(String directoryPath, String[] geneIds, String[] columns, double[][] expressionData) {
+    private static void writeExpressionData(String directoryPath, String[] geneIds, String[] columns,
+            double[][] expressionData) {
         String separator = FileFormat.TSV.getDelimiter();
         String extension = FileFormat.TSV.getExtension();
 
@@ -437,12 +451,14 @@ public class SimulateDataGeneratorService {
     // ========== DIAGNOSTICS & VALIDATION ==========
 
     /**
-     * Prints mean expression trajectory per cluster (averaged across genes and replicates).
-     * Use this to verify that clusters 0/2 increase, cluster 1 decreases, cluster 3 is flat.
+     * Prints mean expression trajectory per cluster (averaged across genes and
+     * replicates).
+     * Use this to verify that clusters 0/2 increase, cluster 1 decreases, cluster 3
+     * is flat.
      */
     private static void printClusterTrajectories(double[][] expressionData) {
-        int[][] clusterRanges = {{0, 99}, {100, 199}, {200, 299}, {300, 999}};
-        String[] clusterLabels = {"Cluster 0 (up)", "Cluster 1 (down)", "Cluster 2 (up)", "Cluster 3 (basal)"};
+        int[][] clusterRanges = { { 0, 99 }, { 100, 199 }, { 200, 299 }, { 300, 999 } };
+        String[] clusterLabels = { "Cluster 0 (up)", "Cluster 1 (down)", "Cluster 2 (up)", "Cluster 3 (basal)" };
 
         System.out.println("\n--- Mean Trajectories per Cluster ---");
         for (int c = 0; c < 4; c++) {
@@ -467,11 +483,12 @@ public class SimulateDataGeneratorService {
 
     /**
      * Computes average pairwise Pearson correlation within each cluster.
-     * Values > 0.7 suggest good within-cluster coherence; < 0.4 suggests noise dominates.
+     * Values > 0.7 suggest good within-cluster coherence; < 0.4 suggests noise
+     * dominates.
      */
     private static void printWithinClusterCorrelations(double[][] expressionData) {
-        int[][] clusterRanges = {{0, 99}, {100, 199}, {200, 299}, {300, 999}};
-        String[] clusterLabels = {"Cluster 0", "Cluster 1", "Cluster 2", "Cluster 3"};
+        int[][] clusterRanges = { { 0, 99 }, { 100, 199 }, { 200, 299 }, { 300, 999 } };
+        String[] clusterLabels = { "Cluster 0", "Cluster 1", "Cluster 2", "Cluster 3" };
 
         System.out.println("\n--- Average Within-Cluster Pearson Correlation ---");
         for (int c = 0; c < 4; c++) {
@@ -486,7 +503,8 @@ public class SimulateDataGeneratorService {
             while (pairsTested < maxPairs) {
                 int g1 = start + rng.nextInt(nGenes);
                 int g2 = start + rng.nextInt(nGenes);
-                if (g1 == g2) continue;
+                if (g1 == g2)
+                    continue;
 
                 double corr = computePearsonCorrelation(expressionData[g1], expressionData[g2]);
                 if (!Double.isNaN(corr)) {
@@ -505,7 +523,8 @@ public class SimulateDataGeneratorService {
      */
     private static double computePearsonCorrelation(double[] x, double[] y) {
         int n = x.length;
-        if (n != y.length) return Double.NaN;
+        if (n != y.length)
+            return Double.NaN;
 
         double meanX = Arrays.stream(x).average().orElse(0);
         double meanY = Arrays.stream(y).average().orElse(0);
@@ -524,7 +543,8 @@ public class SimulateDataGeneratorService {
     }
 
     /**
-     * Basic validation checks to ensure simulation parameters produce intended behavior.
+     * Basic validation checks to ensure simulation parameters produce intended
+     * behavior.
      */
     private static void validateSimulation(double[][] expressionData) {
         System.out.println("\n--- Validation Checks ---");
@@ -538,13 +558,14 @@ public class SimulateDataGeneratorService {
                     break;
                 }
             }
-            if (!allValid) break;
+            if (!allValid)
+                break;
         }
         System.out.println(allValid ? "✓ All values >= minExpressionValue" : "✗ Found values below minimum");
 
         // Check 2: Cluster mean trends (simplified)
-        int[][] clusterRanges = {{0, 99}, {100, 199}, {200, 299}, {300, 999}};
-        int[] expectedDirections = {1, -1, 1, 0}; // up, down, up, flat
+        int[][] clusterRanges = { { 0, 99 }, { 100, 199 }, { 200, 299 }, { 300, 999 } };
+        int[] expectedDirections = { 1, -1, 1, 0 }; // up, down, up, flat
 
         for (int c = 0; c < 4; c++) {
             int start = clusterRanges[c][0], end = clusterRanges[c][1];

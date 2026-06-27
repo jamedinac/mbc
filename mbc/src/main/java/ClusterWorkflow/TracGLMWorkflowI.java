@@ -5,11 +5,14 @@ import Common.GeneExpressionData;
 import Common.InputSummary;
 import Common.SampleMetadata;
 import Common.WorkflowResult;
+import Enum.FilterStatus;
 import Interfaces.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Significance-driven clustering workflow utilizing Generalized Linear Models (GLM).
@@ -54,16 +57,18 @@ public class TracGLMWorkflowI implements IClusterWorkflow {
         // 1. Prepare Data (Sample Filtering & Sorting by Time)
         PreparedData prep = prepareData(rawData);
 
+        Map<String, FilterStatus> filteredOutGenes = new LinkedHashMap<>();
+
         // 2. Pre-Normalization Filtering (e.g., Variance, Non-Zero)
-        FilteredData preFiltered = applyPreNormalizationFilter(prep, rawData.getGeneIds());
+        FilteredData preFiltered = applyFilter(prep.matrix(), prep.matrix(), rawData.getGeneIds(), preNormalizationFilter, filteredOutGenes);
 
         // 3. Base Normalization
         double[][] normalizedData = baseNormalizer.normalize(
-                preFiltered.matrix, prep.replicatesPerTime, prep.sampleTimeMap, rawData.getNumberOfTimeSeries());
+                preFiltered.matrix(), prep.replicatesPerTime(), prep.sampleTimeMap(), rawData.getNumberOfTimeSeries());
 
         // 4. Model Fitting (GLM)
         Common.GLMFitResult glmResult = glmProcessor.fitModel(
-                normalizedData, prep.replicatesPerTime, prep.sampleTimeMap, rawData.getNumberOfTimeSeries());
+                normalizedData, prep.replicatesPerTime(), prep.sampleTimeMap(), rawData.getNumberOfTimeSeries());
 
         // 5. Extract Statistical Significance (Wald Test)
         double[][] rawPValues = waldTester.calculateRawPValues(glmResult);
@@ -73,22 +78,10 @@ public class TracGLMWorkflowI implements IClusterWorkflow {
 
         // 7. Post-Normalization Filtering (e.g., Significance)
         // We reuse the IGeneFilter interface to evaluate the p-value trajectories
-        List<double[]> sigBetas = new ArrayList<>();
-        List<String> sigGeneIds = new ArrayList<>();
+        FilteredData postFiltered = applyFilter(adjPValues, glmResult.betas(), preFiltered.geneIds(), postNormalizationFilter, filteredOutGenes);
 
-        for (int i = 0; i < glmResult.betas().length; i++) {
-            if (postNormalizationFilter.filterGene(adjPValues[i])) {
-                sigBetas.add(glmResult.betas()[i]);
-                sigGeneIds.add(preFiltered.geneIds[i]);
-            }
-        }
-
-        if (sigBetas.isEmpty()) {
-            throw new RuntimeException("No genes passed the post-normalization filtering threshold.");
-        }
-
-        double[][] finalBetasMatrix = sigBetas.toArray(new double[0][]);
-        String[] finalGeneIds = sigGeneIds.toArray(new String[0]);
+        double[][] finalBetasMatrix = postFiltered.matrix();
+        String[] finalGeneIds = postFiltered.geneIds();
 
         // 8. Intercept Removal (Clustering on Dynamic Fold Changes only)
         int dynamicTimePoints = rawData.getNumberOfTimeSeries() - 1;
@@ -123,7 +116,7 @@ public class TracGLMWorkflowI implements IClusterWorkflow {
         // 10. Clustering
         GeneClusterData clusters = clusterAlgo.clusterGenes(finalDataForClustering);
 
-        return new WorkflowResult(inputSummary, finalDataForClustering, clusters);
+        return new WorkflowResult(inputSummary, finalDataForClustering, clusters, filteredOutGenes);
     }
 
     private PreparedData prepareData(GeneExpressionData rawData) {
@@ -169,26 +162,32 @@ public class TracGLMWorkflowI implements IClusterWorkflow {
         return new PreparedData(sortedMatrix, filteredReplicatesPerTime, sampleTimeMap);
     }
 
-    private FilteredData applyPreNormalizationFilter(PreparedData prep, String[] rawGeneIds) {
+    private FilteredData applyFilter(double[][] filterMatrix, double[][] keepMatrix, String[] geneIds, 
+                                     IGeneFilter filter, Map<String, FilterStatus> filteredOutGenes) {
         List<Integer> validGeneIndices = new ArrayList<>();
-        for (int i = 0; i < prep.matrix.length; i++) {
-            if (preNormalizationFilter.filterGene(prep.matrix[i])) {
+        for (int i = 0; i < filterMatrix.length; i++) {
+            FilterStatus status = filter.filterGene(filterMatrix[i]);
+            if (status == FilterStatus.NOT_FILTERED) {
                 validGeneIndices.add(i);
+            } else {
+                if (filteredOutGenes != null) {
+                    filteredOutGenes.put(geneIds[i], status);
+                }
             }
         }
 
         if (validGeneIndices.isEmpty()) {
-            throw new RuntimeException("No gene passed the pre-normalization filter");
+            throw new RuntimeException("No genes passed the filter.");
         }
 
         int numValidGenes = validGeneIndices.size();
-        double[][] filteredMatrix = new double[numValidGenes][prep.matrix[0].length];
+        double[][] filteredMatrix = new double[numValidGenes][keepMatrix[0].length];
         String[] filteredGeneIds = new String[numValidGenes];
 
         for (int i = 0; i < numValidGenes; i++) {
             int originalIndex = validGeneIndices.get(i);
-            filteredMatrix[i] = prep.matrix[originalIndex];
-            filteredGeneIds[i] = rawGeneIds[originalIndex];
+            filteredMatrix[i] = keepMatrix[originalIndex];
+            filteredGeneIds[i] = geneIds[originalIndex];
         }
 
         return new FilteredData(filteredMatrix, filteredGeneIds);

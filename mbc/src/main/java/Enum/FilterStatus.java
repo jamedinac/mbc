@@ -1,0 +1,9 @@
+package Enum;
+
+public enum FilterStatus {
+    NOT_FILTERED,
+    ZERO_FILTER,
+    VARIANCE_FILTER,
+    TOTAL_EXPRESSION_FILTER,
+    SIGNIFICANCE_FILTER
+}

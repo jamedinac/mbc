@@ -291,10 +291,11 @@ Execution Time: 12.0006 seconds
 Peak Heap Memory Usage: 60.35 MB
 -------------------------
 
---- Retained Genes ---
-GENE1
-GENE2
-GENE3
+--- Filtered Out Genes ---
+GENE301	ZERO_FILTER
+GENE302	ZERO_FILTER
+GENE303	VARIANCE_FILTER
+GENE500	SIGNIFICANCE_FILTER
 ...
 ```
 

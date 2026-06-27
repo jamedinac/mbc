@@ -1,5 +1,6 @@
 package Filter;
 
+import Enum.FilterStatus;
 import Interfaces.IGeneFilter;
 
 import java.util.ArrayList;
@@ -17,13 +18,14 @@ public class CompositeFilter implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(double[] geneExpressionRow) {
-        boolean result = true;
-
+    public FilterStatus filterGene(double[] geneExpressionRow) {
         for (IGeneFilter filter : this.filters) {
-            result &= filter.filterGene(geneExpressionRow);
+            FilterStatus status = filter.filterGene(geneExpressionRow);
+            if (status != FilterStatus.NOT_FILTERED) {
+                return status;
+            }
         }
 
-        return result;
+        return FilterStatus.NOT_FILTERED;
     }
 }

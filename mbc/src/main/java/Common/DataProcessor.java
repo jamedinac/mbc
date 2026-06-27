@@ -1,5 +1,6 @@
 package Common;
 
+import Enum.FilterStatus;
 import Interfaces.IDataProcessor;
 import Interfaces.IDataNormalizer;
 import Interfaces.IGeneFilter;
@@ -69,7 +70,7 @@ public class DataProcessor implements IDataProcessor {
         // 2. Filter Genes
         List<Integer> validGeneIndices = new ArrayList<>();
         for (int i = 0; i < rawMatrix.length; i++) {
-            if (geneFilter.filterGene(sortedAndSampleFilteredMatrix[i])) {
+            if (geneFilter.filterGene(sortedAndSampleFilteredMatrix[i]) == FilterStatus.NOT_FILTERED) {
                 validGeneIndices.add(i);
             }
         }

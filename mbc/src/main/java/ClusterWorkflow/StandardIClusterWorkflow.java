@@ -9,6 +9,8 @@ import Interfaces.IClusteringAlgorithm;
 import Interfaces.IDataLoad;
 import Interfaces.IDataProcessor;
 
+import java.util.LinkedHashMap;
+
 /**
  * Standard implementation of the clustering workflow that encapsulates
  * the core data loading, processing, and clustering logic.
@@ -31,6 +33,6 @@ public class StandardIClusterWorkflow implements IClusterWorkflow {
         GeneExpressionData processedData = dataProcessor.processData(rawData);
         GeneClusterData result = algorithm.clusterGenes(processedData);
         
-        return new WorkflowResult(inputSummary, processedData, result);
+        return new WorkflowResult(inputSummary, processedData, result, new LinkedHashMap<>());
     }
 }

@@ -1,5 +1,6 @@
 package Filter;
 
+import Enum.FilterStatus;
 import Interfaces.IGeneFilter;
 
 public class GeneFilterByTotalExpression implements IGeneFilter {
@@ -11,13 +12,13 @@ public class GeneFilterByTotalExpression implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(double[] geneExpressionRow) {
+    public FilterStatus filterGene(double[] geneExpressionRow) {
         double expressionSum = 0;
 
-        for (int c = 0;  c < geneExpressionRow.length; c++) {
-            expressionSum += geneExpressionRow[c];
+        for (double expression : geneExpressionRow) {
+            expressionSum += expression;
         }
 
-        return expressionSum > this.expressionThreshold;
+        return expressionSum > this.expressionThreshold ? FilterStatus.NOT_FILTERED : FilterStatus.TOTAL_EXPRESSION_FILTER;
     }
 }

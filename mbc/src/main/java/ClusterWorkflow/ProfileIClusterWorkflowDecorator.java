@@ -3,6 +3,7 @@ package ClusterWorkflow;
 import Common.GeneExpressionData;
 import Common.InputSummary;
 import Common.WorkflowResult;
+import Enum.FilterStatus;
 import Interfaces.IClusterWorkflow;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -10,6 +11,7 @@ import java.lang.management.MemoryType;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 /**
  * Decorator class for ClusterWorkflow that records the total computational
@@ -41,7 +43,7 @@ public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
         GeneExpressionData processedData = result.getProcessedData();
 
         // Persist metrics (Overwrites the file)
-        this.writeMetrics(durationNanos, peakMemoryMB, inputSummary, processedData);
+        this.writeMetrics(durationNanos, peakMemoryMB, inputSummary, processedData, result.getFilteredOutGenes());
 
         return result;
     }
@@ -62,7 +64,8 @@ public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
         return peakMemoryBytes / (1024.0 * 1024.0);
     }
 
-    private void writeMetrics(long durationNanos, double peakMemoryMB, InputSummary inputSummary, GeneExpressionData processedData) {
+    private void writeMetrics(long durationNanos, double peakMemoryMB, InputSummary inputSummary, 
+                              GeneExpressionData processedData, Map<String, FilterStatus> filteredOutGenes) {
         double durationSeconds = durationNanos / 1_000_000_000.0;
 
         StringBuilder sb = new StringBuilder();
@@ -75,11 +78,10 @@ public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
         sb.append(String.format("Peak Heap Memory Usage: %.2f MB\n", peakMemoryMB));
         sb.append("-------------------------\n");
 
-        sb.append("\n--- Retained Genes ---\n");
-        for (String geneId : processedData.getGeneIds()) {
-            sb.append(geneId).append("\n");
+        sb.append("\n--- Filtered Out Genes ---\n");
+        for (Map.Entry<String, FilterStatus> entry : filteredOutGenes.entrySet()) {
+            sb.append(entry.getKey()).append("\t").append(entry.getValue()).append("\n");
         }
-
 
         try {
             Files.writeString(Paths.get(METRICS_FILE_NAME), sb.toString(),

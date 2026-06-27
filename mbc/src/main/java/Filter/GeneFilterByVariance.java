@@ -1,5 +1,6 @@
 package Filter;
 
+import Enum.FilterStatus;
 import Interfaces.IGeneFilter;
 
 public class GeneFilterByVariance implements IGeneFilter {
@@ -11,7 +12,7 @@ public class GeneFilterByVariance implements IGeneFilter {
     }
 
     @Override
-    public boolean filterGene(double[] geneExpressionRow) {
+    public FilterStatus filterGene(double[] geneExpressionRow) {
         double mean = 0.0;
         double variance = 0.0;
 
@@ -26,6 +27,6 @@ public class GeneFilterByVariance implements IGeneFilter {
         }
         variance /= geneExpressionRow.length - 1;
 
-        return variance > this.varianceThreshold;
+        return variance > this.varianceThreshold ? FilterStatus.NOT_FILTERED : FilterStatus.VARIANCE_FILTER;
     }
 }

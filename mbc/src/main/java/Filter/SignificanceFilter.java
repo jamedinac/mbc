@@ -1,5 +1,6 @@
 package Filter;
 
+import Enum.FilterStatus;
 import Interfaces.IGeneFilter;
 
 /**
@@ -24,15 +25,15 @@ public class SignificanceFilter implements IGeneFilter {
      * Determines whether a gene should be retained based on its p-values.
      * 
      * @param pValues An array of p-values for a single gene across time points.
-     * @return true if at least one p-value is below the threshold, false otherwise.
+     * @return {@link FilterStatus#NOT_FILTERED} if at least one p-value is below the threshold, or {@link FilterStatus#SIGNIFICANCE_FILTER} otherwise.
      */
     @Override
-    public boolean filterGene(double[] pValues) {
+    public FilterStatus filterGene(double[] pValues) {
         for (double p : pValues) {
             if (p < threshold) {
-                return true;
+                return FilterStatus.NOT_FILTERED;
             }
         }
-        return false;
+        return FilterStatus.SIGNIFICANCE_FILTER;
     }
 }

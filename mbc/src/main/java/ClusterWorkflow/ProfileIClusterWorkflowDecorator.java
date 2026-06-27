@@ -5,12 +5,12 @@ import Common.InputSummary;
 import Common.WorkflowResult;
 import Enum.FilterStatus;
 import Interfaces.IClusterWorkflow;
+import Interfaces.IDataWriter;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -19,10 +19,12 @@ import java.util.Map;
  */
 public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
     private final IClusterWorkflow wrappedWorkflow;
-    private static final String METRICS_FILE_NAME = "profile_metrics.txt";
+    private final IDataWriter dataWriter;
+    private static final String METRICS_FILE_NAME = "profile_metrics.json";
 
-    public ProfileIClusterWorkflowDecorator(IClusterWorkflow wrappedWorkflow) {
+    public ProfileIClusterWorkflowDecorator(IClusterWorkflow wrappedWorkflow, IDataWriter dataWriter) {
         this.wrappedWorkflow = wrappedWorkflow;
+        this.dataWriter = dataWriter;
     }
 
     @Override
@@ -68,26 +70,24 @@ public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
                               GeneExpressionData processedData, Map<String, FilterStatus> filteredOutGenes) {
         double durationSeconds = durationNanos / 1_000_000_000.0;
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("--- Profiling Results ---\n");
-        sb.append(String.format("Input Genes: %d\n", inputSummary.getGeneCount()));
-        sb.append(String.format("Input Samples: %d\n", inputSummary.getSampleCount()));
-        sb.append(String.format("Clustered Genes: %d\n", processedData.getNumberOfGenes()));
-        sb.append(String.format("Time Series: %d\n", processedData.getSampleIds().length));
-        sb.append(String.format("Execution Time: %.4f seconds\n", durationSeconds));
-        sb.append(String.format("Peak Heap Memory Usage: %.2f MB\n", peakMemoryMB));
-        sb.append("-------------------------\n");
-
-        sb.append("\n--- Filtered Out Genes ---\n");
+        Map<String, Object> rootMap = new LinkedHashMap<>();
+        
+        Map<String, Object> profilingMetrics = new LinkedHashMap<>();
+        profilingMetrics.put("input_genes", inputSummary.getGeneCount());
+        profilingMetrics.put("input_samples", inputSummary.getSampleCount());
+        profilingMetrics.put("clustered_genes", processedData.getNumberOfGenes());
+        profilingMetrics.put("time_series", processedData.getSampleIds().length);
+        profilingMetrics.put("execution_time_seconds", durationSeconds);
+        profilingMetrics.put("peak_heap_memory_mb", peakMemoryMB);
+        
+        rootMap.put("profiling_metrics", profilingMetrics);
+        
+        Map<String, String> stringFilteredOutGenes = new LinkedHashMap<>();
         for (Map.Entry<String, FilterStatus> entry : filteredOutGenes.entrySet()) {
-            sb.append(entry.getKey()).append("\t").append(entry.getValue()).append("\n");
+            stringFilteredOutGenes.put(entry.getKey(), entry.getValue().name());
         }
+        rootMap.put("filtered_out_genes", stringFilteredOutGenes);
 
-        try {
-            Files.writeString(Paths.get(METRICS_FILE_NAME), sb.toString(),
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (Exception e) {
-            System.err.println("Failed to write profiling metrics to file: " + e.getMessage());
-        }
+        this.dataWriter.writeData(rootMap, METRICS_FILE_NAME);
     }
 }

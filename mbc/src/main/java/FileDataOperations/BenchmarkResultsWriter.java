@@ -5,51 +5,48 @@ import BenchmarkResult.CompositeBenchmarkResult;
 import Common.GeneClusterData;
 import Enum.BenchmarkType;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import Interfaces.IDataWriter;
+
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BenchmarkResultsWriter {
 
+    private final IDataWriter dataWriter;
+
+    public BenchmarkResultsWriter(IDataWriter dataWriter) {
+        this.dataWriter = dataWriter;
+    }
+
     public void write(CompositeBenchmarkResult compositeResult, String fileName) {
-        try {
-            StringBuilder fileContent = new StringBuilder();
+        List<ClusterBenchmarkResult> results = compositeResult.getResults();
+        Map<String, Object> rootMap = new LinkedHashMap<>();
 
-            List<ClusterBenchmarkResult> results = compositeResult.getResults();
-
-            // 1. Summary Section
-            fileContent.append("=== BENCHMARK SUMMARY ===\n");
-            for (ClusterBenchmarkResult result : results) {
-                fileContent.append(result.getBenchmarkType()).append(":\t").append(result.getBenchmarkValue())
-                        .append("\n");
-            }
-            fileContent.append("\n");
-
-            // 2. Specific Sections
-            for (ClusterBenchmarkResult result : results) {
-                fileContent.append("=== ").append(result.getBenchmarkType()).append(" ===\n");
-                fileContent.append("Global Value:\t").append(result.getBenchmarkValue()).append("\n");
-
-                if (result.getBenchmarkType() == BenchmarkType.Silhouette) {
-                    fileContent.append("\nGene ID\tSilhouette Value\n");
-                    GeneClusterData clusterData = result.getGeneClusterData();
-                    double[] geneValues = result.getBenchmarkGeneValue();
-
-                    if (clusterData != null && geneValues != null) {
-                        for (int g = 0; g < clusterData.getNumberOfGenes(); g++) {
-                            fileContent.append(clusterData.getGeneId(g)).append("\t").append(geneValues[g])
-                                    .append("\n");
-                        }
+        for (ClusterBenchmarkResult result : results) {
+            String benchmarkName = result.getBenchmarkType().name().toLowerCase();
+            
+            if (result.getBenchmarkType() == BenchmarkType.Silhouette) {
+                Map<String, Object> silhouetteMap = new LinkedHashMap<>();
+                silhouetteMap.put("global_value", result.getBenchmarkValue());
+                
+                GeneClusterData clusterData = result.getGeneClusterData();
+                double[] geneValues = result.getBenchmarkGeneValue();
+                
+                if (clusterData != null && geneValues != null) {
+                    Map<String, Double> geneScores = new LinkedHashMap<>();
+                    for (int g = 0; g < clusterData.getNumberOfGenes(); g++) {
+                        geneScores.put(clusterData.getGeneId(g), geneValues[g]);
                     }
+                    silhouetteMap.put("gene_scores", geneScores);
                 }
-
-                fileContent.append("\n");
+                
+                rootMap.put(benchmarkName, silhouetteMap);
+            } else {
+                rootMap.put(benchmarkName, result.getBenchmarkValue());
             }
-
-            Files.writeString(Paths.get(fileName), fileContent.toString());
-        } catch (IOException e) {
-            System.out.println("Error writing benchmark file: " + e.getMessage());
         }
+
+        this.dataWriter.writeData(rootMap, fileName);
     }
 }

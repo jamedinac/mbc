@@ -103,7 +103,13 @@ public class ClusterBenchmarkService implements Callable<Integer> {
 
         // Write results
         String benchmarkOutputPath = FileUtilities.appendSuffixToFileName(clusterDataFilePath, "_benchmarks");
-        BenchmarkResultsWriter writer = new BenchmarkResultsWriter();
+        if (benchmarkOutputPath.contains(".")) {
+            benchmarkOutputPath = benchmarkOutputPath.substring(0, benchmarkOutputPath.lastIndexOf('.')) + ".json";
+        } else {
+            benchmarkOutputPath += ".json";
+        }
+        
+        BenchmarkResultsWriter writer = new BenchmarkResultsWriter(new FileDataOperations.GsonDataWriter());
         writer.write((CompositeBenchmarkResult) result, benchmarkOutputPath);
         System.out.println("Benchmarking completed successfully. Results saved to: " + benchmarkOutputPath);
     }

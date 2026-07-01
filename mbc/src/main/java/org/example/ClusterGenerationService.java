@@ -117,7 +117,7 @@ public class ClusterGenerationService implements Callable<Integer> {
         WorkflowResult result = workflow.execute();
 
         // Output results
-        String processedDataPath = output + "_processed.csv";
+        String processedDataPath = output + "_normalized_data.csv";
         new GeneExpressionDataWrite().writeGeneExpressionDataToFile(result.getProcessedData(), processedDataPath);
 
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();

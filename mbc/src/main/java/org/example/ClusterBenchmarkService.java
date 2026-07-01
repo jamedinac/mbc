@@ -35,9 +35,9 @@ public class ClusterBenchmarkService implements Callable<Integer> {
     @Parameters(index = "1", description = "Path to the gold standard (ground truth) cluster file.")
     private File goldStandardFile;
 
-    @Option(names = { "-p",
-            "--processed-data" }, description = "Path to the processed gene expression matrix (CSV). Required for internal metrics.")
-    private File processedDataFile;
+    @Option(names = { "-nd",
+            "--normalized-data" }, description = "Path to the normalized gene expression matrix (CSV). Required for internal metrics.")
+    private File normalizedDataFile;
 
     @Option(names = { "-d",
             "--distance" }, defaultValue = "correlation", description = "Distance metric (correlation, euclidean, jensenshannon). Default: correlation")
@@ -57,14 +57,14 @@ public class ClusterBenchmarkService implements Callable<Integer> {
         GeneClusterData goldStandard = goldStandardLoader.readClusterData();
 
         // Determine if internal metrics should be calculated
-        boolean includeInternalMetrics = (processedDataFile != null);
+        boolean includeInternalMetrics = (normalizedDataFile != null);
         IGeneDistance geneDistance = null;
 
         if (includeInternalMetrics) {
             geneDistance = DistanceFactory.createDistance(distanceStr);
             System.out.println("Including internal metrics using distance: " + distanceStr);
         } else {
-            System.out.println("Processed data not provided. Calculating external metrics only.");
+            System.out.println("Normalized data not provided. Calculating external metrics only.");
         }
 
         // Build Benchmark Suite using Factory
@@ -85,9 +85,9 @@ public class ClusterBenchmarkService implements Callable<Integer> {
 
         GeneExpressionData alignedData = null;
 
-        if (includeInternalMetrics && processedDataFile != null) {
+        if (includeInternalMetrics && normalizedDataFile != null) {
             ProcessedDataLoad dataLoader = new ProcessedDataLoad();
-            GeneExpressionData processedData = dataLoader.readProcessedData(processedDataFile.getAbsolutePath());
+            GeneExpressionData processedData = dataLoader.readProcessedData(normalizedDataFile.getAbsolutePath());
             alignedData = alignProcessedData(processedData, clusterData);
         } else {
             // Create a dummy GeneExpressionData or handle null inside evaluate if required

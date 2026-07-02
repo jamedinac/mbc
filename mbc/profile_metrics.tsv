@@ -1,0 +1,7 @@
+Category	Metric	Value
+profiling_metrics	input_genes	100
+profiling_metrics	input_samples	39
+profiling_metrics	clustered_genes	100
+profiling_metrics	time_series	12
+profiling_metrics	execution_time_seconds	0.1763711
+profiling_metrics	peak_heap_memory_mb	17.14641571044922

@@ -20,7 +20,7 @@ import java.util.Map;
 public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
     private final IClusterWorkflow wrappedWorkflow;
     private final IDataWriter dataWriter;
-    private static final String METRICS_FILE_NAME = "profile_metrics.json";
+    private static final String METRICS_FILE_NAME = "profile_metrics.tsv";
 
     public ProfileIClusterWorkflowDecorator(IClusterWorkflow wrappedWorkflow, IDataWriter dataWriter) {
         this.wrappedWorkflow = wrappedWorkflow;
@@ -89,5 +89,16 @@ public class ProfileIClusterWorkflowDecorator implements IClusterWorkflow {
         rootMap.put("filtered_out_genes", stringFilteredOutGenes);
 
         this.dataWriter.writeData(rootMap, METRICS_FILE_NAME);
+
+        // Display summary in TSV format
+        System.out.println("\n--- Profiling Results (TSV) ---");
+        System.out.println("Category\tMetric\tValue");
+        System.out.println("profiling_metrics\tinput_genes\t" + inputSummary.getGeneCount());
+        System.out.println("profiling_metrics\tinput_samples\t" + inputSummary.getSampleCount());
+        System.out.println("profiling_metrics\tclustered_genes\t" + processedData.getNumberOfGenes());
+        System.out.println("profiling_metrics\ttime_series\t" + processedData.getSampleIds().length);
+        System.out.println("profiling_metrics\texecution_time_seconds\t" + String.format("%.4f", durationSeconds));
+        System.out.println("profiling_metrics\tpeak_heap_memory_mb\t" + String.format("%.2f", peakMemoryMB));
+        System.out.println("--------------------------------\n");
     }
 }

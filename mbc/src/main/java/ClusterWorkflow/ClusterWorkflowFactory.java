@@ -65,8 +65,8 @@ public class ClusterWorkflowFactory {
         };
 
         if (enableProfiling) {
-            System.out.println("Profiling enabled. Metrics will be saved to profile_metrics.json");
-            return new ProfileIClusterWorkflowDecorator(baseWorkflow, new FileDataOperations.GsonDataWriter());
+            System.out.println("Profiling enabled. Metrics will be saved to profile_metrics.tsv");
+            return new ProfileIClusterWorkflowDecorator(baseWorkflow, new FileDataOperations.TsvDataWriter());
         }
 
         return baseWorkflow;

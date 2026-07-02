@@ -104,14 +104,26 @@ public class ClusterBenchmarkService implements Callable<Integer> {
         // Write results
         String benchmarkOutputPath = FileUtilities.appendSuffixToFileName(clusterDataFilePath, "_benchmarks");
         if (benchmarkOutputPath.contains(".")) {
-            benchmarkOutputPath = benchmarkOutputPath.substring(0, benchmarkOutputPath.lastIndexOf('.')) + ".json";
+            benchmarkOutputPath = benchmarkOutputPath.substring(0, benchmarkOutputPath.lastIndexOf('.')) + ".tsv";
         } else {
-            benchmarkOutputPath += ".json";
+            benchmarkOutputPath += ".tsv";
         }
         
-        BenchmarkResultsWriter writer = new BenchmarkResultsWriter(new FileDataOperations.GsonDataWriter());
+        BenchmarkResultsWriter writer = new BenchmarkResultsWriter(new FileDataOperations.TsvDataWriter());
         writer.write((CompositeBenchmarkResult) result, benchmarkOutputPath);
         System.out.println("Benchmarking completed successfully. Results saved to: " + benchmarkOutputPath);
+
+        // Display summary in TSV format
+        System.out.println("\n--- Benchmark Results (TSV) ---");
+        System.out.println("benchmark\tgeneid\tvalue");
+        if (result instanceof CompositeBenchmarkResult) {
+            for (ClusterBenchmarkResult res : ((CompositeBenchmarkResult) result).getResults()) {
+                System.out.println(res.getBenchmarkType().name().toLowerCase() + "\tglobal\t" + res.getBenchmarkValue());
+            }
+        } else {
+            System.out.println(result.getBenchmarkType().name().toLowerCase() + "\tglobal\t" + result.getBenchmarkValue());
+        }
+        System.out.println("--------------------------------\n");
     }
 
     private GeneExpressionData alignProcessedData(GeneExpressionData processedData, GeneClusterData clusterData) {

@@ -2,6 +2,7 @@ package org.example;
 
 import ClusterWorkflow.ClusterWorkflowFactory;
 import ClusteringAlgorithms.ClusterAlgorithmFactory;
+import Common.GeneClusterData;
 import Common.WorkflowResult;
 import Enum.WorkflowType;
 import FileDataOperations.DataLoad;
@@ -120,8 +121,12 @@ public class ClusterGenerationService implements Callable<Integer> {
         String processedDataPath = output + "_normalized_data.csv";
         new GeneExpressionDataWrite().writeGeneExpressionDataToFile(result.getProcessedData(), processedDataPath);
 
+        // Merge filtered-out genes as an additional cluster (K+1)
+        GeneClusterData mergedClusterData = Utilities.ClusterDataMerger.mergeFilteredGenes(
+                result.getClusterData(), result.getFilteredOutGenes());
+
         IGeneClusterDataWrite geneExpressionDataWrite = new GeneClusterDataWrite();
-        geneExpressionDataWrite.writeClusteringDataToFile(result.getClusterData(), output);
+        geneExpressionDataWrite.writeClusteringDataToFile(mergedClusterData, output);
 
         System.out.println("Clustering completed successfully.");
         return 0;

@@ -23,8 +23,14 @@ public class FuzzyCMeansAlgorithm implements IClusteringAlgorithm {
 
     @Override
     public GeneClusterData clusterGenes(GeneExpressionData data) {
-        System.out.println("Starting Fuzzy C-Means Clustering...");
         int n = data.getNumberOfGenes();
+
+        if (k < 1 || k > n) {
+            throw new IllegalArgumentException(
+                    "k must be between 1 and the number of genes (" + n + "), got " + k);
+        }
+
+        System.out.println("Starting Fuzzy C-Means Clustering...");
         int d = data.getNumberOfComponents();
         double[][] u = initializeMembershipMatrix(n);
         double[][] centroids = new double[k][d];

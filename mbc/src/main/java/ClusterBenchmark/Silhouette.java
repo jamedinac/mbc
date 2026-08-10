@@ -4,7 +4,12 @@ import BenchmarkResult.ClusterBenchmarkResult;
 import Common.*;
 import Interfaces.IClusterBenchmark;
 import Interfaces.IGeneDistance;
+import Utilities.ClusterDataUtilities;
 import Enum.BenchmarkType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Silhouette implements IClusterBenchmark {
     IGeneDistance geneDistance;
@@ -15,64 +20,89 @@ public class Silhouette implements IClusterBenchmark {
 
     @Override
     public ClusterBenchmarkResult evaluate(GeneExpressionData geneExpressionData, GeneClusterData geneClusterData) {
-        int[] clusterId = new int[geneClusterData.getNumberOfGenes()];
-        int[] clusterSize = new int[geneClusterData.getNumberOfClusters()];
+        int numberOfClusters = geneClusterData.getNumberOfClusters();
+        double[] silhouette = new double[geneClusterData.getNumberOfGenes()];
+
+        if (geneExpressionData == null) {
+            return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhouette, 0.0, geneClusterData);
+        }
+
+        List<ScoredGene> genes = this.collectScorableGenes(geneExpressionData, geneClusterData);
+        int[] clusterSize = new int[numberOfClusters];
+        for (ScoredGene gene : genes) {
+            clusterSize[gene.cluster()]++;
+        }
+
+        if (genes.isEmpty()) {
+            return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhouette, 0.0, geneClusterData);
+        }
+
+        double meanSilhouette = 0.0;
+        for (ScoredGene current : genes) {
+            double[] distanceSum = new double[numberOfClusters];
+
+            for (ScoredGene other : genes) {
+                if (other != current) {
+                    distanceSum[other.cluster()] += this.geneDistance.getDistance(current.profile(), other.profile());
+                }
+            }
+
+            int ownCluster = current.cluster();
+            double cohesion = clusterSize[ownCluster] == 1
+                    ? 0.0
+                    : distanceSum[ownCluster] / (clusterSize[ownCluster] - 1);
+
+            // Empty clusters carry no mean distance; averaging over them would yield NaN,
+            // and NaN propagates through Math.min to poison every remaining score.
+            double separation = Double.POSITIVE_INFINITY;
+            for (int cluster = 0; cluster < numberOfClusters; cluster++) {
+                if (cluster != ownCluster && clusterSize[cluster] > 0) {
+                    separation = Math.min(separation, distanceSum[cluster] / clusterSize[cluster]);
+                }
+            }
+
+            double score = 0.0;
+            if (clusterSize[ownCluster] > 1 && Double.isFinite(separation)) {
+                double denominator = Math.max(cohesion, separation);
+                score = denominator == 0.0 ? 0.0 : (separation - cohesion) / denominator;
+            }
+
+            silhouette[current.outputIndex()] = score;
+            meanSilhouette += score;
+        }
+
+        return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhouette, meanSilhouette / genes.size(), geneClusterData);
+    }
+
+    /**
+     * Pairs each clustered gene with its expression profile by gene ID.
+     *
+     * <p>The cluster file also lists genes that never reached the clustering step (the basal
+     * cluster), which have no row in the normalized matrix. Those genes are skipped rather
+     * than indexed positionally, which would read past the end of the expression matrix.</p>
+     */
+    private List<ScoredGene> collectScorableGenes(GeneExpressionData geneExpressionData, GeneClusterData geneClusterData) {
+        HashMap<String, Integer> expressionRowByGeneId = ClusterDataUtilities.buildExpressionRowIndex(geneExpressionData);
+        List<ScoredGene> genes = new ArrayList<>();
 
         for (int g = 0; g < geneClusterData.getNumberOfGenes(); g++) {
-            clusterId[g] = this.getGeneClusterId(g, geneClusterData);
-            clusterSize[clusterId[g]]++;
-        }
+            int cluster = ClusterDataUtilities.getHardClusterId(geneClusterData.getClusteringData()[g]);
+            Integer expressionRow = expressionRowByGeneId.get(geneClusterData.getGeneId(g));
 
-        double[] similarity = new double[geneClusterData.getNumberOfGenes()];
-        double[] dissimilarity = new double[geneClusterData.getNumberOfGenes()];
-        double[] silhoutte = new  double[geneClusterData.getNumberOfGenes()];
-
-        for (int currentGene = 0; currentGene< geneClusterData.getNumberOfGenes(); currentGene++) {
-            double[] distance = new double[geneClusterData.getNumberOfClusters()];
-
-            for (int iteratingGene = 0; iteratingGene < geneClusterData.getNumberOfGenes(); iteratingGene++) {
-                if (iteratingGene != currentGene) {
-                    distance[clusterId[iteratingGene]] += this.geneDistance.getDistance(geneExpressionData.getGeneProfile(currentGene), geneExpressionData.getGeneProfile(iteratingGene));
-                }
-            }
-
-            for (int cluster = 0; cluster < geneClusterData.getNumberOfClusters(); cluster++) {
-                if (cluster != clusterId[currentGene]) {
-                    distance[cluster] /= clusterSize[cluster];
-                    dissimilarity[currentGene] = distance[cluster];
-                } else {
-                    distance[cluster] = clusterSize[cluster] == 1 ? 0 : distance[cluster] / (clusterSize[cluster] - 1);
-                }
-            }
-
-            similarity[currentGene] = distance[clusterId[currentGene]];
-            for (int cluster = 0; cluster < geneClusterData.getNumberOfClusters(); cluster++) {
-                if (cluster != clusterId[currentGene]) {
-                    dissimilarity[currentGene] = Math.min(dissimilarity[currentGene], distance[cluster]);
-                }
+            if (cluster >= 0 && expressionRow != null) {
+                genes.add(new ScoredGene(g, cluster, geneExpressionData.getGeneProfile(expressionRow)));
             }
         }
 
-        double meanSilhouette = 0;
-        for (int gene = 0; gene < geneClusterData.getNumberOfGenes(); gene++) {
-            if (clusterSize[clusterId[gene]] == 1) {
-                silhoutte[gene] = 0;
-            } else {
-                silhoutte[gene] = (dissimilarity[gene] - similarity[gene]) / Math.max(similarity[gene], dissimilarity[gene]);
-            }
-            meanSilhouette += silhoutte[gene];
-        }
-
-        return new ClusterBenchmarkResult(BenchmarkType.Silhouette, silhoutte ,meanSilhouette / geneClusterData.getNumberOfGenes(), geneClusterData);
+        return genes;
     }
 
-    private int getGeneClusterId(int g, GeneClusterData geneClusterData) {
-        int clusterId = -1;
-        for(int c = 0; c < geneClusterData.getNumberOfClusters(); c++) {
-            if (geneClusterData.getClusteringData()[g][c] == 1.0) {
-                clusterId = c;
-            }
-        }
-        return clusterId;
-    }
+    /**
+     * A clustered gene that has an expression profile available.
+     *
+     * @param outputIndex its row in the cluster data, used to place the per-gene score
+     * @param cluster     its hard cluster label
+     * @param profile     its expression profile
+     */
+    private record ScoredGene(int outputIndex, int cluster, double[] profile) {}
 }

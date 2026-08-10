@@ -21,9 +21,15 @@ public class KMeansAlgorithm implements IClusteringAlgorithm {
 
     @Override
     public GeneClusterData clusterGenes(GeneExpressionData geneExpressionData) {
-        System.out.println("Starting KMeans Clustering...");
         int numberOfGenes = geneExpressionData.getNumberOfGenes();
 
+        // Without this guard generateCentroids spins forever looking for an unused gene.
+        if (k < 1 || k > numberOfGenes) {
+            throw new IllegalArgumentException(
+                    "k must be between 1 and the number of genes (" + numberOfGenes + "), got " + k);
+        }
+
+        System.out.println("Starting KMeans Clustering...");
         double[][] centroids = generateCentroids(geneExpressionData);
         int[] clusterAssignation = new int[numberOfGenes];
         int restarts = 0;

@@ -8,13 +8,17 @@ import java.util.ArrayList;
 public class AggregationUtilities {
     
     /**
-     * Calculates the sample variance of an array list of doubles.
-     * 
+     * Calculates the unbiased sample variance of an array list of doubles.
+     *
      * @param a the list of numerical values
-     * @return the variance of the values
+     * @return the variance of the values, or 0.0 for fewer than two values
      */
     public static double variance(ArrayList<Double> a) {
         int n = a.size();
+        if (n < 2) {
+            return 0.0;
+        }
+
         double res = 0.0;
         double m = mean(a);
 
@@ -22,7 +26,7 @@ public class AggregationUtilities {
             res += (a.get(i) - m) * (a.get(i) - m);
         }
 
-        return res / n;
+        return res / (n - 1);
     }
 
     /**

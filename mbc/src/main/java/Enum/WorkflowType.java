@@ -17,16 +17,29 @@ public enum WorkflowType {
      */
     TRAC_GLM;
 
+    /** The {@code --norm} value that selects the significance-driven TRaC-GLM workflow. */
+    public static final String TRAC_GLM_NORM = "trac-glm";
+
     /**
      * Determines the appropriate workflow type based on the requested normalization methods.
      *
      * @param normMethods The list of normalization methods requested by the user.
-     * @return The determined WorkflowType.
+     * @return TRAC_GLM when no method is given or {@value #TRAC_GLM_NORM} is among them,
+     *         STANDARD otherwise.
      */
     public static WorkflowType determineFromConfig(List<String> normMethods) {
-        if (normMethods == null || normMethods.isEmpty() || normMethods.contains("irls")) {
+        if (normMethods == null || normMethods.isEmpty()) {
             return TRAC_GLM;
         }
+
+        // Matched case-insensitively so that "-n TRaC-GLM" behaves like "-n trac-glm";
+        // NormalizerFactory already lowercases its own lookups.
+        for (String normMethod : normMethods) {
+            if (normMethod != null && normMethod.trim().equalsIgnoreCase(TRAC_GLM_NORM)) {
+                return TRAC_GLM;
+            }
+        }
+
         return STANDARD;
     }
 }

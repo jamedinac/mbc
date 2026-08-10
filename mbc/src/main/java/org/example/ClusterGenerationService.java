@@ -51,7 +51,7 @@ public class ClusterGenerationService implements Callable<Integer> {
     @Option(names = {"--minPts"}, defaultValue = "5", description = "Minimum points parameter for DBSCAN. Default: 5")
     private Integer minPts;
 
-    @Option(names = {"-n", "--norm"}, split = ",", description = "Normalization methods to apply in order (irls,zscore,median,pseudolog,countdist). Default: irls")
+    @Option(names = {"-n", "--norm"}, split = ",", description = "Workflow/normalization selector. Use trac-glm (default) for the GLM + Wald + FDR workflow, or one or more of zscore,median,pseudolog,countdist for the standard workflow. Default: trac-glm")
     private List<String> norm;
 
     @Option(names = {"-f", "--filter"}, split = ",", description = "List of filters to apply (e.g., --filter non-zero,variance,1.0,total-expression,1.0,significance,0.05)")

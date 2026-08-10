@@ -4,6 +4,10 @@ target/
 !**/src/test/**/target/
 .kotlin
 
+### Generated output ###
+# Written into the working directory by any --profile run
+profile_metrics.tsv
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

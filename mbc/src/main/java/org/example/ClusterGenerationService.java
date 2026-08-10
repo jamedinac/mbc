@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@Command(name = "ClusterGenerationService", mixinStandardHelpOptions = true, version = "1.0",
+@Command(name = "ClusterGenerationService", mixinStandardHelpOptions = true, version = "2.0.0-beta",
         description = "Gene Expression Trajectory Clustering Engine based on GLM Betas.")
 public class ClusterGenerationService implements Callable<Integer> {
 

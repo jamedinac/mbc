@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-@Command(name = "ClusterBenchmarkService", mixinStandardHelpOptions = true, version = "1.0", description = "Evaluates clustering results against a gold standard and optionally calculates internal metrics.")
+@Command(name = "ClusterBenchmarkService", mixinStandardHelpOptions = true, version = "2.0.0-beta", description = "Evaluates clustering results against a gold standard and optionally calculates internal metrics.")
 public class ClusterBenchmarkService implements Callable<Integer> {
 
     @Parameters(index = "0", description = "Path to the generated clustering results file.")

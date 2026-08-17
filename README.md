@@ -45,20 +45,40 @@ You do not need to build the project from source to use it. Simply download the 
 
 ### Building from source
 
-The Maven project lives in the **`mbc/` subdirectory**, not at the repository root:
+Cloning the repository creates a top-level `mbc/` folder, and the Maven project lives in
+a **nested `mbc/` module** one level down — so the `pom.xml` you build against is at
+`mbc/mbc/pom.xml`, **not** at the repository root:
 
-```bash
-cd mbc && mvn clean package
+```text
+mbc/                 <- repository root (created by git clone)
+├── LICENSE
+├── README.md
+└── mbc/             <- Maven module — build from here
+    ├── pom.xml
+    ├── data/
+    └── src/
 ```
 
-This produces `mbc/target/ClusterGenerationService.jar` and
-`mbc/target/ClusterBenchmarkService.jar` (self-contained "fat" JARs).
+Clone the repository and move into that nested module directory before building:
+
+```bash
+git clone https://github.com/jamedinac/mbc.git
+cd mbc/mbc
+mvn clean package
+```
+
+This produces the two self-contained "fat" JARs in `target/` (relative to the module
+directory, i.e. `mbc/mbc/target/`):
+
+- `target/ClusterGenerationService.jar`
+- `target/ClusterBenchmarkService.jar`
 
 ---
 
 ## Quick Start
 
-All commands below assume you are inside the `mbc/` directory.
+All commands below assume you are inside the Maven module directory (`mbc/mbc/`, the one
+containing `pom.xml`, `data/` and `src/`). If you built from source you are already there.
 
 ```bash
 java -jar target/ClusterGenerationService.jar data/data.tsv data/metadata.tsv results/demo -k 4 --filter significance,0.5
@@ -372,10 +392,11 @@ filtered_out_genes	GENE303	SIGNIFICANCE_FILTER
 
 The 1000-gene dataset behind the published benchmarks is produced by the bundled
 simulator, which is fully deterministic (seed 42) and regenerates the dataset
-byte-for-byte:
+byte-for-byte. From the Maven module directory (`mbc/mbc/`, the one containing `pom.xml`):
 
 ```bash
-cd mbc && mvn clean package && java -cp target/classes org.example.SimulateDataGeneratorService ./data/simulated
+mvn clean package
+java -cp target/classes org.example.SimulateDataGeneratorService ./data/simulated
 ```
 
 This writes `data.tsv`, `metadata.tsv` and `ground_truth.txt`: 1000 genes, 3 replicates
